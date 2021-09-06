@@ -1,6 +1,7 @@
 import { css } from "@emotion/css";
 import React from "react";
 import { Header } from "../common/Header";
+import { commonStyles } from "../styles";
 
 interface Props {
   error: Error;
@@ -23,5 +24,5 @@ const styles = {
     margin: "0 auto",
     maxWidth: "1200px",
   }),
-  article: css({}),
+  article: commonStyles.article,
 };

@@ -44,7 +44,7 @@ export const WorkPage = ({ work, sound }: Props) => {
       <article className={styles.article}>
         {/* TOOD Make artwork smaller */}
         <div className={styles.artwork}>
-          <img src={work.src} width="400px" height="400px" />
+          <img src={work.src} width="400px" height="400px" alt="artwork" />
           <div>Add an artwork</div>
         </div>
         <div className={styles.description}>

@@ -1,5 +1,5 @@
 import * as React from "react";
-import ReactMapGL, { NavigationControl } from "react-map-gl";
+import ReactMapGL from "react-map-gl";
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
 const initialState = {
