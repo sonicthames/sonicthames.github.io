@@ -8,7 +8,7 @@ interface Props {}
 /**
  */
 export const NotFoundPage = ({}: Props) => (
-  <div className={styles.component}>
+  <div className={styles.page}>
     <Header />
     <article className={styles.article}>
       <h1>Page not found!</h1>
@@ -17,9 +17,6 @@ export const NotFoundPage = ({}: Props) => (
 );
 
 const styles = {
-  component: css({
-    margin: "0 auto",
-    maxWidth: "1200px",
-  }),
+  page: css({}),
   article: commonStyles.article,
 };

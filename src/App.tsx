@@ -44,11 +44,23 @@ export const App = ({ history }: Props) => (
           <Route path="/contact">
             <ContactPage />
           </Route>
-          <Route exact path="/">
-            <Redirect to="/main" />
-          </Route>
           <Route path="*">
-            <NotFoundPage />
+            {(props) =>
+              pipe(props.location, (l) =>
+                l.pathname === "/" && l.search.startsWith("?/") ? (
+                  <Redirect to={l.search.substr(1)} />
+                ) : (
+                  <Switch>
+                    <Route exact path="/">
+                      <Redirect to="/main" />
+                    </Route>
+                    <Route path="*">
+                      <NotFoundPage />
+                    </Route>
+                  </Switch>
+                )
+              )
+            }
           </Route>
         </Switch>
       </ThemeProvider>
