@@ -1,11 +1,11 @@
 import { ThemeProvider } from "@material-ui/core";
 import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import * as RR from "fp-ts/ReadonlyRecord";
+import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
 import React from "react";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
-import { Sound, Work } from "./domain/base";
+import { sounds } from "./data";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { ContactPage } from "./pages/contact/Page";
 import { CrashPage } from "./pages/crash/Page";
@@ -13,8 +13,6 @@ import { MainPage } from "./pages/main/Page";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { WorkPage } from "./pages/work/Page";
 import { theme } from "./theme/theme";
-
-const works: Readonly<Record<string, [Work, Sound]>> = {};
 
 interface Props {
   history: History<unknown>;
@@ -26,17 +24,17 @@ export const App = ({ history }: Props) => (
       <ThemeProvider theme={theme}>
         <Switch>
           <Route path="/main">
-            <MainPage />
+            <MainPage sounds={sounds} />
           </Route>
           <Route path="/work/:index">
             {(props) =>
               pipe(
                 props.match?.params.index,
                 O.fromNullable,
-                O.chain((index) => pipe(works, RR.lookup(index))),
+                O.chain((index) => pipe(sounds, RA.lookup(+index))),
                 O.fold(
                   () => <NotFoundPage />,
-                  ([work, sound]) => <WorkPage work={work} sound={sound} />
+                  (sound) => <WorkPage sound={sound} />
                 )
               )
             }

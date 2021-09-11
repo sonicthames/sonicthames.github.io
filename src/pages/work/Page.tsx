@@ -6,17 +6,17 @@ import * as RA from "fp-ts/ReadonlyArray";
 import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
-import { Sound, Work } from "../../domain/base";
+import { Sound } from "../../domain/base";
+import { Header } from "../common/Header";
 
 interface Props {
-  work: Work;
   sound: Sound;
 }
 
 /**
  * This is the Sound's technical sheet
  */
-export const WorkPage = ({ work, sound }: Props) => {
+export const WorkPage = ({ sound }: Props) => {
   const [lorem] = useState(
     () =>
       new LoremIpsum({
@@ -36,104 +36,112 @@ export const WorkPage = ({ work, sound }: Props) => {
   lorem.generateParagraphs(7);
   return (
     <div className={styles.component}>
-      <header className={styles.header}>
-        {/* <h1 className={css({ textAlign: "center" })}> */}
-        {/* TODO Align with artwork and image */}
-        <h1>Sound Sculpture</h1>
-      </header>
-      <article className={styles.article}>
-        {/* TOOD Make artwork smaller */}
-        <div className={styles.artwork}>
-          <img src={work.src} width="400px" height="400px" alt="artwork" />
-          <div>Add an artwork</div>
-        </div>
-        <div className={styles.description}>
-          <h2>{sound.title}</h2>
-          <div>{sound.description}</div>
-          <div>
-            <p>{lorem.generateSentences(5)}</p>
-            <p>{lorem.generateSentences(4)}</p>
+      <Header />
+      <main>
+        <header className={styles.header}>
+          {/* <h1 className={css({ textAlign: "center" })}> */}
+          {/* TODO Align with artwork and image */}
+          <h1>Sound Sculpture</h1>
+        </header>
+        <article className={styles.article}>
+          {/* TOOD Make artwork smaller */}
+          <div className={styles.artwork}>
+            <img
+              src={sound.thumbnailSrc}
+              width="400px"
+              height="400px"
+              alt="artwork"
+            />
+            <div>Add an artwork</div>
           </div>
-        </div>
-        <div className={styles.info}>
-          <h3>Recording technical sheet</h3>
-          <ul className={styles.details}>
-            <li>
-              <dt>Date:</dt>
-              <dd>{date.format(work.date, "do MMMM yyyy")}</dd>
-            </li>
-            <li>
-              <dt>Time:</dt>
-              <dd>111000</dd>
-            </li>
-            <li>
-              <dt>Place:</dt>
-              <dd>Enbankment</dd>
-            </li>
-            <li>
-              <dt>Map Location:</dt>
-              <dd>{`${sound.position.lat} lat, ${sound.position.lng} lng`}</dd>
-            </li>
-            <li>
-              <dt>Piece duration:</dt>
-              <dd>111000</dd>
-            </li>
-            <li>
-              <dt>Weather:</dt>
-              <dd>111000</dd>
-            </li>
-          </ul>
-          <div
-            className={css({
-              display: "flex",
-            })}
-          >
-            <strong
+          <div className={styles.description}>
+            <h2>{sound.title}</h2>
+            <div>{sound.description}</div>
+            <div>
+              <p>{lorem.generateSentences(5)}</p>
+              <p>{lorem.generateSentences(4)}</p>
+            </div>
+          </div>
+          <div className={styles.info}>
+            <h3>Recording technical sheet</h3>
+            <ul className={styles.details}>
+              <li>
+                <dt>Date:</dt>
+                <dd>{date.format(sound.date, "do MMMM yyyy")}</dd>
+              </li>
+              <li>
+                <dt>Time:</dt>
+                <dd>111000</dd>
+              </li>
+              <li>
+                <dt>Place:</dt>
+                <dd>Enbankment</dd>
+              </li>
+              <li>
+                <dt>Map Location:</dt>
+                <dd>{`${sound.position.lat} lat, ${sound.position.lng} lng`}</dd>
+              </li>
+              <li>
+                <dt>Piece duration:</dt>
+                <dd>111000</dd>
+              </li>
+              <li>
+                <dt>Weather:</dt>
+                <dd>111000</dd>
+              </li>
+            </ul>
+            <div
               className={css({
-                marginRight: 16,
+                display: "flex",
               })}
             >
-              Microphones:
-            </strong>
-            {/* Description with ticks */}
-            <span>
-              {pipe(
-                sound.microphones || {},
-                RR.filterMap((v) => (v === false ? O.none : O.some(v))),
-                RR.toReadonlyArray,
-                RA.map(([k, v]) =>
-                  v === true
-                    ? k
-                    : `${k}${pipe(
-                        v.subcategories ?? [],
-                        (xs) => (typeof xs === "string" ? [xs] : xs),
-                        RA.head,
-                        O.fold(
-                          () => "",
-                          (x) => ` (${x})`
-                        )
-                      )}`
-                ),
-                (x) => x.join(", ")
-              )}
-            </span>
+              <strong
+                className={css({
+                  marginRight: 16,
+                })}
+              >
+                Microphones:
+              </strong>
+              {/* Description with ticks */}
+              <span>
+                {pipe(
+                  sound.microphones || {},
+                  RR.filterMap((v) => (v === false ? O.none : O.some(v))),
+                  RR.toReadonlyArray,
+                  RA.map(([k, v]) =>
+                    v === true
+                      ? k
+                      : `${k}${pipe(
+                          v.subcategories ?? [],
+                          (xs) => (typeof xs === "string" ? [xs] : xs),
+                          RA.head,
+                          O.fold(
+                            () => "",
+                            (x) => ` (${x})`
+                          )
+                        )}`
+                  ),
+                  (x) => x.join(", ")
+                )}
+              </span>
+            </div>
           </div>
-        </div>
-        <div className={styles.video}>
-          {/* 426x240 */}
-          <iframe
-            title={sound.title}
-            width="320"
-            height="240"
-            style={{
-              width: "100%",
-              border: "none",
-              boxSizing: "border-box",
-            }}
-            src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
-          />
-        </div>
-      </article>
+          <div className={styles.video}>
+            {/* 426x240 */}
+            <iframe
+              title={sound.title}
+              width="320"
+              height="240"
+              style={{
+                width: "100%",
+                border: "none",
+                boxSizing: "border-box",
+              }}
+              src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
+            />
+          </div>
+        </article>
+      </main>
     </div>
   );
 };

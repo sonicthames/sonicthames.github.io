@@ -7,7 +7,7 @@ interface Props {}
 
 /**
  */
-export const NotFoundPage = ({}: Props) => (
+export const NotFoundPage = (_: Props) => (
   <div className={styles.page}>
     <Header />
     <article className={styles.article}>

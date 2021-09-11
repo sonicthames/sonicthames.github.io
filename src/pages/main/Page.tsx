@@ -5,7 +5,7 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import * as S from "fp-ts/String";
 import React from "react";
-import { sounds } from "../../data";
+import { Link } from "react-router-dom";
 import { Sound } from "../../domain/base";
 import { Header } from "../common/Header";
 import { commonStyles } from "../styles";
@@ -21,17 +21,21 @@ const group = <A extends unknown>(S: EQ.Eq<A>) => {
   });
 };
 
-const soundsByCategory = pipe(
-  sounds,
-  group(EQ.Contravariant.contramap<string, Sound>(S.Eq, (s) => s.category))
+const byCategory = group(
+  EQ.Contravariant.contramap<string, readonly [number, Sound]>(
+    S.Eq,
+    ([_, s]) => s.category
+  )
 );
 
-interface Props {}
+interface Props {
+  sounds: ReadonlyArray<Sound>;
+}
 
 /**
  * This is the Sound's technical sheet
  */
-export const MainPage = (_: Props) => {
+export const MainPage = ({ sounds }: Props) => {
   return (
     <div className={styles.component}>
       <Header />
@@ -40,19 +44,21 @@ export const MainPage = (_: Props) => {
         <div className={styles.videos}>
           <ul className={styles.categoryList}>
             {pipe(
-              soundsByCategory,
+              sounds,
+              RA.mapWithIndex((k, v) => [k, v] as const),
+              byCategory,
               RA.mapWithIndex((i, xs) =>
                 pipe(
                   xs,
                   RA.head,
-                  O.fold(constNull, (h) => (
+                  O.fold(constNull, ([i, h]) => (
                     <li className={styles.categoryItem(i % 2 === 0)}>
                       <h2>{h.category}</h2>
                       {/* TODO Round corners on thumbnail images / as Apple's icons */}
                       <ul className={styles.ul}>
                         {pipe(
                           xs,
-                          RA.map((x) => (
+                          RA.map(([k, x]) => (
                             <li
                               id={x.videoSrc}
                               className={styles.li}
@@ -68,7 +74,9 @@ export const MainPage = (_: Props) => {
                                   src={`https://www.youtube.com/embed/${x.videoSrc}?rel=0`}
                                 />
                               </div>
-                              <div className={styles.title}>{x.title}</div>
+                              <div className={styles.title}>
+                                <Link to={`/work/${k}`}>{x.title}</Link>
+                              </div>
                               <div>
                                 <div style={styles.description}>
                                   {pipe(

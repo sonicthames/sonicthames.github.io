@@ -38,6 +38,11 @@ export const sounds: ReadonlyArray<Sound> = [
         enabled: true,
       },
     },
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 10, lng: 20 },
@@ -72,7 +77,14 @@ export const sounds: ReadonlyArray<Sound> = [
         enabled: true,
       },
     },
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
+
   {
     position: { lat: 51.47, lng: 0.28 },
     title: "Amazing Nature Scenery",
@@ -88,6 +100,12 @@ export const sounds: ReadonlyArray<Sound> = [
       },
       contact: false,
     },
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.44, lng: 0.51 },
@@ -96,6 +114,12 @@ export const sounds: ReadonlyArray<Sound> = [
     description:
       'PELÍCULA DE 7 HORAS 4K DRONE: "Earth from Above" + Music by Nature Relaxation',
     category: "Sonic Sculptures",
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.44, lng: 0.51 },
@@ -107,6 +131,12 @@ export const sounds: ReadonlyArray<Sound> = [
     microphones: {
       binaural: true,
     },
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.45, lng: 0.37 },
@@ -114,6 +144,12 @@ export const sounds: ReadonlyArray<Sound> = [
     videoSrc: "CxwJrzEdw1U",
     description: "Norway 4K - Scenic Relaxation Film with Calming Music",
     category: "Sonic Sculptures",
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.48, lng: 0.51 },
@@ -125,6 +161,12 @@ export const sounds: ReadonlyArray<Sound> = [
       binaural: true,
       contact: true,
     },
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.46, lng: 0.27 },
@@ -136,6 +178,11 @@ export const sounds: ReadonlyArray<Sound> = [
       binaural: true,
       contact: true,
     },
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.46, lng: 0.48 },
@@ -143,6 +190,12 @@ export const sounds: ReadonlyArray<Sound> = [
     videoSrc: "hqG8u0jsk1A",
     description: "",
     category: "Sound Walks",
+
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
   {
     position: { lat: 51.47, lng: 0.49 },
@@ -150,5 +203,10 @@ export const sounds: ReadonlyArray<Sound> = [
     videoSrc: "ht2ERtFfFPw",
     description: "Emotional and Relaxing Drama & Epic Film Music",
     category: "Soundscapes",
+    thumbnailSrc: "/thumbnails/placeholder.jpeg",
+    date: new Date(),
+    price: 10,
+    format: "Format",
+    length: 10,
   },
 ];

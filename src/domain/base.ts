@@ -40,10 +40,7 @@ export interface Sound {
         }
     >
   >;
-}
-
-export interface Work {
-  src: string;
+  thumbnailSrc: string;
   date: Date; // Date;
   price: number; // Should be money
   format: string;
