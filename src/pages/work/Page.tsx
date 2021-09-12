@@ -41,7 +41,6 @@ export const WorkPage = ({ sound }: Props) => {
   const commonStyles = makeCommonStyles(deviceType);
   return (
     <div className={commonStyles.page}>
-      <Header />
       <main className={commonStyles.main}>
         <header className={styles.header}>
           {/* <h1 className={css({ textAlign: "center" })}> */}

@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { brandColors } from "../theme/colors";
 import { DeviceType } from "../theme/device";
 import { maxPageSize, spaceRem } from "../theme/spacing";
@@ -9,10 +9,12 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
       display: "flex",
       flex: 1,
       flexDirection: "column",
+      position: "relative",
       backgroundColor: brandColors.neve.primary,
     }),
     // TODO Should be main
-    main:
+    main: cx(
+      css({ flex: 1 }),
       deviceType === "desktop"
         ? css({
             margin: "0 auto",
@@ -21,5 +23,6 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
           })
         : css({
             padding: `0 ${spaceRem()}`,
-          }),
+          })
+    ),
   } as const);

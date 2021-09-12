@@ -3,7 +3,6 @@ import { Button, TextField } from "@material-ui/core";
 import React from "react";
 import { useDeviceType } from "../../theme/media";
 import { spaceRem } from "../../theme/spacing";
-import { Header } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 interface Props {}
@@ -15,7 +14,6 @@ export const ContactPage = (_: Props) => {
   const commonStyles = makeCommonStyles(deviceType);
   return (
     <div className={commonStyles.page}>
-      <Header />
       <main className={commonStyles.main}>
         <div className={styles.content}>
           <div>

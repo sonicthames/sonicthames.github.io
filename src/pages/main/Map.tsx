@@ -1,12 +1,14 @@
 import * as React from "react";
 import ReactMapGL from "react-map-gl";
+import { brandColors, colorToCssHex } from "../../theme/colors";
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
 const initialState = {
   viewport: {
-    height: 500,
-    latitude: 51.46,
-    longitude: 0.4,
+    // height: 500,
+    height: "100vh",
+    latitude: 51.501,
+    longitude: -0.001,
     width: 400,
     zoom: 11,
     maxZoom: 13,
@@ -14,12 +16,12 @@ const initialState = {
   },
 };
 const minBound = {
-  latitude: 51.4,
-  longitude: 0.3,
+  latitude: initialState.viewport.latitude - 0.08,
+  longitude: initialState.viewport.longitude - 0.13,
 };
 const maxBound = {
-  latitude: 51.52,
-  longitude: 0.5,
+  latitude: initialState.viewport.latitude + 0.08,
+  longitude: initialState.viewport.longitude + 0.13,
 };
 
 type State = typeof initialState;
@@ -89,7 +91,7 @@ export class Map extends React.Component<{}, State> {
               id: "background",
               type: "background",
               paint: {
-                "background-color": "#dedede",
+                "background-color": colorToCssHex(brandColors.map.land),
               },
             },
             {
@@ -101,7 +103,7 @@ export class Map extends React.Component<{}, State> {
               //   simplification: 6,
               // },
               paint: {
-                "fill-color": "#00ffff",
+                "fill-color": colorToCssHex(brandColors.map.water),
               },
               // maxzoom: 8,
             },
