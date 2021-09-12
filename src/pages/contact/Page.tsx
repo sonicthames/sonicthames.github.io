@@ -26,7 +26,12 @@ export const ContactPage = (_: Props) => {
               feedback, input, suggestions and of course you positive feedback.
             </div>
           </div>
-          <form className={styles.form}>
+          <form
+            className={styles.form}
+            action="mailto:contact@sonicthames.org.uk"
+            encType="multipart/form-data"
+          >
+            <input type="hidden" name="subject" value="Send us your thoughts" />
             <div>
               <TextField
                 fullWidth
@@ -50,15 +55,17 @@ export const ContactPage = (_: Props) => {
               <TextField
                 fullWidth
                 label="Message"
+                name="body"
                 margin="dense"
                 minRows={3}
                 multiline={true}
-                name="message"
                 variant="outlined"
               />
             </div>
             <div>
-              <Button variant="outlined">Send Message</Button>
+              <Button type="submit" variant="outlined">
+                Send Message
+              </Button>
             </div>
           </form>
         </div>
