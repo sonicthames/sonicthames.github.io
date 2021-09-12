@@ -12,6 +12,8 @@ import { CrashPage } from "./pages/crash/Page";
 import { MainPage } from "./pages/main/Page";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { WorkPage } from "./pages/work/Page";
+import { AboutPage } from "./pages/about/Page";
+
 import { theme } from "./theme/theme";
 
 interface Props {
@@ -25,6 +27,9 @@ export const App = ({ history }: Props) => (
         <Switch>
           <Route path="/main">
             <MainPage sounds={sounds} />
+          </Route>
+          <Route path="/about">
+            <AboutPage />
           </Route>
           <Route path="/work/:index">
             {(props) =>

@@ -7,7 +7,9 @@ import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
 import { Sound } from "../../domain/base";
+import { useDeviceType } from "../../theme/media";
 import { Header } from "../common/Header";
+import { makeCommonStyles } from "../styles";
 
 interface Props {
   sound: Sound;
@@ -34,10 +36,13 @@ export const WorkPage = ({ sound }: Props) => {
   lorem.generateWords(1);
   lorem.generateSentences(5);
   lorem.generateParagraphs(7);
+
+  const deviceType = useDeviceType();
+  const commonStyles = makeCommonStyles(deviceType);
   return (
-    <div className={styles.component}>
+    <div className={commonStyles.page}>
       <Header />
-      <main>
+      <main className={commonStyles.main}>
         <header className={styles.header}>
           {/* <h1 className={css({ textAlign: "center" })}> */}
           {/* TODO Align with artwork and image */}
@@ -52,7 +57,6 @@ export const WorkPage = ({ sound }: Props) => {
               height="400px"
               alt="artwork"
             />
-            <div>Add an artwork</div>
           </div>
           <div className={styles.description}>
             <h2>{sound.title}</h2>

@@ -3,7 +3,6 @@ import { brandColors } from "./colors";
 
 export const theme = createTheme({
   palette: {
-    primary: brandColors.primary,
-    secondary: brandColors.action,
+    primary: brandColors.action,
   },
 });

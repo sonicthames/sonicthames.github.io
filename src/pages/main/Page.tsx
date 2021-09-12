@@ -7,19 +7,19 @@ import * as S from "fp-ts/String";
 import React from "react";
 import { Link } from "react-router-dom";
 import { Sound } from "../../domain/base";
+import { useDeviceType } from "../../theme/media";
 import { Header } from "../common/Header";
-import { commonStyles } from "../styles";
+import { makeCommonStyles } from "../styles";
 import { Map } from "./Map";
 
-const group = <A extends unknown>(S: EQ.Eq<A>) => {
-  return RA.chop((as: ReadonlyArray<A>) => {
+const group = <A extends unknown>(S: EQ.Eq<A>) =>
+  RA.chop((as: ReadonlyArray<A>) => {
     const { init, rest } = pipe(
       as,
       RA.spanLeft((a: A) => S.equals(a, as[0]))
     );
     return [init, rest];
   });
-};
 
 const byCategory = group(
   EQ.Contravariant.contramap<string, readonly [number, Sound]>(
@@ -36,11 +36,13 @@ interface Props {
  * This is the Sound's technical sheet
  */
 export const MainPage = ({ sounds }: Props) => {
+  const deviceType = useDeviceType();
+  const commonStyles = makeCommonStyles(deviceType);
   return (
-    <div className={styles.component}>
+    <div className={commonStyles.page}>
       <Header />
       <Map />
-      <article className={styles.article}>
+      <main className={commonStyles.main}>
         <div className={styles.videos}>
           <ul className={styles.categoryList}>
             {pipe(
@@ -51,7 +53,7 @@ export const MainPage = ({ sounds }: Props) => {
                 pipe(
                   xs,
                   RA.head,
-                  O.fold(constNull, ([i, h]) => (
+                  O.fold(constNull, ([, h]) => (
                     <li className={styles.categoryItem(i % 2 === 0)}>
                       <h2>{h.category}</h2>
                       {/* TODO Round corners on thumbnail images / as Apple's icons */}
@@ -98,14 +100,13 @@ export const MainPage = ({ sounds }: Props) => {
             )}
           </ul>
         </div>
-      </article>
+      </main>
     </div>
   );
 };
 
 const styles = {
   component: css({}),
-  article: commonStyles.article,
   videos: css({ width: "100%" }),
   categoryList: css({
     listStyle: "none",
@@ -140,7 +141,6 @@ const styles = {
   }),
   li: css({}),
   video: css({
-    // backgroundColor: "green",
     display: "flex",
   }),
   videoIframe: css({
@@ -149,18 +149,15 @@ const styles = {
     boxSizing: "border-box",
   }),
   title: css({
-    // backgroundColor: "orange",
     marginBottom: 0,
     fontSize: "1.25rem",
     fontWeight: "bold",
   }),
   category: css({
-    // backgroundColor: "purple",
     fontStyle: "italic",
     fontSize: "1.25rem",
   }),
   description: {
-    // backgroundColor: "yellow",
     fontStyle: "italic",
   },
 };

@@ -9,7 +9,7 @@ interface Props {}
 
 /**
  */
-export const NotFoundPage = (_: Props) => {
+export const AboutPage = (_: Props) => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
   return (
@@ -17,7 +17,8 @@ export const NotFoundPage = (_: Props) => {
       <Header />
       <main className={commonStyles.main}>
         <div className={styles.content}>
-          <h1>Page not found!</h1>
+          <h1>About</h1>
+          <div>Page doesn't exist yet!</div>
         </div>
       </main>
     </div>
@@ -27,5 +28,6 @@ export const NotFoundPage = (_: Props) => {
 const styles = {
   content: css({
     marginTop: spaceRem("xl"),
+    gap: spaceRem("l"),
   }),
 };

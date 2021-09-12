@@ -1,15 +1,18 @@
 export const brandColors = {
-  primary: {
+  main: {
+    main: "#607d8b",
+    light: "#cfd8dc",
+    dark: "#263238",
+    contrastText: "#fff",
+  },
+  action: {
     main: "#2196f3",
     light: "#90caf9",
     dark: "#0d47a1",
     contrastText: "#fff",
   },
-  action: {
-    main: "#e91e63",
-    light: "#f48fb1",
-    dark: "#880e4f",
-    contrastText: "#000",
+  neve: {
+    primary: "rgb(236, 235, 231)",
   },
   neutral: {
     main: "#21283B",
