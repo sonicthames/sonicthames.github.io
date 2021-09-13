@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import * as React from "react";
-import ReactMapGL from "react-map-gl";
+import ReactMapGL, { Marker } from "react-map-gl";
 import { brandColors, colorToCssHex } from "../../theme/colors";
 import { spaceRem } from "../../theme/spacing";
 
@@ -60,6 +60,7 @@ export class Map extends React.Component<{}, State> {
           this.setState((prevState) => ({
             viewport: {
               ...prevState.viewport,
+              ...v,
               latitude: Math.min(
                 Math.max(v.latitude, minBound.latitude),
                 maxBound.latitude
@@ -114,6 +115,7 @@ export class Map extends React.Component<{}, State> {
         <div className={styles.logo}>
           <img src="/logo-02.svg" alt="logo" />
         </div>
+        {this.props.children}
       </ReactMapGL>
     );
   }

@@ -5,6 +5,7 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
 import React from "react";
+import { Marker } from "react-map-gl";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { sounds } from "./data";
 import { AboutPage } from "./pages/about/Page";
@@ -16,6 +17,7 @@ import { Map } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { WorkPage } from "./pages/work/Page";
 import { WorksPage } from "./pages/works/Page";
+import { brandColors } from "./theme/colors";
 import { theme } from "./theme/theme";
 
 interface Props {
@@ -29,7 +31,24 @@ export const App = ({ history }: Props) => (
         {/* sounds={sounds} */}
         <Header />
         <div className={styles.map}>
-          <Map />
+          <Map>
+            {pipe(
+              sounds,
+              RA.map((s) => (
+                <Marker latitude={s.position.lat} longitude={s.position.lng}>
+                  <div className={styles.marker}>
+                    <img
+                      src={s.thumbnailSrc}
+                      alt={`${s.title} thumbnail`}
+                      width={30}
+                      height={30}
+                    />
+                    <div>{s.title}</div>
+                  </div>
+                </Marker>
+              ))
+            )}
+          </Map>
         </div>
         <Switch>
           <Route path="/main"></Route>
@@ -80,5 +99,12 @@ export const App = ({ history }: Props) => (
 );
 
 const styles = {
+  marker: css({
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: brandColors.main.light,
+  }),
   map: css({ position: "absolute", zIndex: 0 }),
 } as const;

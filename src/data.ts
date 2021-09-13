@@ -1,8 +1,16 @@
 import { Sound } from "./domain/base";
 
+const latitude = 51.501;
+const longitude = -0.001;
+
+const getRandomPosition = () => ({
+  lat: latitude + (Math.random() - 0.8) / 10,
+  lng: longitude + (Math.random() - 1) / 6,
+});
+
 export const sounds: ReadonlyArray<Sound> = [
   {
-    position: { lat: 10, lng: 20 },
+    position: getRandomPosition(),
     title: "New page",
     // Link to youtube
     videoSrc: "BHACKCNDMW8",
@@ -45,7 +53,7 @@ export const sounds: ReadonlyArray<Sound> = [
     length: 10,
   },
   {
-    position: { lat: 10, lng: 20 },
+    position: getRandomPosition(),
     title: "New page 2",
     // Link to youtube
     videoSrc: "BHACKCNDMW8",
@@ -122,7 +130,7 @@ export const sounds: ReadonlyArray<Sound> = [
     length: 10,
   },
   {
-    position: { lat: 51.44, lng: 0.51 },
+    position: getRandomPosition(),
     title: "Earth from Above",
     videoSrc: "lM02vNMRRB0",
     description:
@@ -152,7 +160,7 @@ export const sounds: ReadonlyArray<Sound> = [
     length: 10,
   },
   {
-    position: { lat: 51.48, lng: 0.51 },
+    position: getRandomPosition(),
     title: "Italy 4K",
     videoSrc: "2b2gJu-g3qE",
     description: "Italy 4K - Scenic Relaxation Film With Calming Music",
@@ -185,7 +193,7 @@ export const sounds: ReadonlyArray<Sound> = [
     length: 10,
   },
   {
-    position: { lat: 51.46, lng: 0.48 },
+    position: getRandomPosition(),
     title: "Wonderful movie soundtracks",
     videoSrc: "hqG8u0jsk1A",
     description: "",
@@ -198,7 +206,7 @@ export const sounds: ReadonlyArray<Sound> = [
     length: 10,
   },
   {
-    position: { lat: 51.47, lng: 0.49 },
+    position: getRandomPosition(),
     title: "Emotional Drama",
     videoSrc: "ht2ERtFfFPw",
     description: "Emotional and Relaxing Drama & Epic Film Music",
