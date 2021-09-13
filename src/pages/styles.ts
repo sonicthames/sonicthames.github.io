@@ -1,5 +1,5 @@
 import { css, cx } from "@emotion/css";
-import { brandColors } from "../theme/colors";
+import { brandColors, colorToCssRGB } from "../theme/colors";
 import { DeviceType } from "../theme/device";
 import { maxPageSize, spaceRem } from "../theme/spacing";
 
@@ -10,7 +10,7 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
       flex: 1,
       flexDirection: "column",
       position: "relative",
-      backgroundColor: brandColors.neve.primary,
+      backgroundColor: colorToCssRGB(brandColors.neve.primary),
     }),
     // TODO Should be main
     main: cx(

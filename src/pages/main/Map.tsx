@@ -1,11 +1,12 @@
+import { css } from "@emotion/css";
 import * as React from "react";
 import ReactMapGL from "react-map-gl";
 import { brandColors, colorToCssHex } from "../../theme/colors";
+import { spaceRem } from "../../theme/spacing";
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
 const initialState = {
   viewport: {
-    // height: 500,
     height: "100vh",
     latitude: 51.501,
     longitude: -0.001,
@@ -56,25 +57,22 @@ export class Map extends React.Component<{}, State> {
         {...viewport}
         mapboxApiAccessToken={MAPBOX_TOKEN}
         onViewportChange={(v: Viewport) => {
-          if (v.latitude < minBound.latitude) {
-            v.latitude = minBound.latitude;
-          }
-          if (maxBound.latitude < v.latitude) {
-            v.latitude = maxBound.latitude;
-          }
-          if (v.longitude < minBound.longitude) {
-            v.longitude = minBound.longitude;
-          }
-          if (maxBound.longitude < v.longitude) {
-            v.longitude = maxBound.longitude;
-          }
           this.setState((prevState) => ({
-            viewport: { ...prevState.viewport, ...v },
+            viewport: {
+              ...prevState.viewport,
+              latitude: Math.min(
+                Math.max(v.latitude, minBound.latitude),
+                maxBound.latitude
+              ),
+              longitude: Math.min(
+                Math.max(v.longitude, minBound.longitude),
+                maxBound.longitude
+              ),
+            },
           }));
         }}
         mapStyle={{
           version: 8,
-
           name: "Test",
           sources: {
             mapbox: {
@@ -107,27 +105,26 @@ export class Map extends React.Component<{}, State> {
               },
               // maxzoom: 8,
             },
-            // {
-            //   id: "water",
-            //   source: "mapbox",
-            //   "source-layer": "water",
-
-            //   type: "fill",
-            //   paint: {
-            //     "fill-color": "#00ffff",
-            //   },
-            //   features: {
-            //     simplification: ["case", ["==", ["zoom"], 10], 1, 4],
-            //   },
-            //   // maxzoom: 8,
-            // },
           ],
         }}
       >
         <div style={{ position: "absolute", right: 50, top: 50 }}>
           {/* <NavigationControl onViewportChange={this.updateViewport} /> */}
         </div>
+        <div className={styles.logo}>
+          <img src="/logo-02.svg" alt="logo" />
+        </div>
       </ReactMapGL>
     );
   }
 }
+
+const styles = {
+  logo: css({
+    position: "absolute",
+    bottom: spaceRem("xl"),
+    left: spaceRem("xl"),
+    width: "20rem",
+    opacity: 1,
+  }),
+};
