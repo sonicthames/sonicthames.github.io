@@ -80,5 +80,5 @@ export const App = ({ history }: Props) => (
 );
 
 const styles = {
-  map: css({ position: "absolute" }),
+  map: css({ position: "absolute", zIndex: 0 }),
 } as const;

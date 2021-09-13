@@ -15,7 +15,7 @@ export const brandColors = {
     contrastText: "#fff",
   },
   neve: {
-    primary: "rgb(236, 235, 231)",
+    primary: [236, 235, 231],
   },
   neutral: {
     main: "#21283B",
@@ -28,6 +28,13 @@ export const brandColors = {
     land: [72, 60, 51],
   },
 } as const;
+
+export const colorToCssRGB = ([r, g, b]: RGBColor): string =>
+  `rgb(${r},${g},${b})`;
+
+// Safari transparency issue: https://stackoverflow.com/a/30674347/836839
+export const colorToCssRGBA = ([r, g, b, a = 1]: RGBAColor): string =>
+  `rgba(${r},${g},${b},${a})`;
 
 export const colorToCssHex = ([r, g, b]: RGBColor): string =>
   `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`;

@@ -8,7 +8,6 @@ import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
 import { Sound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
-import { Header } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 interface Props {

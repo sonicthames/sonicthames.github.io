@@ -1,7 +1,8 @@
 import { css, cx } from "@emotion/css";
+import { Link } from "@material-ui/core";
 import React from "react";
-import { Link } from "react-router-dom";
-import { brandColors } from "../../theme/colors";
+import { Link as RouterLink } from "react-router-dom";
+import { brandColors, colorToCssRGBA } from "../../theme/colors";
 import { DeviceType } from "../../theme/device";
 import { fontSize } from "../../theme/fontSize";
 import { useDeviceType } from "../../theme/media";
@@ -17,10 +18,18 @@ export const Header = () => {
       <div className={styles.content}>
         <strong>Sonicthames</strong>
         <nav>
-          <Link to="/main">Home</Link>
-          <Link to="/works">Sounds</Link>
-          <Link to="/about">About</Link>
-          <Link to="/contact">Contact</Link>
+          <Link component={RouterLink} to="/main">
+            Home
+          </Link>
+          <Link component={RouterLink} to="/works">
+            Sounds
+          </Link>
+          <Link component={RouterLink} to="/about">
+            About
+          </Link>
+          <Link component={RouterLink} to="/contact">
+            Contact
+          </Link>
         </nav>
       </div>
     </header>
@@ -32,7 +41,7 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
     component: css({
       position: "sticky",
       top: 0,
-      backgroundColor: brandColors.neve.primary,
+      backgroundColor: colorToCssRGBA([...brandColors.neve.primary, 0.7]),
       fontSize: fontSize("l"),
       gap: spaceRem(),
       textTransform: "uppercase",
