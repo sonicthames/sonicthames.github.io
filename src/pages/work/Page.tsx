@@ -8,6 +8,7 @@ import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
 import { Sound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
+import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
@@ -40,6 +41,7 @@ export const WorkPage = ({ sound }: Props) => {
   const commonStyles = makeCommonStyles(deviceType);
   return (
     <div className={commonStyles.page}>
+      <PageHeader />
       <main className={commonStyles.main}>
         <header className={styles.header}>
           {/* <h1 className={css({ textAlign: "center" })}> */}

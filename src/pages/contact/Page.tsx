@@ -1,8 +1,10 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { Button, TextField } from "@material-ui/core";
 import React from "react";
+import { DeviceType } from "../../theme/device";
 import { useDeviceType } from "../../theme/media";
 import { spaceRem } from "../../theme/spacing";
+import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 interface Props {}
@@ -12,8 +14,10 @@ interface Props {}
 export const ContactPage = (_: Props) => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
+  const styles = makeStyles({ deviceType });
   return (
     <div className={commonStyles.page}>
+      <PageHeader />
       <main className={commonStyles.main}>
         <div className={styles.content}>
           <div>
@@ -72,18 +76,26 @@ export const ContactPage = (_: Props) => {
   );
 };
 
-const styles = {
-  content: css({
-    display: "flex",
-    marginTop: spaceRem("xl"),
-    gap: spaceRem("l"),
-    "> *": css({
-      flex: "50%",
+const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
+  ({
+    content: cx(
+      css({
+        display: "flex",
+        marginTop: spaceRem("xl"),
+        gap: spaceRem("l"),
+        "> *": css({
+          flex: "50%",
+        }),
+      }),
+      deviceType === "mobile"
+        ? css({
+            flexDirection: "column",
+          })
+        : undefined
+    ),
+    form: css({
+      display: "flex",
+      flexDirection: "column",
+      gap: spaceRem(),
     }),
-  }),
-  form: css({
-    display: "flex",
-    flexDirection: "column",
-    gap: spaceRem(),
-  }),
-};
+  } as const);

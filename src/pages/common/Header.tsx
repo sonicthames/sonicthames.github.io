@@ -13,13 +13,36 @@ export const Header = () => {
   const styles = makeStyles({ deviceType });
   return (
     <header className={styles.component}>
-      {/* <h1 className={css({ textAlign: "center" })}> */}
-      {/* TODO Align with artwork and image */}
+      <div className={styles.content}>
+        <nav>
+          <Link component={RouterLink} to="/main">
+            Home
+          </Link>
+          <Link component={RouterLink} to="/works">
+            Sounds
+          </Link>
+          <Link component={RouterLink} to="/about">
+            About
+          </Link>
+          <Link component={RouterLink} to="/contact">
+            Contact
+          </Link>
+        </nav>
+      </div>
+    </header>
+  );
+};
+
+export const PageHeader = () => {
+  const deviceType = useDeviceType();
+  const styles = makeStyles({ deviceType });
+  return (
+    <header className={styles.component}>
       <div className={styles.content}>
         <strong>Sonicthames</strong>
         <nav>
           <Link component={RouterLink} to="/main">
-            Home
+            Back to map
           </Link>
           <Link component={RouterLink} to="/works">
             Sounds

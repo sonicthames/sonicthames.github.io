@@ -8,6 +8,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Sound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
+import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 const group = <A extends unknown>(S: EQ.Eq<A>) =>
@@ -38,6 +39,7 @@ export const WorksPage = ({ sounds }: Props) => {
   const commonStyles = makeCommonStyles(deviceType);
   return (
     <div className={commonStyles.page}>
+      <PageHeader />
       <main className={commonStyles.main}>
         <div className={styles.videos}>
           <ul className={styles.categoryList}>
