@@ -13,18 +13,29 @@ export const Header = () => {
   const styles = makeStyles({ deviceType });
   return (
     <header className={styles.component}>
-      <div className={styles.content}>
+      <div
+        className={cx(
+          styles.content,
+          // HACK
+          css({
+            a: css({
+              color: "white",
+              fontWeight: "bold",
+            }),
+          })
+        )}
+      >
         <nav>
-          <Link component={RouterLink} to="/main">
+          <Link color="textSecondary" component={RouterLink} to="/main">
             Home
           </Link>
-          <Link component={RouterLink} to="/works">
+          <Link color="textSecondary" component={RouterLink} to="/works">
             Sounds
           </Link>
-          <Link component={RouterLink} to="/about">
+          <Link color="textSecondary" component={RouterLink} to="/about">
             About
           </Link>
-          <Link component={RouterLink} to="/contact">
+          <Link color="textSecondary" component={RouterLink} to="/contact">
             Contact
           </Link>
         </nav>
@@ -37,7 +48,7 @@ export const PageHeader = () => {
   const deviceType = useDeviceType();
   const styles = makeStyles({ deviceType });
   return (
-    <header className={styles.component}>
+    <header className={styles.pageComponent}>
       <div className={styles.content}>
         <strong>Sonicthames</strong>
         <nav>
@@ -64,7 +75,23 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
     component: css({
       position: "sticky",
       top: 0,
-      backgroundColor: colorToCssRGBA([...brandColors.neve.primary, 0.7]),
+      // backgroundColor: brandColors.neutral.main,
+      backgroundImage:
+        "linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2))",
+      // backgroundColor: colorToCssRGBA([...brandColors.neutral.main, 0.7]),
+      fontSize: fontSize("l"),
+      gap: spaceRem(),
+      textTransform: "uppercase",
+      nav: css({
+        display: "flex",
+        gap: spaceRem(),
+      }),
+      zIndex: 1,
+    }),
+    pageComponent: css({
+      position: "sticky",
+      top: 0,
+      backgorundColor: "lightgray",
       fontSize: fontSize("l"),
       gap: spaceRem(),
       textTransform: "uppercase",

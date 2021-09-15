@@ -21,6 +21,7 @@ import { brandColors } from "./theme/colors";
 import { theme } from "./theme/theme";
 import { makeCommonStyles } from "./pages/styles";
 import { useDeviceType } from "./theme/media";
+import { Icon } from "./icon";
 
 interface Props {
   history: History<unknown>;
@@ -44,12 +45,47 @@ export const App = ({ history }: Props) => {
                 RA.map((s) => (
                   <Marker latitude={s.position.lat} longitude={s.position.lng}>
                     <div className={styles.marker}>
-                      <img
-                        src={s.thumbnailSrc}
+                      {((c) => {
+                        switch (c) {
+                          case "Binaural Cycling":
+                            return (
+                              <Icon
+                                name="MarkerB"
+                                width="2.5rem"
+                                height="2.5rem"
+                              />
+                            );
+                          case "Sonic Sculptures":
+                            return (
+                              <Icon
+                                name="MarkerS"
+                                width="2.5rem"
+                                height="2.5rem"
+                              />
+                            );
+                          case "Sound Walks":
+                            return (
+                              <Icon
+                                name="MarkerF"
+                                width="2.5rem"
+                                height="2.5rem"
+                              />
+                            );
+                          case "Soundscapes":
+                            return (
+                              <Icon
+                                name="MarkerL"
+                                width="2.5rem"
+                                height="2.5rem"
+                              />
+                            );
+                        }
+                      })(s.category)}
+                      {/* <img
                         alt={`${s.title} thumbnail`}
                         width={30}
                         height={30}
-                      />
+                      /> */}
                       <div>{s.title}</div>
                     </div>
                   </Marker>
@@ -131,7 +167,7 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) =>
       flexDirection: "column",
       alignItems: "center",
       justifyContent: "center",
-      backgroundColor: brandColors.main.light,
+      // backgroundColor: brandColors.main.light,
     }),
     map: css({ position: "absolute", zIndex: 0 }),
     pages: css({

@@ -10,7 +10,8 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
       flex: 1,
       flexDirection: "column",
       position: "relative",
-      backgroundColor: colorToCssRGB(brandColors.neve.primary),
+      // backgroundColor: colorToCssRGB(brandColors.neve.primary),
+      backgroundColor: "lightgray",
     }),
     // TODO Should be main
     main: cx(

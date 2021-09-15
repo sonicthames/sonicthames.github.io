@@ -2,7 +2,7 @@ import { css } from "@emotion/css";
 import * as React from "react";
 import ReactMapGL, { Marker } from "react-map-gl";
 import { brandColors, colorToCssHex } from "../../theme/colors";
-import { spaceRem } from "../../theme/spacing";
+// import { spaceRem } from "../../theme/spacing";
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
 const initialState = {
@@ -113,7 +113,7 @@ export class Map extends React.Component<{}, State> {
           {/* <NavigationControl onViewportChange={this.updateViewport} /> */}
         </div>
         <div className={styles.logo}>
-          <img src="/logo-02.svg" alt="logo" />
+          <img src="/logo-05.svg" alt="logo" />
         </div>
         {this.props.children}
       </ReactMapGL>
@@ -124,8 +124,10 @@ export class Map extends React.Component<{}, State> {
 const styles = {
   logo: css({
     position: "absolute",
-    bottom: spaceRem("xl"),
-    left: spaceRem("xl"),
+    // bottom: spaceRem("xl"),
+    // left: spaceRem("xl"),
+    bottom: -85,
+    right: -40,
     width: "20rem",
     opacity: 1,
   }),
