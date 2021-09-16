@@ -8,20 +8,20 @@ import React, { useState } from "react";
 import { Marker } from "react-map-gl";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { sounds } from "./data";
+import { Icon } from "./icon";
 import { AboutPage } from "./pages/about/Page";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { Header } from "./pages/common/Header";
 import { ContactPage } from "./pages/contact/Page";
 import { CrashPage } from "./pages/crash/Page";
+import { routePathAbsolute } from "./pages/location";
 import { Map } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
+import { makeCommonStyles } from "./pages/styles";
 import { WorkPage } from "./pages/work/Page";
 import { WorksPage } from "./pages/works/Page";
-import { brandColors } from "./theme/colors";
-import { theme } from "./theme/theme";
-import { makeCommonStyles } from "./pages/styles";
 import { useDeviceType } from "./theme/media";
-import { Icon } from "./icon";
+import { theme } from "./theme/theme";
 
 interface Props {
   history: History<unknown>;
@@ -109,19 +109,19 @@ export const App = ({ history }: Props) => {
           </Switch>
           <div className={styles.pages}>
             <Switch>
-              <Route path="/main">
+              <Route path={routePathAbsolute(["main"] as const).path}>
                 <div className={commonStyles.page} />
               </Route>
-              <Route path="/about">
+              <Route path={routePathAbsolute(["about"] as const).path}>
                 <AboutPage />
               </Route>
-              <Route path="/works">
+              <Route path={routePathAbsolute(["works"] as const).path}>
                 <WorksPage sounds={sounds} />
               </Route>
-              <Route path="/work/:index">
+              <Route path={routePathAbsolute(["works", ":work"] as const).path}>
                 {(props) =>
                   pipe(
-                    props.match?.params.index,
+                    props.match?.params.work,
                     O.fromNullable,
                     O.chain((index) => pipe(sounds, RA.lookup(+index))),
                     O.fold(
@@ -131,7 +131,7 @@ export const App = ({ history }: Props) => {
                   )
                 }
               </Route>
-              <Route path="/contact">
+              <Route path={routePathAbsolute(["contact"] as const).path}>
                 <ContactPage />
               </Route>
               <Route path="*">
@@ -142,7 +142,9 @@ export const App = ({ history }: Props) => {
                     ) : (
                       <Switch>
                         <Route exact path="/">
-                          <Redirect to="/main" />
+                          <Redirect
+                            to={routePathAbsolute(["main"] as const).path}
+                          />
                         </Route>
                         <Route path="*">
                           <NotFoundPage />
