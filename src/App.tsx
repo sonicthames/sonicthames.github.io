@@ -10,11 +10,12 @@ import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { sounds } from "./data";
 import { Icon } from "./icon";
 import { AboutPage } from "./pages/about/Page";
+import { AppRoute } from "./pages/common/AppRoute";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { Header } from "./pages/common/Header";
 import { ContactPage } from "./pages/contact/Page";
 import { CrashPage } from "./pages/crash/Page";
-import { routePathAbsolute } from "./pages/location";
+import { appRoute, appRouteC } from "./pages/location";
 import { Map } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { makeCommonStyles } from "./pages/styles";
@@ -94,6 +95,13 @@ export const App = ({ history }: Props) => {
             </Map>
           </div>
           <Switch>
+            <AppRoute segment={appRoute(["works", ":work"] as const)}>
+              {(props) => {
+                console.log(props.match?.params.work);
+                setShowDrawer(false);
+                return <></>;
+              }}
+            </AppRoute>
             <Route path="/main">
               {() => {
                 setShowDrawer(false);
@@ -109,16 +117,19 @@ export const App = ({ history }: Props) => {
           </Switch>
           <div className={styles.pages}>
             <Switch>
-              <Route path={routePathAbsolute(["main"] as const).path}>
+              <AppRoute segment={appRoute("main")}>
                 <div className={commonStyles.page} />
-              </Route>
-              <Route path={routePathAbsolute(["about"] as const).path}>
+              </AppRoute>
+              <AppRoute segment={appRoute("about")}>
                 <AboutPage />
-              </Route>
-              <Route path={routePathAbsolute(["works"] as const).path}>
+              </AppRoute>
+              <AppRoute segment={appRoute("works")}>
                 <WorksPage sounds={sounds} />
-              </Route>
-              <Route path={routePathAbsolute(["works", ":work"] as const).path}>
+              </AppRoute>
+              <AppRoute segment={appRouteC("works")}>
+                <WorksPage sounds={sounds} />
+              </AppRoute>
+              <AppRoute segment={appRoute("works", ":work")}>
                 {(props) =>
                   pipe(
                     props.match?.params.work,
@@ -130,10 +141,10 @@ export const App = ({ history }: Props) => {
                     )
                   )
                 }
-              </Route>
-              <Route path={routePathAbsolute(["contact"] as const).path}>
+              </AppRoute>
+              <AppRoute segment={appRoute("contact")}>
                 <ContactPage />
-              </Route>
+              </AppRoute>
               <Route path="*">
                 {(props) =>
                   pipe(props.location, (l) =>
@@ -143,7 +154,8 @@ export const App = ({ history }: Props) => {
                       <Switch>
                         <Route exact path="/">
                           <Redirect
-                            to={routePathAbsolute(["main"] as const).path}
+                            // to={routePathAbsolute(["main"] as const).path}
+                            to={"/main"}
                           />
                         </Route>
                         <Route path="*">

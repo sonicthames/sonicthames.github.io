@@ -1,45 +1,37 @@
-import type { JoinTuple } from "./typescript";
+import type { JoinTuple, PathTree } from "./typescript";
 import { joinTuple } from "./typescript";
 
-export type RoutingTree<T> = {
-  [P in keyof T]: null | (T[P] extends RoutingTree<T[P]> ? T[P] : never);
+export type RelativePath<FS extends readonly string[]> = JoinTuple<"/", FS>;
+export type AbsolutePath<FS extends readonly string[]> = `/${RelativePath<FS>}`;
+
+export type RouteTree<T> = {
+  [P in keyof T]: null | (T[P] extends RouteTree<T[P]> ? T[P] : never);
 };
 
-export type RoutingFragments<
-  T,
-  KS extends readonly string[]
-> = KS extends readonly []
-  ? readonly []
-  : KS extends readonly [infer K]
-  ? K extends keyof RoutingTree<T>
-    ? readonly [K]
+export type RouteNode<T, FS extends readonly unknown[]> = FS extends readonly []
+  ? T
+  : FS extends readonly [infer F]
+  ? F extends keyof RouteTree<T>
+    ? T[F]
     : never
-  : KS extends readonly [infer K, ...infer RS]
-  ? K extends keyof RoutingTree<T>
-    ? RS extends readonly string[]
-      ? readonly [K, ...RoutingFragments<T[K], RS>]
-      : never
+  : FS extends readonly [infer F, ...infer RS]
+  ? F extends keyof RouteTree<T>
+    ? RouteNode<RouteTree<T>[F], RS>
     : never
   : never;
 
-export type RoutingNode<
-  T,
-  KS extends readonly unknown[]
-> = KS extends readonly []
-  ? T
-  : KS extends readonly [infer K]
-  ? K extends keyof RoutingTree<T>
-    ? T[K]
-    : never
-  : KS extends readonly [infer K, ...infer RS]
-  ? K extends keyof RoutingTree<T>
-    ? RoutingNode<RoutingTree<T>[K], RS>
-    : never
-  : never;
+export type RouteSegment<T, FS extends readonly string[]> = {
+  to: RelativePath<FS>;
+  routes: RouteNode<T, FS>;
+  fragments: FS;
+};
+
+// extends
+export type PathX<T> = PathTree<T>[keyof PathTree<T>];
 
 /**
- * @param xs Tree of locations
- * @param ks List of fragments of the route path
+ * @param routes Tree of locations
+ * @param fragments List of fragments of the route path
  * @returns Composed path and the remainder subtree
  * @tutorial
  * ```
@@ -55,22 +47,24 @@ export type RoutingNode<
  * ```
  */
 export const routePath =
-  <LS>(xs: LS) =>
-  <KS extends readonly string[]>(
-    ks: KS extends RoutingFragments<LS, KS> ? KS : never
-  ): {
-    path: JoinTuple<"/", KS>;
-    remainder: RoutingNode<LS, KS>;
-  } => {
-    const len = ks.length;
-    const path = joinTuple("/")(...ks);
-    let remainder = xs;
-    for (let i = 0; i < len; i++) {
-      const k = ks[i];
-      remainder = remainder[k] as unknown as any;
-    }
-    return {
-      path,
-      remainder: remainder as any,
+  // <T extends RouteTree>(routes: T) =>
+
+
+    <T>(routes: T) =>
+    <FS extends readonly string[] & PathX<T>>(
+      ...fragments: FS
+    ): RouteSegment<T, FS> => {
+      const len = fragments.length;
+      const path = joinTuple("/")<FS>(...fragments);
+      let remainder = routes;
+      for (let i = 0; i < len; i++) {
+        const k = fragments[i];
+        // @ts-ignore Too heavy for the compiler to work this one out.
+        remainder = remainder[k];
+      }
+      return {
+        to: path,
+        fragments,
+        routes: remainder as RouteNode<T, FS>,
+      };
     };
-  };

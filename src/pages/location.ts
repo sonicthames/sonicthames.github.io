@@ -1,6 +1,6 @@
-import { routePath, RoutingFragments } from "../lib/routing";
+import { PathX, RelativePath, RouteNode, routePath } from "../lib/routing";
 
-const locations = {
+export const appRoutes = {
   main: 0,
   about: 0,
   works: {
@@ -8,15 +8,31 @@ const locations = {
   },
   contact: 0,
 } as const;
+export type Routes = typeof appRoutes;
 
-type Locations = typeof locations;
+export type AppRouteSegment<
+  B extends string,
+  T,
+  FS extends readonly string[]
+> = {
+  path: `${B}${RelativePath<FS>}`;
+  routes: RouteNode<T, FS>;
+  fragments: FS;
+};
 
-export function routePathAbsolute<KS extends readonly string[]>(
-  ks: KS extends RoutingFragments<Locations, KS> ? KS : never
-) {
-  const { path, remainder } = routePath(locations)(ks);
-  return {
-    path: `/${path}`,
-    remainder,
-  } as const;
-}
+// Goes in routing.ts
+export const routeP =
+  <B extends string>(base: B) =>
+  <T>(routes: T) =>
+  <FS extends readonly string[] & PathX<T>>(
+    ...fragments: FS
+  ): AppRouteSegment<B, T, FS> => {
+    const segment = routePath(routes)(...fragments);
+    return {
+      path: `${base}${segment.to}`,
+      fragments,
+      routes: segment.routes,
+    } as const;
+  };
+
+export const appRoute = routeP("/")(appRoutes);

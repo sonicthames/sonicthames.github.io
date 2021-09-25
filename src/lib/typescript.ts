@@ -1,6 +1,21 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type Key = keyof any;
 
+export type PathTree<T> = {
+  [P in keyof T]-?: T[P] extends object
+    ? readonly [P] | readonly [P, ...Path<T[P]>]
+    : readonly [P];
+};
+
+export type Path<T> = PathTree<T>[keyof PathTree<T>];
+
+export type LeafPathTree<T> = {
+  [P in keyof T]-?: T[P] extends object
+    ? readonly [P, ...LeafPath<T[P]>]
+    : readonly [P];
+};
+export type LeafPath<T> = LeafPathTree<T>[keyof LeafPathTree<T>];
+
 export type JoinTuple<
   S extends string,
   KS extends readonly string[]
