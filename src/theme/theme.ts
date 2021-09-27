@@ -5,6 +5,10 @@ import { brandColors, colorToCssRGB } from "./colors";
 
 export const theme = createTheme({
   palette: {
-    primary: pipe(brandColors.action, RR.map(colorToCssRGB)),
+    primary: {
+      ...pipe(brandColors.action, RR.map(colorToCssRGB)),
+      contrastText: "#fff",
+    },
+    secondary: { ...brandColors.main, contrastText: "#fff" },
   },
 });

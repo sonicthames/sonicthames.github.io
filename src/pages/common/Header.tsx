@@ -2,7 +2,7 @@ import { css, cx } from "@emotion/css";
 import { Link } from "@material-ui/core";
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { brandColors, colorToCssRGBA } from "../../theme/colors";
+import { brandColors, colorToCssRGB } from "../../theme/colors";
 import { DeviceType } from "../../theme/device";
 import { fontSize } from "../../theme/fontSize";
 import { useDeviceType } from "../../theme/media";
@@ -11,32 +11,45 @@ import { appRoute } from "../location";
 
 export const Header = () => {
   const deviceType = useDeviceType();
-  const styles = makeStyles({ deviceType });
+  const styles = makeCommonStyles({ deviceType });
   return (
     <header className={styles.component}>
-      <div
-        className={cx(
-          styles.content,
-          // HACK
-          css({
-            a: css({
-              color: "white",
-              fontWeight: "bold",
-            }),
-          })
-        )}
-      >
+      <div className={cx(styles.content)}>
         <nav>
-          <Link color="textSecondary" component={RouterLink} to="/main">
-            Home
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("listen").to({}).path}
+          >
+            Listen
           </Link>
-          <Link color="textSecondary" component={RouterLink} to="/works">
-            Sounds
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("see").to({}).path}
+          >
+            See
           </Link>
-          <Link color="textSecondary" component={RouterLink} to="/about">
+
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("feel").to({}).path}
+          >
+            Feel
+          </Link>
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("about").to({}).path}
+          >
             About
           </Link>
-          <Link color="textSecondary" component={RouterLink} to="/contact">
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("contact").to({}).path}
+          >
             Contact
           </Link>
         </nav>
@@ -47,23 +60,54 @@ export const Header = () => {
 
 export const PageHeader = () => {
   const deviceType = useDeviceType();
-  const styles = makeStyles({ deviceType });
+  const styles = makeCommonStyles({ deviceType });
+  const pageStyles = makePageHeaderStyles({ deviceType });
   return (
-    <header className={styles.pageComponent}>
+    <header className={cx(styles.component, pageStyles.component)}>
       <div className={styles.content}>
         <strong>Sonicthames</strong>
         <nav>
           {/* TODO Link with unsafeTo */}
-          <Link component={RouterLink} to={appRoute("main").to({}).path}>
-            Back to map
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("main").to({}).path}
+          >
+            Map
           </Link>
-          <Link component={RouterLink} to={appRoute("works").to({}).path}>
-            Sounds
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("listen").to({}).path}
+          >
+            Listen
           </Link>
-          <Link component={RouterLink} to={appRoute("about").to({}).path}>
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("see").to({}).path}
+          >
+            See
+          </Link>
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("feel").to({}).path}
+          >
+            Feel
+          </Link>
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("about").to({}).path}
+          >
             About
           </Link>
-          <Link component={RouterLink} to={appRoute("contact").to({}).path}>
+          <Link
+            color="initial"
+            component={RouterLink}
+            to={appRoute("contact").to({}).path}
+          >
             Contact
           </Link>
         </nav>
@@ -72,7 +116,7 @@ export const PageHeader = () => {
   );
 };
 
-const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
+const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
   ({
     component: css({
       position: "sticky",
@@ -81,20 +125,9 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
       backgroundImage:
         "linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2))",
       // backgroundColor: colorToCssRGBA([...brandColors.neutral.main, 0.7]),
+      color: "white",
       fontSize: fontSize("l"),
-      gap: spaceRem(),
-      textTransform: "uppercase",
-      nav: css({
-        display: "flex",
-        gap: spaceRem(),
-      }),
-      zIndex: 1,
-    }),
-    pageComponent: css({
-      position: "sticky",
-      top: 0,
-      backgorundColor: "lightgray",
-      fontSize: fontSize("l"),
+      fontWeight: "bold",
       gap: spaceRem(),
       textTransform: "uppercase",
       nav: css({
@@ -108,11 +141,18 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
         strong: css({
           flex: 1,
         }),
+        // REVIEW
         display: "flex",
         justifyContent: "flex-end",
         gap: spaceRem(),
         paddingBottom: spaceRem(),
         paddingTop: spaceRem(),
+        a: css({
+          color: "white",
+          "&:visited": css({
+            color: "white",
+          }),
+        }),
       }),
       deviceType === "desktop"
         ? css({
@@ -124,4 +164,21 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
             paddingRight: spaceRem(),
           })
     ),
+  } as const);
+
+const makePageHeaderStyles = ({ deviceType }: { deviceType: DeviceType }) =>
+  ({
+    component: css({
+      backgroundColor: colorToCssRGB(brandColors.action.dark),
+      position: "sticky",
+      top: 0,
+      fontSize: fontSize("l"),
+      gap: spaceRem(),
+      textTransform: "uppercase",
+      nav: css({
+        display: "flex",
+        gap: spaceRem(),
+      }),
+      zIndex: 1,
+    }),
   } as const);

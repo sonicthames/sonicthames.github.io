@@ -167,15 +167,25 @@ export const App = ({ history }: Props) => {
               <Route path={appRoute("about").path}>
                 <AboutPage />
               </Route>
-              <Route path={appRoute("works").path}>
+              <Route path={appRoute("listen").path}>
+                <WorksPage sounds={sounds} />
+              </Route>
+              <Route path={appRoute("see").path}>
+                <WorksPage sounds={sounds} />
+              </Route>
+              <Route path={appRoute("feel").path}>
                 <WorksPage sounds={sounds} />
               </Route>
               <Route
-                path={appRoute("works", ":work").path}
+                path={[
+                  appRoute("listen", ":sound").path,
+                  appRoute("see", ":sound").path,
+                  appRoute("feel", ":sound").path,
+                ]}
                 render={(props) =>
                   pipe(
                     sounds,
-                    RA.lookup(+props.match.params.work),
+                    RA.lookup(+props.match.params.sound),
                     O.fold(
                       () => <NotFoundPage />,
                       (work) => <WorkPage sound={work} />
@@ -214,10 +224,12 @@ export const App = ({ history }: Props) => {
 
 const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
   const markerNote = css({
-    background: colorToCssRGB(brandColors.neve.primary),
+    backgroundColor: colorToCssRGB(brandColors.neve.primary),
+    boxSizing: "content-box",
     fontSize: fontSize("s"),
     padding: spaceEm("xxs"),
     borderRadius: spaceRem(),
+    cursor: "pointer",
   });
   return {
     marker: css({
@@ -227,10 +239,13 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
       justifyContent: "center",
       // backgroundColor: brandColors.main.light,
       cursor: "pointer",
+      svg: css({
+        cursor: "pointer",
+      }),
       "&:hover": css({
         zIndex: 1000,
         div: css({
-          border: `1px solid ${colorToCssRGB(brandColors.action.dark)}`,
+          border: `2px solid ${colorToCssRGB(brandColors.action.dark)}`,
         }),
       }),
     }),

@@ -4,21 +4,31 @@ import { routePath } from "../lib/routing";
 export const appRoutes = {
   main: { fragments: null },
   about: { fragments: null },
-  works: {
+  listen: {
     fragments: {
-      ":work": {
-        showInstances: { work: S.Show },
-        fragments: {
-          ":subroute": {
-            fragments: null,
-            showInstances: {
-              subroute: S.Show,
-            },
-          },
-        },
+      ":sound": {
+        showInstances: { sound: S.Show },
+        fragments: null,
       },
     },
   },
+  see: {
+    fragments: {
+      ":sound": {
+        showInstances: { sound: S.Show },
+        fragments: null,
+      },
+    },
+  },
+  feel: {
+    fragments: {
+      ":sound": {
+        showInstances: { sound: S.Show },
+        fragments: null,
+      },
+    },
+  },
+
   contact: { fragments: null },
 } as const;
 export type Routes = typeof appRoutes;
