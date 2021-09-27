@@ -10,12 +10,11 @@ import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { sounds } from "./data";
 import { Icon } from "./icon";
 import { AboutPage } from "./pages/about/Page";
-import { AppRoute } from "./pages/common/AppRoute";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { Header } from "./pages/common/Header";
 import { ContactPage } from "./pages/contact/Page";
 import { CrashPage } from "./pages/crash/Page";
-import { appRoute, appRouteC } from "./pages/location";
+import { appRoute } from "./pages/location";
 import { Map } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { makeCommonStyles } from "./pages/styles";
@@ -34,6 +33,7 @@ export const App = ({ history }: Props) => {
 
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
+
   return (
     <Router history={history}>
       <ErrorBoundary fallback={(error) => <CrashPage error={error} />}>
@@ -95,14 +95,7 @@ export const App = ({ history }: Props) => {
             </Map>
           </div>
           <Switch>
-            <AppRoute segment={appRoute(["works", ":work"] as const)}>
-              {(props) => {
-                console.log(props.match?.params.work);
-                setShowDrawer(false);
-                return <></>;
-              }}
-            </AppRoute>
-            <Route path="/main">
+            <Route path={appRoute("main").path}>
               {() => {
                 setShowDrawer(false);
                 return <></>;
@@ -117,34 +110,31 @@ export const App = ({ history }: Props) => {
           </Switch>
           <div className={styles.pages}>
             <Switch>
-              <AppRoute segment={appRoute("main")}>
+              <Route path={appRoute("main").path}>
                 <div className={commonStyles.page} />
-              </AppRoute>
-              <AppRoute segment={appRoute("about")}>
+              </Route>
+              <Route path={appRoute("about").path}>
                 <AboutPage />
-              </AppRoute>
-              <AppRoute segment={appRoute("works")}>
+              </Route>
+              <Route path={appRoute("works").path}>
                 <WorksPage sounds={sounds} />
-              </AppRoute>
-              <AppRoute segment={appRouteC("works")}>
-                <WorksPage sounds={sounds} />
-              </AppRoute>
-              <AppRoute segment={appRoute("works", ":work")}>
-                {(props) =>
+              </Route>
+              <Route
+                path={appRoute("works", ":work").path}
+                render={(props) =>
                   pipe(
-                    props.match?.params.work,
-                    O.fromNullable,
-                    O.chain((index) => pipe(sounds, RA.lookup(+index))),
+                    sounds,
+                    RA.lookup(+props.match.params.work),
                     O.fold(
                       () => <NotFoundPage />,
-                      (sound) => <WorkPage sound={sound} />
+                      (work) => <WorkPage sound={work} />
                     )
                   )
                 }
-              </AppRoute>
-              <AppRoute segment={appRoute("contact")}>
+              />
+              <Route path={appRoute("contact").path}>
                 <ContactPage />
-              </AppRoute>
+              </Route>
               <Route path="*">
                 {(props) =>
                   pipe(props.location, (l) =>
@@ -153,10 +143,7 @@ export const App = ({ history }: Props) => {
                     ) : (
                       <Switch>
                         <Route exact path="/">
-                          <Redirect
-                            // to={routePathAbsolute(["main"] as const).path}
-                            to={"/main"}
-                          />
+                          <Redirect to={appRoute("main").to({}).path} />
                         </Route>
                         <Route path="*">
                           <NotFoundPage />

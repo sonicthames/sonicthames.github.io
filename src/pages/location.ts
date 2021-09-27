@@ -1,38 +1,26 @@
-import { PathX, RelativePath, RouteNode, routePath } from "../lib/routing";
+import * as S from "fp-ts/string";
+import { routePath } from "../lib/routing";
 
 export const appRoutes = {
-  main: 0,
-  about: 0,
+  main: { fragments: null },
+  about: { fragments: null },
   works: {
-    ":work": 0,
+    fragments: {
+      ":work": {
+        showInstances: { work: S.Show },
+        fragments: {
+          ":subroute": {
+            fragments: null,
+            showInstances: {
+              subroute: S.Show,
+            },
+          },
+        },
+      },
+    },
   },
-  contact: 0,
+  contact: { fragments: null },
 } as const;
 export type Routes = typeof appRoutes;
 
-export type AppRouteSegment<
-  B extends string,
-  T,
-  FS extends readonly string[]
-> = {
-  path: `${B}${RelativePath<FS>}`;
-  routes: RouteNode<T, FS>;
-  fragments: FS;
-};
-
-// Goes in routing.ts
-export const routeP =
-  <B extends string>(base: B) =>
-  <T>(routes: T) =>
-  <FS extends readonly string[] & PathX<T>>(
-    ...fragments: FS
-  ): AppRouteSegment<B, T, FS> => {
-    const segment = routePath(routes)(...fragments);
-    return {
-      path: `${base}${segment.to}`,
-      fragments,
-      routes: segment.routes,
-    } as const;
-  };
-
-export const appRoute = routeP("/")(appRoutes);
+export const appRoute = routePath(appRoutes);

@@ -1,15 +1,15 @@
 import { ReactNode } from "react";
 import {
   ExtractRouteParams,
-  Route,
-  RouteChildrenProps,
+  RouteComponentProps,
   RouteProps,
 } from "react-router";
-import { RelativePath, RouteSegment } from "../../lib/routing";
-import { appRoutes, AppRouteSegment } from "../location";
+import { Route } from "react-router-dom";
+import { RelativePath, RouteSegment, ToRouteSegment } from "../../lib/routing";
+import { appRoutes } from "../location";
 
 interface Props<
-  B extends string,
+  // B extends string,
   FS extends readonly string[],
   Params extends { [K: string]: string | undefined } = ExtractRouteParams<
     RelativePath<FS>,
@@ -17,12 +17,12 @@ interface Props<
   >
 > extends Omit<
     RouteProps<RelativePath<FS>, Params>,
-    "path" | "children" | "component"
+    "path" | "children" | "component" | "render"
   > {
-  segment: AppRouteSegment<B, typeof appRoutes, FS>;
+  segment: ToRouteSegment<typeof appRoutes, FS>;
   children:
     | ((
-        props: RouteChildrenProps<Params> & {
+        props: RouteComponentProps<Params> & {
           segment: RouteSegment<typeof appRoutes, FS>;
         }
       ) => ReactNode)
@@ -30,20 +30,20 @@ interface Props<
     | undefined;
 }
 
-export const AppRoute = <B extends string, FS extends readonly string[]>({
+export const AppRoute = <FS extends readonly string[]>({
   children,
   ...rest
-}: Props<B, FS>) => {
-  if (typeof children === "function") {
-    return (
-      <Route
-        children={(props): ReactNode =>
-          children({ segment: rest.segment as any, ...props })
-        }
-        {...rest}
-      />
-    );
-  } else {
-    return <Route children={children} {...rest} />;
-  }
+}: Props<FS>): JSX.Element => {
+  return typeof children === "function" ? (
+    <Route
+      path={rest.segment.path}
+      render={(props): ReactNode =>
+        // @ts-ignore
+        children({ segment: rest.segment, ...props })
+      }
+      {...rest}
+    />
+  ) : (
+    <Route path={rest.segment.path} children={children} {...rest} />
+  );
 };

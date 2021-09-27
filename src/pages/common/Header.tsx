@@ -7,6 +7,7 @@ import { DeviceType } from "../../theme/device";
 import { fontSize } from "../../theme/fontSize";
 import { useDeviceType } from "../../theme/media";
 import { maxPageSize, spaceRem } from "../../theme/spacing";
+import { appRoute } from "../location";
 
 export const Header = () => {
   const deviceType = useDeviceType();
@@ -52,16 +53,17 @@ export const PageHeader = () => {
       <div className={styles.content}>
         <strong>Sonicthames</strong>
         <nav>
-          <Link component={RouterLink} to="/main">
+          {/* TODO Link with unsafeTo */}
+          <Link component={RouterLink} to={appRoute("main").to({}).path}>
             Back to map
           </Link>
-          <Link component={RouterLink} to="/works">
+          <Link component={RouterLink} to={appRoute("works").to({}).path}>
             Sounds
           </Link>
-          <Link component={RouterLink} to="/about">
+          <Link component={RouterLink} to={appRoute("about").to({}).path}>
             About
           </Link>
-          <Link component={RouterLink} to="/contact">
+          <Link component={RouterLink} to={appRoute("contact").to({}).path}>
             Contact
           </Link>
         </nav>
