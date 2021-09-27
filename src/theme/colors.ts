@@ -9,10 +9,10 @@ export const brandColors = {
     contrastText: "#fff",
   },
   action: {
-    main: "#2196f3",
-    light: "#90caf9",
-    dark: "#0d47a1",
-    contrastText: "#fff",
+    main: [0x75, 0x00, 0x28],
+    light: [0xf2, 0x00, 0x4c],
+    dark: [0x38, 0x2e, 0x32],
+    contrastText: [0xff, 0xff, 0xff],
   },
   neve: {
     primary: [236, 235, 231],

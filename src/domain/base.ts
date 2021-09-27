@@ -46,3 +46,26 @@ export interface Sound {
   format: string;
   length: number;
 }
+export type NewCategory = "Listen" | "See" | "Feel";
+
+export interface NewSound {
+  title: string;
+  description: string;
+  marker: string;
+  category: NewCategory;
+  duration: string;
+  location: string;
+  access: string;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+  time: string;
+  date: string;
+}
+
+export const R_ByCategory: Readonly<Record<NewCategory, string>> = {
+  Listen: "Sonic Points Fixed position",
+  See: "Sonic Scape Multi direction",
+  Feel: "PLACEHOLDER",
+};

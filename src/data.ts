@@ -1,4 +1,27 @@
-import { Sound } from "./domain/base";
+import * as DIO from "io-ts/Decoder";
+import { NewSound, Sound } from "./domain/base";
+
+export const D_Category = DIO.union(
+  DIO.literal("Listen"),
+  DIO.literal("See"),
+  DIO.literal("Feel")
+);
+export const D_Sound = DIO.struct<NewSound>({
+  title: DIO.string,
+  description: DIO.string,
+  marker: DIO.string,
+  category: D_Category,
+  duration: DIO.string,
+  location: DIO.string,
+  access: DIO.string,
+  coordinates: DIO.struct({
+    lat: DIO.number,
+    lng: DIO.number,
+  }),
+  time: DIO.string,
+  date: DIO.string,
+});
+export const D_Data = DIO.readonly(DIO.array(DIO.readonly(D_Sound)));
 
 const latitude = 51.501;
 const longitude = -0.001;
@@ -196,7 +219,7 @@ export const sounds: ReadonlyArray<Sound> = [
     position: getRandomPosition(),
     title: "Wonderful movie soundtracks",
     videoSrc: "hqG8u0jsk1A",
-    description: "",
+    description: [""],
     category: "Sound Walks",
 
     thumbnailSrc: "/thumbnails/placeholder.jpeg",
