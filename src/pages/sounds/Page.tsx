@@ -1,5 +1,6 @@
 import { css } from "@emotion/css";
-import { pipe } from "fp-ts/lib/function";
+import { constNull, pipe } from "fp-ts/lib/function";
+import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import React from "react";
 import { Link } from "react-router-dom";
@@ -55,7 +56,8 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                         typeof x.description === "string"
                           ? [x.description]
                           : x.description,
-                        RA.map((x) => <p>{x}</p>)
+                        RA.head,
+                        O.fold(constNull, (x) => <p>{x}</p>)
                       )}
                     </div>
                   </div>

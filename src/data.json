@@ -16,8 +16,11 @@
     "videoSrc": "WPO6Hhepiw8"
   },
   {
-    "title": "The Perfect Curve ",
-    "description": "The Perfect Curve ",
+    "title": "The Perfect Curve",
+    "description": [
+      "Coming from a landscape with many industrial structures, we arrive to a green peaceful area.",
+      "At the end of road lies The Perfect Curve"
+    ],
     "marker": "Curve",
     "category": "Listen",
     "duration": "01:29",
@@ -32,8 +35,11 @@
     "videoSrc": "j_gYxXuemx0"
   },
   {
-    "title": "The Forbidden Territory ",
-    "description": "The Forbidden Territory ",
+    "title": "The Forbidden Territory",
+    "description": [
+      "Disused platform on the river not accessible to public.",
+      "Seagulls and other birds perform an afternoon chorus."
+    ],
     "marker": "Forbidden",
     "category": "Listen",
     "duration": "03:24",
@@ -49,7 +55,11 @@
   },
   {
     "title": "Muddy Waters",
-    "description": "Muddy Waters",
+    "description": [
+      "Birds stick around the beach where light waves meet the muddy shores.",
+      "High walls make for an excellent acoustic theatre with a view.",
+      "Far in the distance, the city skyline rising high and fast!"
+    ],
     "marker": "Muddy",
     "category": "Listen",
     "duration": "03:30",
@@ -65,7 +75,9 @@
   },
   {
     "title": "Trees of Crowns",
-    "description": "Trees of Crowns",
+    "description": [
+      "Crowish – or when listening to another language sounds like arguing but its really just having fun."
+    ],
     "marker": "Crows",
     "category": "Listen",
     "duration": "03:03",
@@ -81,11 +93,14 @@
   },
   {
     "title": "Why Are We Here",
-    "description": "Why Are We Here",
+    "description": [
+      "Rehearsal for one of the Protein dance, street events in London Woolwich arsenal.",
+      "https://proteindance.co.uk/production"
+    ],
     "marker": "Here",
     "category": "See",
     "duration": "03:29",
-    "location": "Heritage Site ",
+    "location": "Heritage Site",
     "access": "Royal Arsenal, London SE18 6S",
     "coordinates": {
       "lat": 51.494954262726154,
@@ -97,7 +112,11 @@
   },
   {
     "title": "A World Full of Fresh Hope",
-    "description": "A World Full of Fresh Hope",
+    "description": [
+      "It could be a school playground, but somehow the energy is more positive and less chaotic.",
+      "The generation that will take the destiny of the planet in their hands one day, playing on the water, without a single worry in their minds and with big smiles full of hope.",
+      "Amazingly this one girl stands with a t-shirt that is indeed the slogan for all new generations: past, present and future – A World Full of Hope!"
+    ],
     "marker": "Hope",
     "category": "Listen",
     "duration": "07:19",
@@ -113,7 +132,10 @@
   },
   {
     "title": "All on Board",
-    "description": "All on Board",
+    "description": [
+      "The Woolwich Ferry is a free ferry across the River Thames in East London, connecting Woolwich on the south bank with North Woolwich on the north.",
+      "It's part of Transport for London."
+    ],
     "marker": "Ferry",
     "category": "Listen",
     "duration": "05:31",
@@ -129,7 +151,10 @@
   },
   {
     "title": "Watergate stairs",
-    "description": "Watergate stairs",
+    "description": [
+      "Diving in the water and hovering over it.",
+      "Layers of sound intertwined, some louder some quieter, one and another time."
+    ],
     "marker": "Stairs",
     "category": "Listen",
     "duration": "03:04",
@@ -145,7 +170,18 @@
   },
   {
     "title": "The Fiddle Player",
-    "description": "The Fiddle Player",
+    "description": [
+      "Fiddle Player* at the Dog and Bell on Prince Street just off Watergate street.",
+      "This is the start of a detour in the exploration of the river side.",
+      "From the Watergate stairs there’s no further passage downstream.",
+      "* All rights reserved to the fiddle player. https://www.facebook.com/TheDogandBell/",
+      "Sonic Thames Inspired by exploring the river upstream at the height of the pandemic.",
+      "To be there, grab the whole moment and place it here – for you, all world to see.",
+      "Binaural 3D* Recording technique that offers a more natural and realistic sound experience when listened via headphones.",
+      "It provides a sense of multidirectional perception as it happens in the real world.",
+      "You have the feeling of being in the same space as the actual location, listening to the sounds coming from different directions, even from behind.",
+      "Binaural allows for a better perception of space, precisely like being in there! * headphones are not only essential - but crucial!"
+    ],
     "marker": "Fiddle",
     "category": "Listen",
     "duration": "02:34",
@@ -161,7 +197,10 @@
   },
   {
     "title": "Intersection",
-    "description": "Intersection",
+    "description": [
+      "Bridge meets platform.",
+      "At the intersection the screeching murmurs are surrounded by waves, breeze and wings."
+    ],
     "marker": "Intersection",
     "category": "Listen",
     "duration": "00:57",
@@ -177,7 +216,10 @@
   },
   {
     "title": "Floating on the River",
-    "description": "Floating on the River",
+    "description": [
+      "Greenland Pier - Uber Thames Clippers. Boats departing and arriving at the Greenland Pier.",
+      "This is a good opportunity to focus on listening to the sounds of the surrounding environment that we often ignore when traveling around."
+    ],
     "marker": "Floating",
     "category": "See",
     "duration": "08:47",
@@ -193,23 +235,31 @@
   },
   {
     "title": "Beach Below and Above",
-    "description": "Beach Below and Above",
+    "description": [
+      "River activity underwater mixed with light sounds above the water.",
+      "Recorded, cleaned and amplified.",
+      "Different living creatures can be heard underwater.",
+      "What it seems to be birds are actually aquatic beings."
+    ],
     "marker": "Beach",
     "category": "Listen",
     "duration": "1:35",
     "location": "Bermondsey - Behind King's Stairs Gardens",
-    "access": "The Angel pub, 101 Bermondsey Wall E, London SE16 4NB ",
+    "access": "The Angel pub, 101 Bermondsey Wall E, London SE16 4NB",
     "coordinates": {
       "lat": 51.50101379900324,
       "lng": -0.0580068057175177
     },
     "time": "20:47",
     "date": "10 June 2021",
-    "videoSrc": ""
+    "videoSrc": "8SEiiDFzi08"
   },
   {
     "title": "Underwater Gig",
-    "description": "Underwater Gig",
+    "description": [
+      "How would fish listen to a live performance on a boat?",
+      "Well, we recorded underwater and here’s the result! glu glu"
+    ],
     "marker": "Gig",
     "category": "Listen",
     "duration": "01:17",
@@ -225,7 +275,9 @@
   },
   {
     "title": "Bermondsey Beach",
-    "description": "Bermondsey Beach",
+    "description": [
+      "Bermondsey Beach - Listening to the Thames waves looking at to the city skyline with the Tower Bridge on the background."
+    ],
     "marker": "Beach",
     "category": "Listen",
     "duration": "02:23",
