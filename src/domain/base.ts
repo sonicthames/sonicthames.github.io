@@ -50,7 +50,7 @@ export type NewCategory = "Listen" | "See" | "Feel";
 
 export interface NewSound {
   title: string;
-  description: string;
+  description: readonly string[];
   marker: string;
   category: NewCategory;
   duration: string;
@@ -65,7 +65,7 @@ export interface NewSound {
   videoSrc: string;
 }
 
-export const R_ByCategory: Readonly<Record<NewCategory, string>> = {
+export const R_CategoryFlavor: Readonly<Record<NewCategory, string>> = {
   Listen: "Sonic Points Fixed position",
   See: "Sonic Scape Multi direction",
   Feel: "PLACEHOLDER",

@@ -9,6 +9,9 @@ export const theme = createTheme({
       ...pipe(brandColors.action, RR.map(colorToCssRGB)),
       contrastText: "#fff",
     },
-    secondary: { ...brandColors.main, contrastText: "#fff" },
+    secondary: {
+      ...pipe(brandColors.main, RR.map(colorToCssRGB)),
+      contrastText: "#fff",
+    },
   },
 });

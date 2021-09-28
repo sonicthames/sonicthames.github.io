@@ -4,29 +4,22 @@ import { routePath } from "../lib/routing";
 export const appRoutes = {
   main: { fragments: null },
   about: { fragments: null },
-  listen: {
+  sounds: {
     fragments: {
       ":sound": {
         showInstances: { sound: S.Show },
         fragments: null,
       },
     },
+  },
+  listen: {
+    fragments: null,
   },
   see: {
-    fragments: {
-      ":sound": {
-        showInstances: { sound: S.Show },
-        fragments: null,
-      },
-    },
+    fragments: null,
   },
   feel: {
-    fragments: {
-      ":sound": {
-        showInstances: { sound: S.Show },
-        fragments: null,
-      },
-    },
+    fragments: null,
   },
 
   contact: { fragments: null },

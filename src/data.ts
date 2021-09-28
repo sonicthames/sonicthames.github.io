@@ -8,7 +8,7 @@ export const D_Category = DIO.union(
 );
 export const D_Sound = DIO.struct<NewSound>({
   title: DIO.string,
-  description: DIO.string,
+  description: DIO.readonly(DIO.array(DIO.string)),
   marker: DIO.string,
   category: D_Category,
   duration: DIO.string,

@@ -42,7 +42,9 @@ export const App = ({ history }: Props) => {
   const sounds = pipe(
     rawData,
     D_Data.decode,
-    E.fold(() => [], identity)
+    E.fold((e) => {
+      throw new Error(JSON.stringify(e));
+    }, identity)
   );
 
   return (
@@ -161,15 +163,11 @@ export const App = ({ history }: Props) => {
                 />
               </Route>
               <Route
-                path={[
-                  appRoute("listen", ":sound").path,
-                  appRoute("see", ":sound").path,
-                  appRoute("feel", ":sound").path,
-                ]}
+                path={appRoute("sounds", ":sound").path}
                 render={(props) =>
                   pipe(
                     sounds,
-                    RA.lookup(+props.match.params.sound),
+                    RA.findFirst((x) => x.marker === props.match.params.sound),
                     O.fold(
                       () => <NotFoundPage />,
                       (sound) => <SoundPage sound={sound} />

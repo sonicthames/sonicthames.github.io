@@ -1,6 +1,7 @@
 import { css, cx } from "@emotion/css";
 import { brandColors, colorToCssRGB } from "../theme/colors";
 import { DeviceType } from "../theme/device";
+import { fontSize } from "../theme/fontSize";
 import { maxPageSize, spaceRem } from "../theme/spacing";
 
 export const makeCommonStyles = (deviceType: DeviceType) =>
@@ -10,8 +11,7 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
       flex: 1,
       flexDirection: "column",
       position: "relative",
-      // backgroundColor: colorToCssRGB(brandColors.neve.primary),
-      backgroundColor: "lightgray",
+      backgroundColor: colorToCssRGB(brandColors.main.light),
     }),
     // TODO Should be main
     main: cx(
@@ -26,4 +26,7 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
             padding: `0 ${spaceRem()}`,
           })
     ),
+    crest: css({
+      fontSize: fontSize("xl"),
+    }),
   } as const);

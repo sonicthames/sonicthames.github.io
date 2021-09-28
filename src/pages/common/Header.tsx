@@ -169,7 +169,7 @@ const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
 const makePageHeaderStyles = ({ deviceType }: { deviceType: DeviceType }) =>
   ({
     component: css({
-      backgroundColor: colorToCssRGB(brandColors.action.dark),
+      backgroundColor: colorToCssRGB(brandColors.main.dark),
       position: "sticky",
       top: 0,
       fontSize: fontSize("l"),

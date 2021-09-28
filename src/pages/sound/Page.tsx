@@ -1,8 +1,9 @@
 import { css } from "@emotion/css";
+import { pipe } from "fp-ts/lib/function";
 // import * as date from "date-fns";
 // import { pipe } from "fp-ts/lib/function";
 // import * as O from "fp-ts/Option";
-// import * as RA from "fp-ts/ReadonlyArray";
+import * as RA from "fp-ts/ReadonlyArray";
 // import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
@@ -58,41 +59,46 @@ export const SoundPage = ({ sound }: Props) => {
             />
           </div>
           <div className={styles.description}>
-            <div>{sound.description}</div>
             <div>
-              <p>{lorem.generateSentences(5)}</p>
-              <p>{lorem.generateSentences(4)}</p>
+              {pipe(
+                sound.description,
+                RA.map((x) => <p>{x}</p>)
+              )}
             </div>
           </div>
           <div className={styles.info}>
             <h3>Recording technical sheet</h3>
-            <ul className={styles.details}>
-              <li>
+            <dl className={styles.details}>
+              <div>
                 <dt>Date:</dt>
                 <dd>{sound.date}</dd>
                 {/* <dd>{date.format(sound.date, "do MMMM yyyy")}</dd> */}
-              </li>
-              <li>
+              </div>
+              <div>
                 <dt>Time:</dt>
-                <dd>111000</dd>
-              </li>
-              <li>
+                <dd>{sound.time}</dd>
+              </div>
+              <div>
                 <dt>Place:</dt>
-                <dd>Enbankment</dd>
-              </li>
-              <li>
+                <dd>{sound.location}</dd>
+              </div>
+              <div>
                 <dt>Map Location:</dt>
                 <dd>{`${sound.coordinates.lat} lat, ${sound.coordinates.lng} lng`}</dd>
-              </li>
-              <li>
+              </div>
+              <div>
+                <dt>Access:</dt>
+                <dd>{sound.access}</dd>
+              </div>
+              <div>
                 <dt>Piece duration:</dt>
-                <dd>111000</dd>
-              </li>
-              <li>
+                <dd>{sound.duration}</dd>
+              </div>
+              <div>
                 <dt>Weather:</dt>
-                <dd>111000</dd>
-              </li>
-            </ul>
+                <dd>PLACEHOLDER</dd>
+              </div>
+            </dl>
             {/* <div
               className={css({
                 display: "flex",
@@ -217,11 +223,15 @@ const styles = {
     /* doesn't assume 3 terms but N */
     gridAutoRows: "1fr",
     gridTemplateColumns: "1fr 1fr",
-
-    li: css({
+    "> div": css({
       display: "flex",
       "> :first-child": css({
         marginRight: 16,
+        flexBasis: "25%",
+      }),
+      "> :last-child": css({
+        marginRight: 16,
+        flexBasis: "70%",
       }),
     }),
 

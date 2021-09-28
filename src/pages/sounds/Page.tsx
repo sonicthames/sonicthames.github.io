@@ -1,12 +1,13 @@
 import { css } from "@emotion/css";
+import { Link } from "@material-ui/core";
 import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import React from "react";
-import { Link } from "react-router-dom";
-import { NewCategory, NewSound } from "../../domain/base";
-import { brandColors, colorToCssRGB } from "../../theme/colors";
+import { Link as RouterLink } from "react-router-dom";
+import { NewCategory, NewSound, R_CategoryFlavor } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
+import { spaceRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
@@ -21,12 +22,14 @@ interface Props {
 export const SoundsPage = ({ category, sounds }: Props) => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
-  console.log({ sounds });
   return (
     <div className={commonStyles.page}>
       <PageHeader />
       <main className={commonStyles.main}>
         <h1>{category}</h1>
+        <p className={commonStyles.crest}>
+          <em>{R_CategoryFlavor[category]}</em>
+        </p>
         <div className={styles.videos}>
           <ul className={styles.ul}>
             {pipe(
@@ -45,8 +48,12 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                     />
                   </div>
                   <div className={styles.title}>
-                    {/* TODO use my thing */}
-                    <Link className={styles.link} to={`/sound/${k}`}>
+                    <Link
+                      component={RouterLink}
+                      underline="hover"
+                      // TODO use my thing
+                      to={`/sounds/${x.marker}`}
+                    >
                       {x.title}
                     </Link>
                   </div>
@@ -111,7 +118,8 @@ const styles = {
     boxSizing: "border-box",
   }),
   title: css({
-    marginBottom: 0,
+    marginTop: spaceRem("xxs"),
+    marginBottom: spaceRem("xxs"),
     fontSize: "1.25rem",
     fontWeight: "bold",
   }),
@@ -121,8 +129,5 @@ const styles = {
   }),
   description: css({
     fontStyle: "italic",
-  }),
-  link: css({
-    color: colorToCssRGB(brandColors.action.main),
   }),
 };
