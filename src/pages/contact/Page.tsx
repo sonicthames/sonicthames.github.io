@@ -30,7 +30,7 @@ export const ContactPage = (_: Props) => {
           </div>
           <form
             className={styles.form}
-            action="mailto:contact@sonicthames.org.uk"
+            action="mailto:sonicthames@gmail.com"
             encType="multipart/form-data"
           >
             <input type="hidden" name="subject" value="Send us your thoughts" />

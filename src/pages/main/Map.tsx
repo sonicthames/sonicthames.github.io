@@ -1,6 +1,6 @@
 import { css } from "@emotion/css";
 import * as React from "react";
-import ReactMapGL, { Marker } from "react-map-gl";
+import ReactMapGL from "react-map-gl";
 import { brandColors, colorToCssHex } from "../../theme/colors";
 // import { spaceRem } from "../../theme/spacing";
 
@@ -12,7 +12,7 @@ const initialState = {
     longitude: -0.001,
     width: 400,
     zoom: 11,
-    maxZoom: 13,
+    maxZoom: 16,
     minZoom: 10,
   },
 };
@@ -91,6 +91,15 @@ export class Map extends React.Component<{}, State> {
               type: "background",
               paint: {
                 "background-color": colorToCssHex(brandColors.map.land),
+              },
+            },
+            {
+              id: "road",
+              source: "mapbox",
+              "source-layer": "road",
+              type: "line",
+              paint: {
+                "line-color": "#000",
               },
             },
             {

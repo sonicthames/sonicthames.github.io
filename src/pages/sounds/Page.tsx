@@ -100,6 +100,8 @@ const styles = {
   li: css({}),
   video: css({
     display: "flex",
+    // TODO color
+    backgroundColor: "black",
   }),
   videoIframe: css({
     width: "100%",

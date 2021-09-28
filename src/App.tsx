@@ -23,10 +23,9 @@ import { NotFoundPage } from "./pages/not-found/Page";
 import { SoundPage } from "./pages/sound/Page";
 import { SoundsPage } from "./pages/sounds/Page";
 import { makeCommonStyles } from "./pages/styles";
-import { brandColors, colorToCssRGB } from "./theme/colors";
 import { fontSize } from "./theme/fontSize";
 import { useDeviceType } from "./theme/media";
-import { spaceEm, spaceRem } from "./theme/spacing";
+import { spaceEm } from "./theme/spacing";
 import { theme } from "./theme/theme";
 
 interface Props {
@@ -209,11 +208,11 @@ export const App = ({ history }: Props) => {
 
 const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
   const markerNote = css({
-    backgroundColor: colorToCssRGB(brandColors.neve.primary),
+    // backgroundColor: colorToCssRGB(brandColors.neve.primary),
     boxSizing: "content-box",
     fontSize: fontSize("s"),
     padding: spaceEm("xxs"),
-    borderRadius: spaceRem(),
+    // borderRadius: spaceRem(),
     cursor: "pointer",
   });
   return {
@@ -229,11 +228,12 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
       }),
       "&:hover": css({
         zIndex: 1000,
-        "> div": css({
-          div: css({
-            border: `2px solid ${colorToCssRGB(brandColors.action.dark)}`,
-          }),
-        }),
+        // Removed
+        // "> div": css({
+        //   div: css({
+        //     border: `2px solid ${colorToCssRGB(brandColors.action.dark)}`,
+        //   }),
+        // }),
       }),
     }),
     markerNote,
