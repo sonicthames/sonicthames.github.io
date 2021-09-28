@@ -20,6 +20,7 @@ export const D_Sound = DIO.struct<NewSound>({
   }),
   time: DIO.string,
   date: DIO.string,
+  videoSrc: DIO.string,
 });
 export const D_Data = DIO.readonly(DIO.array(DIO.readonly(D_Sound)));
 

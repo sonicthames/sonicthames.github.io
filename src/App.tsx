@@ -1,15 +1,16 @@
 import { css } from "@emotion/css";
 import { ThemeProvider } from "@material-ui/core";
+import * as E from "fp-ts/Either";
 import { identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
-import rawData from "./data.json";
 import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
 import React, { useState } from "react";
 import { Marker } from "react-map-gl";
-import * as E from "fp-ts/Either";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
-import { D_Data, sounds } from "./data";
+import { D_Data } from "./data";
+import rawData from "./data.json";
+import { R_CategoryRoute } from "./domain/base";
 import { Icon } from "./icon";
 import { AboutPage } from "./pages/about/Page";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
@@ -19,14 +20,14 @@ import { CrashPage } from "./pages/crash/Page";
 import { appRoute } from "./pages/location";
 import { Map } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
+import { SoundPage } from "./pages/sound/Page";
+import { SoundsPage } from "./pages/sounds/Page";
 import { makeCommonStyles } from "./pages/styles";
-import { WorkPage } from "./pages/work/Page";
-import { WorksPage } from "./pages/works/Page";
-import { useDeviceType } from "./theme/media";
-import { theme } from "./theme/theme";
 import { brandColors, colorToCssRGB } from "./theme/colors";
-import { spaceEm, spaceRem } from "./theme/spacing";
 import { fontSize } from "./theme/fontSize";
+import { useDeviceType } from "./theme/media";
+import { spaceEm, spaceRem } from "./theme/spacing";
+import { theme } from "./theme/theme";
 
 interface Props {
   history: History<unknown>;
@@ -39,6 +40,12 @@ export const App = ({ history }: Props) => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
 
+  const sounds = pipe(
+    rawData,
+    D_Data.decode,
+    E.fold(() => [], identity)
+  );
+
   return (
     <Router history={history}>
       <ErrorBoundary fallback={(error) => <CrashPage error={error} />}>
@@ -47,88 +54,27 @@ export const App = ({ history }: Props) => {
           <div className={styles.map}>
             <Map>
               {pipe(
-                rawData,
-                D_Data.decode,
-                E.fold(() => [], identity),
-                (x) => {
-                  console.log(x);
-                  return x;
-                },
-                RA.map((s) => (
+                sounds,
+                RA.mapWithIndex((k, s) => (
                   <Marker
                     latitude={s.coordinates.lat}
                     longitude={s.coordinates.lng}
                     className={styles.marker}
                   >
-                    {((c) => {
-                      switch (c) {
-                        case "Listen":
-                          return (
-                            <Icon
-                              name="MarkerL"
-                              width="2.5rem"
-                              height="2.5rem"
-                            />
-                          );
-                        case "See":
-                          return (
-                            <Icon
-                              name="MarkerS"
-                              width="2.5rem"
-                              height="2.5rem"
-                            />
-                          );
-                        case "Feel":
-                          return (
-                            <Icon
-                              name="MarkerF"
-                              width="2.5rem"
-                              height="2.5rem"
-                            />
-                          );
-                      }
-                    })(s.category)}
-                    {/* <img
-                        alt={`${s.title} thumbnail`}
-                        width={30}
-                        height={30}
-                      /> */}
-                    <div className={styles.markerNote}>{s.marker}</div>
-                  </Marker>
-                ))
-              )}
-              {/* {pipe(
-                sounds,
-                RA.map((s) => (
-                  <Marker latitude={s.position.lat} longitude={s.position.lng}>
-                    <div className={styles.marker}>
+                    <div
+                      onClick={() => {
+                        history.push(
+                          `/${R_CategoryRoute[s.category]}/${k}`
+                          // REVIEW
+                          // appRoute(R_CategoryRoute[s.category], ":sound").to({
+                          //   sound: k.toString(),
+                          // }).path
+                        );
+                      }}
+                    >
                       {((c) => {
                         switch (c) {
-                          case "Binaural Cycling":
-                            return (
-                              <Icon
-                                name="MarkerB"
-                                width="2.5rem"
-                                height="2.5rem"
-                              />
-                            );
-                          case "Sonic Sculptures":
-                            return (
-                              <Icon
-                                name="MarkerS"
-                                width="2.5rem"
-                                height="2.5rem"
-                              />
-                            );
-                          case "Sound Walks":
-                            return (
-                              <Icon
-                                name="MarkerF"
-                                width="2.5rem"
-                                height="2.5rem"
-                              />
-                            );
-                          case "Soundscapes":
+                          case "Listen":
                             return (
                               <Icon
                                 name="MarkerL"
@@ -136,13 +82,34 @@ export const App = ({ history }: Props) => {
                                 height="2.5rem"
                               />
                             );
+                          case "See":
+                            return (
+                              <Icon
+                                name="MarkerS"
+                                width="2.5rem"
+                                height="2.5rem"
+                              />
+                            );
+                          case "Feel":
+                            return (
+                              <Icon
+                                name="MarkerF"
+                                width="2.5rem"
+                                height="2.5rem"
+                              />
+                            );
                         }
                       })(s.category)}
-                      <div>{s.title}</div>
+                      {/* <img
+                        alt={`${s.title} thumbnail`}
+                        width={30}
+                        height={30}
+                      /> */}
+                      <div className={styles.markerNote}>{s.marker}</div>
                     </div>
                   </Marker>
                 ))
-              )} */}
+              )}
             </Map>
           </div>
           <Switch>
@@ -168,13 +135,31 @@ export const App = ({ history }: Props) => {
                 <AboutPage />
               </Route>
               <Route path={appRoute("listen").path}>
-                <WorksPage sounds={sounds} />
+                <SoundsPage
+                  category="Listen"
+                  sounds={pipe(
+                    sounds,
+                    RA.filter((x) => x.category === "Listen")
+                  )}
+                />
               </Route>
               <Route path={appRoute("see").path}>
-                <WorksPage sounds={sounds} />
+                <SoundsPage
+                  category="See"
+                  sounds={pipe(
+                    sounds,
+                    RA.filter((x) => x.category === "See")
+                  )}
+                />
               </Route>
               <Route path={appRoute("feel").path}>
-                <WorksPage sounds={sounds} />
+                <SoundsPage
+                  category="Feel"
+                  sounds={pipe(
+                    sounds,
+                    RA.filter((x) => x.category === "Feel")
+                  )}
+                />
               </Route>
               <Route
                 path={[
@@ -188,7 +173,7 @@ export const App = ({ history }: Props) => {
                     RA.lookup(+props.match.params.sound),
                     O.fold(
                       () => <NotFoundPage />,
-                      (work) => <WorkPage sound={work} />
+                      (sound) => <SoundPage sound={sound} />
                     )
                   )
                 }
@@ -244,8 +229,10 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
       }),
       "&:hover": css({
         zIndex: 1000,
-        div: css({
-          border: `2px solid ${colorToCssRGB(brandColors.action.dark)}`,
+        "> div": css({
+          div: css({
+            border: `2px solid ${colorToCssRGB(brandColors.action.dark)}`,
+          }),
         }),
       }),
     }),

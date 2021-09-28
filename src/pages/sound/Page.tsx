@@ -1,24 +1,24 @@
 import { css } from "@emotion/css";
-import * as date from "date-fns";
-import { pipe } from "fp-ts/lib/function";
-import * as O from "fp-ts/Option";
-import * as RA from "fp-ts/ReadonlyArray";
-import * as RR from "fp-ts/ReadonlyRecord";
+// import * as date from "date-fns";
+// import { pipe } from "fp-ts/lib/function";
+// import * as O from "fp-ts/Option";
+// import * as RA from "fp-ts/ReadonlyArray";
+// import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
-import { Sound } from "../../domain/base";
+import { NewSound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
-  sound: Sound;
+  sound: NewSound;
 }
 
 /**
  * This is the Sound's technical sheet
  */
-export const WorkPage = ({ sound }: Props) => {
+export const SoundPage = ({ sound }: Props) => {
   const [lorem] = useState(
     () =>
       new LoremIpsum({
@@ -44,22 +44,20 @@ export const WorkPage = ({ sound }: Props) => {
       <PageHeader />
       <main className={commonStyles.main}>
         <header className={styles.header}>
-          {/* <h1 className={css({ textAlign: "center" })}> */}
-          {/* TODO Align with artwork and image */}
-          <h1>Sound Sculpture</h1>
+          <h1>{sound.title}</h1>
         </header>
         <article className={styles.article}>
           {/* TOOD Make artwork smaller */}
           <div className={styles.artwork}>
             <img
-              src={sound.thumbnailSrc}
+              src="/thumbnails/placeholder.jpeg"
+              // src={sound.thumbnailSrc}
               width="400px"
               height="400px"
               alt="artwork"
             />
           </div>
           <div className={styles.description}>
-            <h2>{sound.title}</h2>
             <div>{sound.description}</div>
             <div>
               <p>{lorem.generateSentences(5)}</p>
@@ -71,7 +69,8 @@ export const WorkPage = ({ sound }: Props) => {
             <ul className={styles.details}>
               <li>
                 <dt>Date:</dt>
-                <dd>{date.format(sound.date, "do MMMM yyyy")}</dd>
+                <dd>{sound.date}</dd>
+                {/* <dd>{date.format(sound.date, "do MMMM yyyy")}</dd> */}
               </li>
               <li>
                 <dt>Time:</dt>
@@ -83,7 +82,7 @@ export const WorkPage = ({ sound }: Props) => {
               </li>
               <li>
                 <dt>Map Location:</dt>
-                <dd>{`${sound.position.lat} lat, ${sound.position.lng} lng`}</dd>
+                <dd>{`${sound.coordinates.lat} lat, ${sound.coordinates.lng} lng`}</dd>
               </li>
               <li>
                 <dt>Piece duration:</dt>
@@ -94,7 +93,7 @@ export const WorkPage = ({ sound }: Props) => {
                 <dd>111000</dd>
               </li>
             </ul>
-            <div
+            {/* <div
               className={css({
                 display: "flex",
               })}
@@ -106,9 +105,9 @@ export const WorkPage = ({ sound }: Props) => {
               >
                 Microphones:
               </strong>
-              {/* Description with ticks */}
               <span>
                 {pipe(
+                  // Description with ticks
                   sound.microphones || {},
                   RR.filterMap((v) => (v === false ? O.none : O.some(v))),
                   RR.toReadonlyArray,
@@ -128,7 +127,7 @@ export const WorkPage = ({ sound }: Props) => {
                   (x) => x.join(", ")
                 )}
               </span>
-            </div>
+            </div> */}
           </div>
           <div className={styles.video}>
             {/* 426x240 */}

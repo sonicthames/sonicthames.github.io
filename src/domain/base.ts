@@ -62,6 +62,7 @@ export interface NewSound {
   };
   time: string;
   date: string;
+  videoSrc: string;
 }
 
 export const R_ByCategory: Readonly<Record<NewCategory, string>> = {
@@ -69,3 +70,9 @@ export const R_ByCategory: Readonly<Record<NewCategory, string>> = {
   See: "Sonic Scape Multi direction",
   Feel: "PLACEHOLDER",
 };
+
+export const R_CategoryRoute = {
+  Listen: "listen",
+  See: "see",
+  Feel: "feel",
+} as const;
