@@ -2,7 +2,7 @@ import { css } from "@emotion/css";
 import { pipe } from "fp-ts/lib/function";
 // import * as date from "date-fns";
 // import { pipe } from "fp-ts/lib/function";
-// import * as O from "fp-ts/Option";
+import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 // import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
@@ -10,6 +10,7 @@ import React, { useState } from "react";
 import { NewSound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
 import { PageHeader } from "../common/Header";
+import { constNA } from "../common/message";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
@@ -71,16 +72,16 @@ export const SoundPage = ({ sound }: Props) => {
             <dl className={styles.details}>
               <div>
                 <dt>Date:</dt>
-                <dd>{sound.date}</dd>
+                <dd>{pipe(sound.date, O.getOrElse(constNA))}</dd>
                 {/* <dd>{date.format(sound.date, "do MMMM yyyy")}</dd> */}
               </div>
               <div>
                 <dt>Time:</dt>
-                <dd>{sound.time}</dd>
+                <dd>{pipe(sound.time, O.getOrElse(constNA))}</dd>
               </div>
               <div>
                 <dt>Place:</dt>
-                <dd>{sound.location}</dd>
+                <dd>{pipe(sound.location, O.getOrElse(constNA))}</dd>
               </div>
               <div>
                 <dt>Map Location:</dt>
@@ -88,7 +89,7 @@ export const SoundPage = ({ sound }: Props) => {
               </div>
               <div>
                 <dt>Access:</dt>
-                <dd>{sound.access}</dd>
+                <dd>{pipe(sound.access, O.getOrElse(constNA))}</dd>
               </div>
               <div>
                 <dt>Piece duration:</dt>

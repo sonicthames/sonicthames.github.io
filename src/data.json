@@ -290,5 +290,21 @@
     "time": "17:37",
     "date": "10 June 2021",
     "videoSrc": "QEvRffrEzfw"
+  },
+  {
+    "title": "Cycle and Walk",
+    "description": [],
+    "marker": "Cycle and Walk",
+    "category": "Feel",
+    "duration": "1:01:58",
+    "access": null,
+    "location": null,
+    "coordinates": {
+      "lat": 51.483269753460455,
+      "lng": -0.01014751786744664
+    },
+    "time": null,
+    "date": null,
+    "videoSrc": "KeZrpFt45Js"
   }
 ]

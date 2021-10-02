@@ -1,4 +1,6 @@
+import { pipe } from "fp-ts/lib/function";
 import * as DIO from "io-ts/Decoder";
+import * as O from "fp-ts/Option";
 import { NewSound, Sound } from "./domain/base";
 
 export const D_Category = DIO.union(
@@ -12,14 +14,14 @@ export const D_Sound = DIO.struct<NewSound>({
   marker: DIO.string,
   category: D_Category,
   duration: DIO.string,
-  location: DIO.string,
-  access: DIO.string,
+  location: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
+  access: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
   coordinates: DIO.struct({
     lat: DIO.number,
     lng: DIO.number,
   }),
-  time: DIO.string,
-  date: DIO.string,
+  time: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
+  date: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
   videoSrc: DIO.string,
 });
 export const D_Data = DIO.readonly(DIO.array(DIO.readonly(D_Sound)));

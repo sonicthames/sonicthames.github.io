@@ -1,3 +1,5 @@
+import * as O from "fp-ts/Option";
+
 export type Category =
   | "Soundscapes"
   | "Sound Walks"
@@ -54,14 +56,14 @@ export interface NewSound {
   marker: string;
   category: NewCategory;
   duration: string;
-  location: string;
-  access: string;
+  location: O.Option<string>;
+  access: O.Option<string>;
   coordinates: {
     lat: number;
     lng: number;
   };
-  time: string;
-  date: string;
+  time: O.Option<string>;
+  date: O.Option<string>;
   videoSrc: string;
 }
 

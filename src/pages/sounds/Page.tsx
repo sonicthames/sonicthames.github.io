@@ -36,7 +36,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
               sounds,
               // {/* TODO Round corners on thumbnail images / as Apple's icons */}
               RA.mapWithIndex((k, x) => (
-                <li id={x.videoSrc} className={styles.li} key={x.videoSrc}>
+                <li id={x.videoSrc} key={x.videoSrc}>
                   <div className={styles.video}>
                     <iframe
                       title={x.title}
@@ -106,7 +106,6 @@ const styles = {
       gridTemplateColumns: "1fr 1fr 1fr",
     },
   }),
-  li: css({}),
   video: css({
     display: "flex",
     // TODO color
