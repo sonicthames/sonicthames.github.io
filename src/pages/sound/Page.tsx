@@ -7,7 +7,7 @@ import * as RA from "fp-ts/ReadonlyArray";
 // import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
-import { NewSound } from "../../domain/base";
+import { HasDateTimeOption, NewSound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
 import { PageHeader } from "../common/Header";
 import { constNA } from "../common/message";
@@ -41,6 +41,7 @@ export const SoundPage = ({ sound }: Props) => {
 
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
+
   return (
     <div className={commonStyles.page}>
       <PageHeader />
@@ -70,15 +71,50 @@ export const SoundPage = ({ sound }: Props) => {
           <div className={styles.info}>
             <h3>Recording technical sheet</h3>
             <dl className={styles.details}>
-              <div>
-                <dt>Date:</dt>
-                <dd>{pipe(sound.date, O.getOrElse(constNA))}</dd>
-                {/* <dd>{date.format(sound.date, "do MMMM yyyy")}</dd> */}
-              </div>
-              <div>
-                <dt>Time:</dt>
-                <dd>{pipe(sound.time, O.getOrElse(constNA))}</dd>
-              </div>
+              {pipe(
+                "dateTime" in sound ? (
+                  <>
+                    <div>
+                      <dt>Date:</dt>
+                      <dd>
+                        {pipe(
+                          sound.dateTime,
+                          O.fold(constNA, (d) => d.toFormat("dd MMMM yyyy"))
+                        )}
+                      </dd>
+                    </div>
+
+                    <div>
+                      <dt>Time:</dt>
+                      <dd>
+                        {pipe(
+                          sound.dateTime,
+                          O.fold(constNA, (d) => d.toFormat("HH:mm"))
+                        )}
+                      </dd>
+                    </div>
+                  </>
+                ) : (
+                  <div>
+                    <dt>Interval:</dt>
+                    <dd>
+                      {pipe(
+                        sound.interval,
+                        O.fold(
+                          constNA,
+                          (i) =>
+                            // REVIEW Same day?
+                            `${i.start.toFormat(
+                              "dd MMMM yyyy"
+                            )}, from ${i.start.toFormat(
+                              "HH:mm"
+                            )} to ${i.end.toFormat("HH:mm")}`
+                        )
+                      )}
+                    </dd>
+                  </div>
+                )
+              )}
               <div>
                 <dt>Place:</dt>
                 <dd>{pipe(sound.location, O.getOrElse(constNA))}</dd>
@@ -93,7 +129,7 @@ export const SoundPage = ({ sound }: Props) => {
               </div>
               <div>
                 <dt>Piece duration:</dt>
-                <dd>{sound.duration}</dd>
+                <dd>{sound.duration.toFormat("h:mm:ss")}</dd>
               </div>
               <div>
                 <dt>Weather:</dt>

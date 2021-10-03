@@ -17,7 +17,7 @@ import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { Header } from "./pages/common/Header";
 import { ContactPage } from "./pages/contact/Page";
 import { CrashPage } from "./pages/crash/Page";
-import { appRoute } from "./pages/location";
+import { appRoute, soundId } from "./pages/location";
 import { Map } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { SoundPage } from "./pages/sound/Page";
@@ -167,7 +167,9 @@ export const App = ({ history }: Props) => {
                 render={(props) =>
                   pipe(
                     sounds,
-                    RA.findFirst((x) => x.marker === props.match.params.sound),
+                    RA.findFirst(
+                      (s) => soundId(s) === props.match.params.sound
+                    ),
                     O.fold(
                       () => <NotFoundPage />,
                       (sound) => <SoundPage sound={sound} />

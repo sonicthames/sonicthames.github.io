@@ -1,4 +1,5 @@
 import * as O from "fp-ts/Option";
+import type { DateTime, Duration, Interval } from "luxon";
 
 export type Category =
   | "Soundscapes"
@@ -50,22 +51,30 @@ export interface Sound {
 }
 export type NewCategory = "Listen" | "See" | "Feel";
 
-export interface NewSound {
+export interface SoundBase {
   title: string;
   description: readonly string[];
   marker: string;
   category: NewCategory;
-  duration: string;
+  duration: Duration;
   location: O.Option<string>;
   access: O.Option<string>;
   coordinates: {
     lat: number;
     lng: number;
   };
-  time: O.Option<string>;
-  date: O.Option<string>;
   videoSrc: string;
 }
+
+export interface HasIntervalOption {
+  interval: O.Option<Interval>;
+}
+
+export interface HasDateTimeOption {
+  dateTime: O.Option<DateTime>;
+}
+
+export type NewSound = SoundBase & (HasIntervalOption | HasDateTimeOption);
 
 export const R_CategoryFlavor: Readonly<Record<NewCategory, string>> = {
   Listen: "Sonic Points Fixed position",

@@ -1,29 +1,108 @@
-import { pipe } from "fp-ts/lib/function";
+import { flow, pipe } from "fp-ts/lib/function";
 import * as DIO from "io-ts/Decoder";
 import * as O from "fp-ts/Option";
-import { NewSound, Sound } from "./domain/base";
+import * as AP from "fp-ts/Apply";
+import * as E from "fp-ts/Either";
+import { DateTime, Duration, Interval } from "luxon";
+import { NewSound, Sound, SoundBase } from "./domain/base";
 
 export const D_Category = DIO.union(
   DIO.literal("Listen"),
   DIO.literal("See"),
   DIO.literal("Feel")
 );
-export const D_Sound = DIO.struct<NewSound>({
-  title: DIO.string,
-  description: DIO.readonly(DIO.array(DIO.string)),
-  marker: DIO.string,
-  category: D_Category,
-  duration: DIO.string,
-  location: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
-  access: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
-  coordinates: DIO.struct({
-    lat: DIO.number,
-    lng: DIO.number,
+// <NewSound>
+export const D_Sound = pipe(
+  DIO.struct<SoundBase>({
+    title: DIO.string,
+    description: DIO.readonly(DIO.array(DIO.string)),
+    marker: DIO.string,
+    category: D_Category,
+    duration: pipe(
+      DIO.string,
+      DIO.parse(
+        flow(
+          Duration.fromISO,
+          E.fromPredicate(
+            (d) => d.invalidReason === null,
+            (d) =>
+              DIO.error(
+                d,
+                JSON.stringify(
+                  `Duration:fromISO - ${d.invalidReason} - ${d.invalidExplanation}`
+                )
+              )
+          )
+        )
+      )
+    ),
+    location: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
+    access: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
+    coordinates: DIO.struct({
+      lat: DIO.number,
+      lng: DIO.number,
+    }),
+    videoSrc: DIO.string,
   }),
-  time: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
-  date: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
-  videoSrc: DIO.string,
-});
+  DIO.intersect(
+    DIO.union(
+      DIO.struct({
+        dateTime: pipe(
+          DIO.string,
+          DIO.nullable,
+          DIO.parse(
+            flow(
+              O.fromNullable,
+              O.map(
+                flow(
+                  DateTime.fromISO,
+                  E.fromPredicate(
+                    (d) => d.invalidReason === null,
+                    (d) =>
+                      DIO.error(
+                        d,
+                        JSON.stringify(
+                          `DateTime:fromISO - ${d.invalidReason} - ${d.invalidExplanation}`
+                        )
+                      )
+                  )
+                )
+              ),
+              O.sequence(E.Applicative)
+            )
+          )
+        ),
+      }),
+      DIO.struct({
+        interval: pipe(
+          DIO.string,
+          DIO.nullable,
+          DIO.parse(
+            flow(
+              O.fromNullable,
+              O.map(
+                flow(
+                  Interval.fromISO,
+                  E.fromPredicate(
+                    (d) => d.invalidReason === null,
+                    (d) =>
+                      DIO.error(
+                        d,
+                        JSON.stringify(
+                          `Interval:fromISO - ${d.invalidReason} - ${d.invalidExplanation}`
+                        )
+                      )
+                  )
+                )
+              ),
+              O.sequence(E.Applicative)
+            )
+          )
+        ),
+      })
+    )
+  )
+);
 export const D_Data = DIO.readonly(DIO.array(DIO.readonly(D_Sound)));
 
 const latitude = 51.501;

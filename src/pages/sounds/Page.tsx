@@ -9,6 +9,7 @@ import { NewCategory, NewSound, R_CategoryFlavor } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
 import { spaceRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
+import { soundId } from "../location";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
@@ -52,7 +53,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                       component={RouterLink}
                       underline="hover"
                       // TODO use my thing
-                      to={`/sounds/${x.marker}`}
+                      to={`/sounds/${soundId(x)}`}
                     >
                       {x.title}
                     </Link>

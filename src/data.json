@@ -4,15 +4,15 @@
     "description": ["Wooden Jetty"],
     "marker": "Jetty",
     "category": "Listen",
-    "duration": "00:47",
+    "duration": "PT00M47S",
     "location": "Belvedere",
     "access": "37 Church Manorway, London SE2 9DP",
     "coordinates": {
       "lat": 51.49664419559667,
       "lng": 0.17203561267986422
     },
-    "time": "2:32",
-    "date": "16 July 2021",
+
+    "dateTime": "2021-07-16T02:32",
     "videoSrc": "WPO6Hhepiw8"
   },
   {
@@ -23,15 +23,15 @@
     ],
     "marker": "Curve",
     "category": "Listen",
-    "duration": "01:29",
+    "duration": "PT01M29S",
     "location": "Bexley",
     "access": "17 St Andrews Cl, London SE28 8QD",
     "coordinates": {
       "lat": 51.5128159484887,
       "lng": 0.12913891492938526
     },
-    "time": "3:23",
-    "date": "16 July 2021",
+
+    "dateTime": "2021-07-16T03:23",
     "videoSrc": "j_gYxXuemx0"
   },
   {
@@ -42,15 +42,15 @@
     ],
     "marker": "Forbidden",
     "category": "Listen",
-    "duration": "03:24",
+    "duration": "PT03M24S",
     "location": "Greenwich ,– by 1 Erebus Dr",
     "access": "Tideslea Tower, Erebus Dr, London SE28 0GB",
     "coordinates": {
       "lat": 51.497877558036244,
       "lng": 0.08019043097443543
     },
-    "time": "03:20",
-    "date": "12 July 2021",
+
+    "dateTime": "2021-07-12T03:20",
     "videoSrc": "xur851oThHo"
   },
   {
@@ -62,15 +62,15 @@
     ],
     "marker": "Muddy",
     "category": "Listen",
-    "duration": "03:30",
+    "duration": "PT03M30S",
     "location": "Greenwich",
     "coordinates": {
       "lat": 51.496241132379545,
       "lng": 0.07661236416820931
     },
     "access": "Albert House, London SE28 0GN",
-    "time": "03:45",
-    "date": "12 July 2021",
+
+    "dateTime": "2021-07-12T03:45",
     "videoSrc": "fxN-G4CdY5w"
   },
   {
@@ -80,15 +80,15 @@
     ],
     "marker": "Crows",
     "category": "Listen",
-    "duration": "03:03",
+    "duration": "PT03M03S",
     "location": "Royal Arsenal",
     "access": "Marlborough Rd, London SE18 6TL",
     "coordinates": {
       "lat": 51.49509930946537,
       "lng": 0.07157203485340902
     },
-    "time": "02:50",
-    "date": "12 July 2021",
+
+    "dateTime": "2021-07-12T02:50",
     "videoSrc": "4geH7_kwLHg"
   },
   {
@@ -99,15 +99,15 @@
     ],
     "marker": "Here",
     "category": "See",
-    "duration": "03:29",
+    "duration": "PT03M29S",
     "location": "Heritage Site",
     "access": "Royal Arsenal, London SE18 6S",
     "coordinates": {
       "lat": 51.494954262726154,
       "lng": 0.07055198101995548
     },
-    "time": "04:05",
-    "date": "12 July 2021",
+
+    "dateTime": "2021-07-12T04:05",
     "videoSrc": "CwFOLANa1cA"
   },
   {
@@ -119,15 +119,15 @@
     ],
     "marker": "Hope",
     "category": "Listen",
-    "duration": "07:19",
+    "duration": "PT07M19S",
     "location": "Maribor Park Fountains",
     "access": " Woolwich London SE18 6PD",
     "coordinates": {
       "lat": 51.4945094251426,
       "lng": 0.06619430541535612
     },
-    "time": "04:25",
-    "date": "12 July 2021",
+
+    "dateTime": "2021-07-12T04:25",
     "videoSrc": "Kvu8Y7nSyQo"
   },
   {
@@ -138,15 +138,15 @@
     ],
     "marker": "Ferry",
     "category": "Listen",
-    "duration": "05:31",
+    "duration": "PT05M31S",
     "location": "Opposite to Waterfront Leisure Centre",
     "access": "Woolwich High St, London SE18 6DL",
     "coordinates": {
       "lat": 51.49468219167793,
       "lng": 0.06412776851650571
     },
-    "time": "04:40",
-    "date": "12 July 2021",
+
+    "dateTime": "2021-07-12T04:40",
     "videoSrc": "0kLF5U4m4FQ"
   },
   {
@@ -157,15 +157,15 @@
     ],
     "marker": "Stairs",
     "category": "Listen",
-    "duration": "03:04",
+    "duration": "PT03M04S",
     "location": "Deptford",
     "coordinates": {
       "lat": 51.48557219958128,
       "lng": -0.02478712902387588
     },
-    "access": " 21 Wharf St, London SE8 3GG",
-    "time": "16:47",
-    "date": "13 June 2021",
+    "access": "21 Wharf St, London SE8 3GG",
+
+    "dateTime": "2021-06-13T16:47",
     "videoSrc": "q_p0Ghy6B4A"
   },
   {
@@ -184,15 +184,15 @@
     ],
     "marker": "Fiddle",
     "category": "Listen",
-    "duration": "02:34",
+    "duration": "PT02M34S",
     "location": "The Dog & Bell pub",
     "access": "116 Prince St, London SE8 3JD",
     "coordinates": {
       "lat": 51.48341857318575,
       "lng": -0.025753421051477505
     },
-    "time": "17:55",
-    "date": "13 June 2021",
+
+    "dateTime": "2021-06-13T17:55",
     "videoSrc": "kE95K6cjKiU"
   },
   {
@@ -203,15 +203,14 @@
     ],
     "marker": "Intersection",
     "category": "Listen",
-    "duration": "00:57",
+    "duration": "PT00M57S",
     "location": "Rotherhithe - Greenland Surrey Quays Pier",
     "access": "33 Princes Ct, London SE16 7TD",
     "coordinates": {
       "lat": 51.49475442767241,
       "lng": -0.03185434182294278
     },
-    "time": "18:45",
-    "date": "13 June 2021",
+    "dateTime": "2021-06-13T18:45",
     "videoSrc": "bUUbeC2YKDM"
   },
   {
@@ -222,15 +221,14 @@
     ],
     "marker": "Floating",
     "category": "See",
-    "duration": "08:47",
+    "duration": "PT08M47S",
     "location": "Rotherhithe - Greenland Surrey Quays Pier",
     "access": "33 Princes Ct, London SE16 7TD",
     "coordinates": {
       "lat": 51.49486297389876,
       "lng": -0.031789696129041575
     },
-    "time": "18:55 to 20:38",
-    "date": "13 June 2021",
+    "interval": "2021-06-13T18:55Z/2021-06-13T20:38Z",
     "videoSrc": "ApNHj4M9ZE0"
   },
   {
@@ -243,15 +241,14 @@
     ],
     "marker": "Beach",
     "category": "Listen",
-    "duration": "1:35",
+    "duration": "PT1M35S",
     "location": "Bermondsey - Behind King's Stairs Gardens",
     "access": "The Angel pub, 101 Bermondsey Wall E, London SE16 4NB",
     "coordinates": {
       "lat": 51.50101379900324,
       "lng": -0.0580068057175177
     },
-    "time": "20:47",
-    "date": "10 June 2021",
+    "dateTime": "2021-06-10T20:47",
     "videoSrc": "8SEiiDFzi08"
   },
   {
@@ -262,15 +259,14 @@
     ],
     "marker": "Gig",
     "category": "Listen",
-    "duration": "01:17",
+    "duration": "PT01M17S",
     "location": "Bermondsey - Behind King's Stairs Gardens",
     "access": "The Angel pub, 101 Bermondsey Wall E, London SE16 4NB",
     "coordinates": {
       "lat": 51.50090122623746,
       "lng": -0.05899682436432989
     },
-    "time": " 20: 57",
-    "date": "10 June 2021",
+    "dateTime": "2021-06-10T20:57",
     "videoSrc": "UuS4cOsGIII"
   },
   {
@@ -280,15 +276,14 @@
     ],
     "marker": "Beach",
     "category": "Listen",
-    "duration": "02:23",
+    "duration": "PT02M23S",
     "access": "Bermondsey Beach",
     "location": "158 Bermondsey Wall E, London SE16 4TT",
     "coordinates": {
       "lat": 51.50086688194781,
       "lng": -0.06202818208663473
     },
-    "time": "17:37",
-    "date": "10 June 2021",
+    "dateTime": "2021-06-10T17:37",
     "videoSrc": "QEvRffrEzfw"
   },
   {
@@ -296,15 +291,14 @@
     "description": [],
     "marker": "Cycle and Walk",
     "category": "Feel",
-    "duration": "1:01:58",
+    "duration": "PT1H01M58S",
     "access": null,
     "location": null,
     "coordinates": {
       "lat": 51.483269753460455,
       "lng": -0.01014751786744664
     },
-    "time": null,
-    "date": null,
+    "dateTime": null,
     "videoSrc": "KeZrpFt45Js"
   }
 ]
