@@ -5,7 +5,7 @@ import { identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Marker } from "react-map-gl";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { D_Data } from "./data";
@@ -27,6 +27,18 @@ import { fontSize } from "./theme/fontSize";
 import { useDeviceType } from "./theme/media";
 import { spaceEm } from "./theme/spacing";
 import { theme } from "./theme/theme";
+
+const ShowDrawer = ({
+  set,
+  show = false,
+}: {
+  set: React.Dispatch<React.SetStateAction<boolean>>;
+  show?: boolean;
+}) => {
+  useEffect(() => set(show), [set, show]);
+
+  return <></>;
+};
 
 interface Props {
   history: History<unknown>;
@@ -58,11 +70,13 @@ export const App = ({ history }: Props) => {
                 sounds,
                 RA.mapWithIndex((k, s) => (
                   <Marker
+                    key={s.title}
                     latitude={s.coordinates.lat}
                     longitude={s.coordinates.lng}
                     className={styles.marker}
                   >
                     <div
+                      className={styles.markerContent}
                       onClick={() => {
                         history.push(
                           `/${R_CategoryRoute[s.category]}/${k}`
@@ -73,6 +87,12 @@ export const App = ({ history }: Props) => {
                         );
                       }}
                     >
+                      {/* <img
+                        alt={`${s.title} thumbnail`}
+                        width={30}
+                        height={30}
+                      /> */}
+                      <div className={styles.markerNote}>{s.marker}</div>
                       {((c) => {
                         switch (c) {
                           case "Listen":
@@ -101,30 +121,19 @@ export const App = ({ history }: Props) => {
                             );
                         }
                       })(s.category)}
-                      {/* <img
-                        alt={`${s.title} thumbnail`}
-                        width={30}
-                        height={30}
-                      /> */}
-                      <div className={styles.markerNote}>{s.marker}</div>
                     </div>
                   </Marker>
                 ))
               )}
             </Map>
           </div>
+          {/* TODO Maybe use a simple effect instead...? */}
           <Switch>
             <Route path={appRoute("main").path}>
-              {() => {
-                setShowDrawer(false);
-                return <></>;
-              }}
+              <ShowDrawer set={setShowDrawer} />
             </Route>
             <Route path="*">
-              {() => {
-                setShowDrawer(true);
-                return <></>;
-              }}
+              <ShowDrawer set={setShowDrawer} show />
             </Route>
           </Switch>
           <div className={styles.pages}>
@@ -223,6 +232,7 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
       justifyContent: "center",
       // backgroundColor: brandColors.main.light,
       cursor: "pointer",
+      // position: ""
       svg: css({
         cursor: "pointer",
       }),
@@ -235,6 +245,12 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
         //   }),
         // }),
       }),
+    }),
+    markerContent: css({
+      transform: "translate(-50%, -100%)",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
     }),
     markerNote,
     map: css({ position: "absolute", zIndex: 0 }),
