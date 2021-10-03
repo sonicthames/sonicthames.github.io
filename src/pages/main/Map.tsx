@@ -2,7 +2,6 @@ import { css } from "@emotion/css";
 import * as React from "react";
 import ReactMapGL from "react-map-gl";
 import { brandColors, colorToCssHex } from "../../theme/colors";
-// import { spaceRem } from "../../theme/spacing";
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
 const initialState = {
@@ -133,8 +132,7 @@ export class Map extends React.Component<{}, State> {
 const styles = {
   logo: css({
     position: "absolute",
-    // bottom: spaceRem("xl"),
-    // left: spaceRem("xl"),
+    pointerEvents: "none",
     bottom: -85,
     right: -40,
     width: "20rem",
