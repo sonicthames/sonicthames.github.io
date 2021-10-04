@@ -5,8 +5,8 @@ import { Link as RouterLink } from "react-router-dom";
 import { brandColors, colorToCssRGB } from "../../theme/colors";
 import { DeviceType } from "../../theme/device";
 import { fontSize } from "../../theme/fontSize";
-import { useDeviceType } from "../../theme/media";
-import { maxPageSize, spaceRem } from "../../theme/spacing";
+import { maxPageWidth, useDeviceType } from "../../theme/media";
+import { spacingRem } from "../../theme/spacing";
 import { appRoute } from "../location";
 
 export const Header = () => {
@@ -128,11 +128,11 @@ const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
       color: "white",
       fontSize: fontSize("l"),
       fontWeight: "bold",
-      gap: spaceRem(),
+      gap: spacingRem(),
       textTransform: "uppercase",
       nav: css({
         display: "flex",
-        gap: spaceRem(),
+        gap: spacingRem(),
       }),
       zIndex: 1,
     }),
@@ -144,9 +144,9 @@ const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
         // REVIEW
         display: "flex",
         justifyContent: "flex-end",
-        gap: spaceRem(),
-        paddingBottom: spaceRem(),
-        paddingTop: spaceRem(),
+        gap: spacingRem(),
+        paddingBottom: spacingRem(),
+        paddingTop: spacingRem(),
         a: css({
           color: "white",
           "&:visited": css({
@@ -157,11 +157,11 @@ const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
       deviceType === "desktop"
         ? css({
             margin: "0 auto",
-            maxWidth: maxPageSize,
+            maxWidth: maxPageWidth,
           })
         : css({
-            paddingLeft: spaceRem(),
-            paddingRight: spaceRem(),
+            paddingLeft: spacingRem(),
+            paddingRight: spacingRem(),
           })
     ),
   } as const);
@@ -173,11 +173,11 @@ const makePageHeaderStyles = ({ deviceType }: { deviceType: DeviceType }) =>
       position: "sticky",
       top: 0,
       fontSize: fontSize("l"),
-      gap: spaceRem(),
+      gap: spacingRem(),
       textTransform: "uppercase",
       nav: css({
         display: "flex",
-        gap: spaceRem(),
+        gap: spacingRem(),
       }),
       zIndex: 1,
     }),

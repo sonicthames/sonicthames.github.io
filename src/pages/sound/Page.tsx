@@ -7,14 +7,14 @@ import * as RA from "fp-ts/ReadonlyArray";
 // import * as RR from "fp-ts/ReadonlyRecord";
 import { LoremIpsum } from "lorem-ipsum";
 import React, { useState } from "react";
-import { HasDateTimeOption, NewSound } from "../../domain/base";
-import { useDeviceType } from "../../theme/media";
+import { Sound } from "../../domain/base";
+import { maxPageWidth, useDeviceType } from "../../theme/media";
 import { PageHeader } from "../common/Header";
 import { constNA } from "../common/message";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
-  sound: NewSound;
+  sound: Sound;
 }
 
 /**
@@ -198,7 +198,7 @@ const styles = {
   component: css({
     // backgroundColor: "rgba(237, 207, 121, 0.1)",
     margin: "0 auto",
-    maxWidth: "1200px",
+    maxWidth: maxPageWidth,
   }),
   header: css({
     marginBottom: "16px",

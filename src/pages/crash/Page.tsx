@@ -1,15 +1,13 @@
 import { css } from "@emotion/css";
 import React from "react";
 import { useDeviceType } from "../../theme/media";
-import { spaceRem } from "../../theme/spacing";
+import { spacingRem } from "../../theme/spacing";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
   error: Error;
 }
 
-/**
- */
 export const CrashPage = ({ error }: Props) => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
@@ -27,6 +25,6 @@ export const CrashPage = ({ error }: Props) => {
 
 const styles = {
   content: css({
-    marginTop: spaceRem("xl"),
+    marginTop: spacingRem("xl"),
   }),
 };

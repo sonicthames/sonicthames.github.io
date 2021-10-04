@@ -5,16 +5,16 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { NewCategory, NewSound, R_CategoryFlavor } from "../../domain/base";
+import { Category, R_CategoryFlavor, Sound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
-import { spaceRem } from "../../theme/spacing";
+import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { soundId } from "../location";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
-  category: NewCategory;
-  sounds: ReadonlyArray<NewSound>;
+  category: Category;
+  sounds: ReadonlyArray<Sound>;
 }
 
 /**
@@ -118,8 +118,8 @@ const styles = {
     boxSizing: "border-box",
   }),
   title: css({
-    marginTop: spaceRem("xxs"),
-    marginBottom: spaceRem("xxs"),
+    marginTop: spacingRem("xxs"),
+    marginBottom: spacingRem("xxs"),
     fontSize: "1.25rem",
     fontWeight: "bold",
   }),

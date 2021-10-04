@@ -2,7 +2,8 @@ import { css, cx } from "@emotion/css";
 import { brandColors, colorToCssRGB } from "../theme/colors";
 import { DeviceType } from "../theme/device";
 import { fontSize } from "../theme/fontSize";
-import { maxPageSize, spaceRem } from "../theme/spacing";
+import { maxPageWidth } from "../theme/media";
+import { spacingRem } from "../theme/spacing";
 
 export const makeCommonStyles = (deviceType: DeviceType) =>
   ({
@@ -20,10 +21,10 @@ export const makeCommonStyles = (deviceType: DeviceType) =>
         ? css({
             margin: "0 auto",
             width: "100%",
-            maxWidth: maxPageSize,
+            maxWidth: maxPageWidth,
           })
         : css({
-            padding: `0 ${spaceRem()}`,
+            padding: `0 ${spacingRem()}`,
           })
     ),
     crest: css({

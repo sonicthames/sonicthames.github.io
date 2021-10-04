@@ -1,6 +1,6 @@
 import { useMediaQuery } from "react-responsive";
 import type { DeviceType } from "./device";
-import { spacing } from "./spacing";
+import { raw_spacing } from "./spacing";
 
 // REVIEW
 export const maxPageWidth = 1200;
@@ -15,7 +15,7 @@ export function isUserAgentMobile(): boolean {
 export function useIsUnderPortraitWidth(): boolean {
   return useMediaQuery({
     // TODO calculate
-    query: `(max-width: ${maxPageWidth + 2 * spacing.default}px)`,
+    query: `(max-width: ${maxPageWidth + 2 * raw_spacing.default}px)`,
   });
 }
 

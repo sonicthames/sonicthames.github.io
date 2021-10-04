@@ -1,7 +1,7 @@
 import { css } from "@emotion/css";
 import React from "react";
 import { useDeviceType } from "../../theme/media";
-import { spaceRem } from "../../theme/spacing";
+import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
@@ -26,6 +26,6 @@ export const NotFoundPage = (_: Props) => {
 
 const styles = {
   content: css({
-    marginTop: spaceRem("xl"),
+    marginTop: spacingRem("xl"),
   }),
 };

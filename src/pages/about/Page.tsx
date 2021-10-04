@@ -1,7 +1,7 @@
 import { css } from "@emotion/css";
 import React from "react";
 import { useDeviceType } from "../../theme/media";
-import { spaceRem } from "../../theme/spacing";
+import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
@@ -81,7 +81,7 @@ export const AboutPage = (_: Props) => {
 
 const styles = {
   content: css({
-    marginTop: spaceRem("xl"),
-    gap: spaceRem("l"),
+    marginTop: spacingRem("xl"),
+    gap: spacingRem("l"),
   }),
 };

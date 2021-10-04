@@ -25,7 +25,7 @@ import { SoundsPage } from "./pages/sounds/Page";
 import { makeCommonStyles } from "./pages/styles";
 import { fontSize } from "./theme/fontSize";
 import { useDeviceType } from "./theme/media";
-import { spaceEm } from "./theme/spacing";
+import { spacingEm } from "./theme/spacing";
 import { theme } from "./theme/theme";
 
 const ShowDrawer = ({
@@ -220,7 +220,7 @@ const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
     // backgroundColor: colorToCssRGB(brandColors.neve.primary),
     boxSizing: "content-box",
     fontSize: fontSize("s"),
-    padding: spaceEm("xxs"),
+    padding: spacingEm("xxs"),
     // borderRadius: spaceRem(),
     cursor: "pointer",
   });

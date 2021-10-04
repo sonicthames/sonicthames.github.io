@@ -3,14 +3,12 @@ import { Button, TextField } from "@material-ui/core";
 import React from "react";
 import { DeviceType } from "../../theme/device";
 import { useDeviceType } from "../../theme/media";
-import { spaceRem } from "../../theme/spacing";
+import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 interface Props {}
 
-/**
- */
 export const ContactPage = (_: Props) => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
@@ -81,8 +79,8 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
     content: cx(
       css({
         display: "flex",
-        marginTop: spaceRem("xl"),
-        gap: spaceRem("l"),
+        marginTop: spacingRem("xl"),
+        gap: spacingRem("l"),
         "> *": css({
           flex: "50%",
         }),
@@ -96,6 +94,6 @@ const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
     form: css({
       display: "flex",
       flexDirection: "column",
-      gap: spaceRem(),
+      gap: spacingRem(),
     }),
   } as const);
