@@ -119,9 +119,29 @@ export const SoundPage = ({ sound }: Props) => {
                 <dt>Place:</dt>
                 <dd>{pipe(sound.location, O.getOrElse(constNA))}</dd>
               </div>
-              <div>
+              <div title={`${sound.coordinates.lat},${sound.coordinates.lng}`}>
                 <dt>Map Location:</dt>
-                <dd>{`${sound.coordinates.lat} lat, ${sound.coordinates.lng} lng`}</dd>
+                <dd>
+                  {pipe(
+                    `${sound.coordinates.lat.toFixed(
+                      3
+                    )}, ${sound.coordinates.lng.toFixed(3)}`,
+                    (message) =>
+                      deviceType === "desktop" ? (
+                        message
+                      ) : (
+                        <a
+                          // TODO Test on mobile
+                          // Show arrow that this opens a new link
+                          href={`geo:${sound.coordinates.lat},${sound.coordinates.lng}`}
+                          rel="noreferrer"
+                          target="_blank"
+                        >
+                          {message}
+                        </a>
+                      )
+                  )}
+                </dd>
               </div>
               <div>
                 <dt>Access:</dt>
