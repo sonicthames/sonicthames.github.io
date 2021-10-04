@@ -1,5 +1,6 @@
 import { css } from "@emotion/css";
 import React from "react";
+import { Link } from "react-router-dom";
 import { useDeviceType } from "../../theme/media";
 import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
@@ -19,23 +20,28 @@ export const AboutPage = (_: Props) => {
         <div className={styles.content}>
           <h1>About</h1>
           <p>
-            {`Sonic Thames has been Inspired by exploring the river upstream at
-            the height of the pandemic. To be there, grab the whole moment and
-            place it here – for you, all world to see.`}
+            Sonic Thames has been Inspired by exploring the river upstream at
+            the height of the pandemic.
           </p>
-          <h2>{`Binaural 3D (use headphones)`}</h2>
+          <p>
+            To be there, grab the whole moment and place it here – for you, all
+            world to see.
+          </p>
+          <h4>{`Binaural 3D (use headphones)`}</h4>
           <p>
             {`Recording technique that offers a more natural and realistic sound
             experience when listened via headphones. It provides a sense of
-            multidirectional perception as it happens in the real world. You
-            have the feeling of being in the same space as the actual location,
-            listening to the sounds coming from different directions, even from
-            behind. Binaural allows for a better perception of space, precisely
-            like being in there!`}
+            multidirectional perception as it happens in the real world.`}
           </p>
           <p>
-            {`Presented in three categories, the works are accessible online via
-            an interactive map.`}
+            {`You have the feeling of being in the same space as the actual
+            location, listening to the sounds coming from different directions,
+            even from behind. Binaural allows for a better perception of space,
+            precisely like being in there!`}
+          </p>
+          <p>
+            Presented in three categories, the works are accessible online via
+            an interactive map.
           </p>
           <p>
             {`Listen – This category is comprised of sound and image recorded at
@@ -50,7 +56,7 @@ export const AboutPage = (_: Props) => {
             of the location.`}
           </p>
           <p>
-            {`Feel- The third category is more dynamic than the ones above since
+            {`Feel - The third category is more dynamic than the ones above since
             they were recorded moving along a stretch of the riverside. Two
             different pieces are being produced that fit this category, a sound
             walk and a sound cycle. The result is an immersive experience with
@@ -58,13 +64,18 @@ export const AboutPage = (_: Props) => {
             location.`}
           </p>
           <p>
-            {`All work produced is being placed online on sonicthames.org.uk and
-            our YouTube channel. Two main uses can be derived from these
-            platforms. On one side, the virtual visit and exploration from
-            anywhere in the world. On the other side, the work can be accessed
-            in person at the original recording location. This can be done
-            directly by travelling to the designated areas and accessing the
-            content via our interactive map or the YouTube channel.`}
+            {`All work produced is being placed online at `}
+            <Link to="/">sonicthames.org.uk</Link>
+            {` and our `}
+            <a href="https://www.youtube.com/channel/UCqkDGMVIu4slWH1z90XIdyQ">
+              YouTube channel
+            </a>
+            {`. Two main uses can be derived from these platforms. On one side, the
+            virtual visit and exploration from anywhere in the world. On the
+            other side, the work can be accessed in person at the original
+            recording location. This can be done directly by travelling to the
+            designated areas and accessing the content via our interactive map
+            or the YouTube channel.`}
           </p>
           <p>
             {`For the soundcycling, it is recommended that the mobile phone is
