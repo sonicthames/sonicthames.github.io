@@ -1,12 +1,8 @@
 import { css } from "@emotion/css";
 import { pipe } from "fp-ts/lib/function";
-// import * as date from "date-fns";
-// import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
-// import * as RR from "fp-ts/ReadonlyRecord";
-import { LoremIpsum } from "lorem-ipsum";
-import React, { useState } from "react";
+import React from "react";
 import { Sound } from "../../domain/base";
 import { maxPageWidth, useDeviceType } from "../../theme/media";
 import { PageHeader } from "../common/Header";
@@ -21,24 +17,6 @@ interface Props {
  * This is the Sound's technical sheet
  */
 export const SoundPage = ({ sound }: Props) => {
-  const [lorem] = useState(
-    () =>
-      new LoremIpsum({
-        sentencesPerParagraph: {
-          max: 8,
-          min: 4,
-        },
-        wordsPerSentence: {
-          max: 16,
-          min: 4,
-        },
-      })
-  );
-
-  lorem.generateWords(1);
-  lorem.generateSentences(5);
-  lorem.generateParagraphs(7);
-
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
 
