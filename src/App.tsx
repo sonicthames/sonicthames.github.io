@@ -10,7 +10,6 @@ import { Marker } from "react-map-gl";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { D_Data } from "./data";
 import rawData from "./data.json";
-import { R_CategoryRoute } from "./domain/base";
 import { Icon } from "./icon";
 import { AboutPage } from "./pages/about/Page";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
@@ -68,62 +67,65 @@ export const App = ({ history }: Props) => {
             <Map>
               {pipe(
                 sounds,
-                RA.mapWithIndex((k, s) => (
-                  <Marker
-                    key={s.title}
-                    latitude={s.coordinates.lat}
-                    longitude={s.coordinates.lng}
-                    className={styles.marker}
-                  >
-                    <div
-                      className={styles.markerContent}
-                      onClick={() => {
-                        history.push(
-                          `/${R_CategoryRoute[s.category]}/${k}`
-                          // REVIEW
-                          // appRoute(R_CategoryRoute[s.category], ":sound").to({
-                          //   sound: k.toString(),
-                          // }).path
-                        );
-                      }}
+                RA.mapWithIndex((k, s) => {
+                  const sId = soundId(s);
+                  return (
+                    <Marker
+                      key={s.title}
+                      latitude={s.coordinates.lat}
+                      longitude={s.coordinates.lng}
+                      className={styles.marker}
                     >
-                      {/* <img
-                        alt={`${s.title} thumbnail`}
-                        width={30}
-                        height={30}
-                      /> */}
-                      <div className={styles.markerNote}>{s.marker}</div>
-                      {((c) => {
-                        switch (c) {
-                          case "Listen":
-                            return (
-                              <Icon
-                                name="MarkerL"
-                                width="2.5rem"
-                                height="2.5rem"
-                              />
-                            );
-                          case "See":
-                            return (
-                              <Icon
-                                name="MarkerS"
-                                width="2.5rem"
-                                height="2.5rem"
-                              />
-                            );
-                          case "Feel":
-                            return (
-                              <Icon
-                                name="MarkerF"
-                                width="2.5rem"
-                                height="2.5rem"
-                              />
-                            );
-                        }
-                      })(s.category)}
-                    </div>
-                  </Marker>
-                ))
+                      <div
+                        className={styles.markerContent}
+                        onClick={() => {
+                          history.push(
+                            `/sound/${sId}`
+                            // REVIEW
+                            // appRoute(R_CategoryRoute[s.category], ":sound").to({
+                            //   sound: k.toString(),
+                            // }).path
+                          );
+                        }}
+                      >
+                        {/* <img
+              alt={`${s.title} thumbnail`}
+              width={30}
+              height={30}
+            /> */}
+                        <div className={styles.markerNote}>{s.marker}</div>
+                        {((c) => {
+                          switch (c) {
+                            case "Listen":
+                              return (
+                                <Icon
+                                  name="MarkerL"
+                                  width="2.5rem"
+                                  height="2.5rem"
+                                />
+                              );
+                            case "See":
+                              return (
+                                <Icon
+                                  name="MarkerS"
+                                  width="2.5rem"
+                                  height="2.5rem"
+                                />
+                              );
+                            case "Feel":
+                              return (
+                                <Icon
+                                  name="MarkerF"
+                                  width="2.5rem"
+                                  height="2.5rem"
+                                />
+                              );
+                          }
+                        })(s.category)}
+                      </div>
+                    </Marker>
+                  );
+                })
               )}
             </Map>
           </div>
@@ -172,7 +174,7 @@ export const App = ({ history }: Props) => {
                 />
               </Route>
               <Route
-                path={appRoute("sounds", ":sound").path}
+                path={appRoute("sound", ":sound").path}
                 render={(props) =>
                   pipe(
                     sounds,

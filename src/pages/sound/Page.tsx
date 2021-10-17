@@ -39,12 +39,10 @@ export const SoundPage = ({ sound }: Props) => {
             />
           </div>
           <div className={styles.description}>
-            <div>
-              {pipe(
-                sound.description,
-                RA.map((x) => <p>{x}</p>)
-              )}
-            </div>
+            {pipe(
+              sound.description,
+              RA.map((x) => <p key={x}>{x}</p>)
+            )}
           </div>
           <div className={styles.info}>
             <h3>Recording technical sheet</h3>

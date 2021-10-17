@@ -53,7 +53,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                       component={RouterLink}
                       underline="hover"
                       // TODO use my thing
-                      to={`/sounds/${soundId(x)}`}
+                      to={`/sound/${soundId(x)}`}
                     >
                       {x.title}
                     </Link>
