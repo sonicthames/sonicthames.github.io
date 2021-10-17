@@ -17,6 +17,7 @@ module.exports = function (_, argv) {
       static: {
         directory: path.join(__dirname, "dist"),
       },
+      historyApiFallback: true,
       port: PORT,
     },
     output: {
