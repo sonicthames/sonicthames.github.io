@@ -2,10 +2,11 @@ require("dotenv").config();
 
 const path = require("path");
 const webpack = require("webpack");
+const CopyPlugin = require("copy-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const InterpolateHtmlPlugin = require("interpolate-html-plugin");
-const TerserPlugin = require("terser-webpack-plugin");
+
 const DefinePlugin = webpack.DefinePlugin;
 
 const PORT = 3001;
@@ -22,6 +23,10 @@ module.exports = function (_, argv) {
     },
     output: {
       publicPath: "auto",
+      path:
+        argv.mode === "production"
+          ? path.resolve(__dirname, "build")
+          : undefined,
     },
     resolve: {
       extensions: [".js", ".jsx", ".ts", ".tsx"],
@@ -57,7 +62,15 @@ module.exports = function (_, argv) {
       argv.mode === "production"
         ? {
             minimize: true,
-            minimizer: [new TerserPlugin()],
+            minimizer: [
+              (compiler) => {
+                const TerserPlugin = require("terser-webpack-plugin");
+                return new TerserPlugin({
+                  parallel: true,
+                }).apply(compiler);
+              },
+            ],
+            moduleIds: "deterministic",
           }
         : {},
     plugins: [
@@ -76,6 +89,24 @@ module.exports = function (_, argv) {
       new InterpolateHtmlPlugin({
         PUBLIC_URL: "",
       }),
-    ].concat(argv.mode === "production" ? [] : []),
+      new CopyPlugin({
+        patterns: [
+          {
+            from: "public",
+            globOptions: {
+              ignore: ["**/index.html"],
+            },
+          },
+        ],
+      }),
+    ].concat(
+      argv.mode === "production"
+        ? [
+            new webpack.ids.DeterministicModuleIdsPlugin({
+              maxLength: 5,
+            }),
+          ]
+        : []
+    ),
   };
 };

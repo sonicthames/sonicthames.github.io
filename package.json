@@ -23,6 +23,7 @@
     "@types/react-dom": "^17.0.0",
     "@types/react-router-dom": "^5.1.8",
     "babel-loader": "^8.2.2",
+    "copy-webpack-plugin": "^9.0.1",
     "css-loader": "^6.3.0",
     "dotenv": "^10.0.0",
     "fork-ts-checker-webpack-plugin": "^6.3.3",
@@ -42,6 +43,7 @@
     "serve": "^12.0.1",
     "style-loader": "^3.3.0",
     "ts-loader": "^9.2.6",
+    "ts-node": "^10.3.0",
     "typescript": "^4.1.2",
     "url-loader": "^4.1.1",
     "web-vitals": "^1.0.1",
@@ -57,6 +59,7 @@
     "serve": "serve dist -p 3001",
     "clean": "rm -rf dist",
     "test": "craco test",
+    "render": "ts-node src/ssg.ts",
     "build-icons": "rm -rf ./src/icon/generated && yarn generate-icons",
     "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#B4B8BA=currentColor' --out-dir=./src/icon/generated ./static/icons"
   },
