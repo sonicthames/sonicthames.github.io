@@ -36,7 +36,7 @@ const ShowDrawer = ({
 };
 
 interface Props {
-  readonly history: History<unknown>;
+  readonly history: History;
 }
 
 export const App = ({ history }: Props) => {

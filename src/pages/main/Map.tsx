@@ -38,7 +38,7 @@ const maxBound = {
 type Viewport = typeof initialViewport;
 
 interface Props {
-  readonly history: History<unknown>;
+  readonly history: History;
   readonly sounds: ReadonlyArray<Sound>;
 }
 
