@@ -18,6 +18,8 @@ export const brandColors = {
     primary: [236, 235, 231],
   },
   neutral: {
+    white: "#FFF",
+    black: "#000",
     main: "#21283B",
     s25: "#595D6A",
     s75: "#C7C9CD",
