@@ -6,11 +6,9 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
 import React, { useEffect, useState } from "react";
-import { Marker } from "react-map-gl";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { D_Data } from "./data";
 import rawData from "./data.json";
-import { Icon } from "./icon";
 import { AboutPage } from "./pages/about/Page";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { Header } from "./pages/common/Header";
@@ -22,9 +20,7 @@ import { NotFoundPage } from "./pages/not-found/Page";
 import { SoundPage } from "./pages/sound/Page";
 import { SoundsPage } from "./pages/sounds/Page";
 import { makeCommonStyles } from "./pages/styles";
-import { fontSize } from "./theme/fontSize";
 import { useDeviceType } from "./theme/media";
-import { spacingEm } from "./theme/spacing";
 import { theme } from "./theme/theme";
 
 const ShowDrawer = ({
@@ -40,7 +36,7 @@ const ShowDrawer = ({
 };
 
 interface Props {
-  history: History<unknown>;
+  readonly history: History<unknown>;
 }
 
 export const App = ({ history }: Props) => {
@@ -64,70 +60,7 @@ export const App = ({ history }: Props) => {
         <ThemeProvider theme={theme}>
           <Header />
           <div className={styles.map}>
-            <Map>
-              {pipe(
-                sounds,
-                RA.mapWithIndex((k, s) => {
-                  const sId = soundId(s);
-                  return (
-                    <Marker
-                      key={s.title}
-                      latitude={s.coordinates.lat}
-                      longitude={s.coordinates.lng}
-                      className={styles.marker}
-                    >
-                      <div
-                        className={styles.markerContent}
-                        onClick={() => {
-                          history.push(
-                            `/sound/${sId}`
-                            // REVIEW
-                            // appRoute(R_CategoryRoute[s.category], ":sound").to({
-                            //   sound: k.toString(),
-                            // }).path
-                          );
-                        }}
-                      >
-                        {/* <img
-              alt={`${s.title} thumbnail`}
-              width={30}
-              height={30}
-            /> */}
-                        <div className={styles.markerNote}>{s.marker}</div>
-                        {((c) => {
-                          switch (c) {
-                            case "Listen":
-                              return (
-                                <Icon
-                                  name="MarkerL"
-                                  width="2.5rem"
-                                  height="2.5rem"
-                                />
-                              );
-                            case "See":
-                              return (
-                                <Icon
-                                  name="MarkerS"
-                                  width="2.5rem"
-                                  height="2.5rem"
-                                />
-                              );
-                            case "Feel":
-                              return (
-                                <Icon
-                                  name="MarkerF"
-                                  width="2.5rem"
-                                  height="2.5rem"
-                                />
-                              );
-                          }
-                        })(s.category)}
-                      </div>
-                    </Marker>
-                  );
-                })
-              )}
-            </Map>
+            <Map history={history} sounds={sounds} />
           </div>
           {/* TODO Maybe use a simple effect instead...? */}
           <Switch>
@@ -218,43 +151,7 @@ export const App = ({ history }: Props) => {
 };
 
 const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
-  const markerNote = css({
-    // backgroundColor: colorToCssRGB(brandColors.neve.primary),
-    boxSizing: "content-box",
-    fontSize: fontSize("s"),
-    padding: spacingEm("xxs"),
-    // borderRadius: spaceRem(),
-    cursor: "pointer",
-  });
   return {
-    marker: css({
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      // backgroundColor: brandColors.main.light,
-      cursor: "pointer",
-      // position: ""
-      svg: css({
-        cursor: "pointer",
-      }),
-      "&:hover": css({
-        zIndex: 1000,
-        // Removed
-        // "> div": css({
-        //   div: css({
-        //     border: `2px solid ${colorToCssRGB(brandColors.action.dark)}`,
-        //   }),
-        // }),
-      }),
-    }),
-    markerContent: css({
-      transform: "translate(-50%, -100%)",
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-    }),
-    markerNote,
     map: css({ position: "absolute", zIndex: 0 }),
     pages: css({
       position: "absolute",

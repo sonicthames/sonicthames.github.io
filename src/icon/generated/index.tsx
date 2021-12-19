@@ -1,3 +1,4 @@
+export { default as Close } from './Close'
 export { default as Headphones } from './Headphones'
 export { default as MarkerB } from './MarkerB'
 export { default as MarkerF } from './MarkerF'

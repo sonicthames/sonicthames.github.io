@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <g id="Payment---READY" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Payment_Overlay_Tablet" transform="translate(-766.000000, -629.000000)">
+            <g id="Pull-out-panel" transform="translate(0.000000, 606.000000)">
+                <g id="icon-open-hover" transform="translate(766.000000, 23.000000)">
+                    <path d="M13,6 L13,11 L18,11 L18,13 L13,13 L13,18 L11,18 L11,13 L6,13 L6,11 L11,11 L11,6 L13,6 Z" id="Combined-Shape" fill="#FFFFFF" transform="translate(12.000000, 12.000000) rotate(45.000000) translate(-12.000000, -12.000000) "></path>
+                    <rect id="Rectangle" stroke="#FFFFFF" x="0.5" y="0.5" width="23" height="23" rx="11.5"></rect>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

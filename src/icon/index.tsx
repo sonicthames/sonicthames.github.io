@@ -5,6 +5,7 @@ import MarkerB from "./generated/MarkerB";
 import MarkerL from "./generated/MarkerL";
 import MarkerF from "./generated/MarkerF";
 import MarkerS from "./generated/MarkerS";
+import Close from "./generated/Close";
 
 export const icons = {
   Headphones,
@@ -12,6 +13,7 @@ export const icons = {
   MarkerL,
   MarkerF,
   MarkerS,
+  Close,
 } as const;
 
 export type KnownIcons = keyof typeof icons;
