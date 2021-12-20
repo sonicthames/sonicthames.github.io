@@ -1,17 +1,27 @@
 import { css } from "@emotion/css";
+import * as d3 from "d3-ease";
 import { pipe } from "fp-ts/function";
 import * as RA from "fp-ts/ReadonlyArray";
+import { _useMapControl } from "react-map-gl";
+import { Subject } from "rxjs";
 import { Sound } from "../../domain/base";
-import { spacingRem } from "../../theme/spacing";
+import { Coordinate, GoTo } from "../../lib/map";
 
 interface PlaylistItemProps {
   name: string;
-  coordinates: { lat: number; lng: number };
+  goTo$: Subject<GoTo>;
+  coordinates: Coordinate;
 }
 
-export const PlaylistItem = ({ name, coordinates }: PlaylistItemProps) => {
+export const PlaylistItem = ({
+  name,
+  goTo$,
+  coordinates,
+}: PlaylistItemProps) => {
+  const ref = _useMapControl({});
+
   return (
-    <li>
+    <li ref={ref.containerRef}>
       <button
         onClick={() => {
           console.log("Reproduce");
@@ -22,7 +32,12 @@ export const PlaylistItem = ({ name, coordinates }: PlaylistItemProps) => {
       {name}
       <button
         onClick={() => {
-          console.log("Goto");
+          goTo$.next({
+            ...coordinates,
+            zoom: 14,
+            transitionDuration: 500,
+            transitionEasing: d3.easeCubic,
+          });
         }}
       >
         In map
@@ -33,16 +48,25 @@ export const PlaylistItem = ({ name, coordinates }: PlaylistItemProps) => {
 
 interface PlaylistProps {
   sounds: ReadonlyArray<Sound>;
+  goTo$: Subject<GoTo>;
 }
 
-export const Playlist = ({ sounds }: PlaylistProps): JSX.Element => {
+export const Playlist = ({ sounds, goTo$ }: PlaylistProps): JSX.Element => {
   return (
     <div>
       <ul className={styles.list}>
         {pipe(
           sounds,
           RA.map(({ title, coordinates }) => (
-            <PlaylistItem name={title} coordinates={coordinates} />
+            <PlaylistItem
+              name={title}
+              goTo$={goTo$}
+              // TODO Rename lat lng
+              coordinates={{
+                latitude: coordinates.lat,
+                longitude: coordinates.lng,
+              }}
+            />
           ))
         )}
       </ul>

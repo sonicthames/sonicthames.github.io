@@ -9,6 +9,7 @@ import { Subject } from "rxjs";
 import { H2, H3 } from "../../components/Typography";
 import { Sound } from "../../domain/base";
 import { Icon } from "../../icon";
+import { GoTo } from "../../lib/map";
 import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
 import { soundId } from "../../pages/location";
 import { brandColors, colorToCssHex } from "../../theme/colors";
@@ -77,6 +78,22 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
         lazyUnsubscribe
       ),
     [viewportChange$]
+  );
+
+  const [goTo$] = useState(() => new Subject<GoTo>());
+  useEffect(
+    () =>
+      pipe(
+        goTo$.subscribe((v) =>
+          // TODO Validate position?
+          setViewport((p) => ({
+            ...p,
+            ...v,
+          }))
+        ),
+        lazyUnsubscribe
+      ),
+    [goTo$]
   );
 
   const [soundO] = useState(RA.head(sounds));
@@ -253,7 +270,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
           ))
         )}
         <hr />
-        <Playlist sounds={sounds} />
+        <Playlist sounds={sounds} goTo$={goTo$} />
       </aside>
     </ReactMapGL>
   );
