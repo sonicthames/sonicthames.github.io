@@ -1,6 +1,7 @@
 export { default as Close } from "./Close";
 export { default as ExpandedView } from "./ExpandedView";
 export { default as Feel } from "./Feel";
+export { default as FeelV0 } from "./FeelV0";
 export { default as Listen } from "./Listen";
 export { default as Next } from "./Next";
 export { default as Play } from "./Play";

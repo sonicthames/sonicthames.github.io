@@ -3,16 +3,11 @@ import { constNull, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { _useMapControl } from "react-map-gl";
+import { Subject } from "rxjs";
 import { H3 } from "../../components/Typography";
-import {
-  HasIntervalOption,
-  showDateTime,
-  showInterval,
-  Sound,
-} from "../../domain/base";
+import { showDateTime, showInterval, Sound } from "../../domain/base";
 import { Icon } from "../../icon";
 import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
-import { Subject } from "rxjs";
 
 interface Props {
   sound: Sound;
@@ -22,9 +17,6 @@ interface Props {
 
 export const Hover = ({ sound, close$, ...props }: Props) => {
   const ref = _useMapControl({});
-
-  const hasInterval = sound as HasIntervalOption;
-  hasInterval.interval;
 
   return (
     <div ref={ref.containerRef} {...props}>
@@ -43,7 +35,7 @@ export const Hover = ({ sound, close$, ...props }: Props) => {
         <div>
           {pipe(
             sound.description,
-            RA.map((x) => <div>{x}</div>)
+            RA.map((x) => <div key={x}>{x}</div>)
           )}
         </div>
         {"interval" in sound
