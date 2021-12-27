@@ -2,6 +2,7 @@ import { flow, pipe } from "fp-ts/function";
 import * as RA from "fp-ts/ReadonlyArray";
 
 export const raw_spacing = {
+  xxxs: 0.2,
   xxs: 0.4,
   xs: 0.6,
   s: 0.8,

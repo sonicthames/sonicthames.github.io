@@ -6,6 +6,7 @@ import { _useMapControl } from "react-map-gl";
 import { Subject } from "rxjs";
 import { Sound } from "../../domain/base";
 import { Coordinate, GoTo } from "../../lib/map";
+import { spacingRem } from "../../theme/spacing";
 
 interface PlaylistItemProps {
   name: string;
@@ -21,7 +22,7 @@ export const PlaylistItem = ({
   const ref = _useMapControl({});
 
   return (
-    <li ref={ref.containerRef}>
+    <li className={styles.item} ref={ref.containerRef}>
       <button
         onClick={() => {
           console.log("Reproduce");
@@ -29,7 +30,7 @@ export const PlaylistItem = ({
       >
         Play
       </button>
-      {name}
+      <span className={styles.itemName}>{name}</span>
       <button
         onClick={() => {
           goTo$.next({
@@ -78,5 +79,16 @@ const styles = {
   list: css({
     listStyle: "none",
     padding: 0,
+    gap: spacingRem("xs"),
+    display: "flex",
+    flexDirection: "column",
+  }),
+  item: css({
+    display: "flex",
+    justifyContent: "space-between",
+    gap: spacingRem("default"),
+  }),
+  itemName: css({
+    flex: 1,
   }),
 };

@@ -382,7 +382,10 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
               <div className={styles.soundHeader}>
                 <H3>{sound.title}</H3>
                 <div>
-                  <a href={`https://www.youtube.com/v/${sound.videoSrc}`}>
+                  <a
+                    className={styles.viewOnYoutube}
+                    href={`https://www.youtube.com/v/${sound.videoSrc}`}
+                  >
                     view on youtube
                   </a>
                 </div>
@@ -512,7 +515,7 @@ const styles = {
   }),
   sound: css({
     "> *": css({
-      marginTop: spacingRem("default"),
+      marginBottom: spacingRem("default"),
     }),
   }),
   soundHeader: css({
@@ -533,5 +536,12 @@ const styles = {
     bottom: 60,
     right: 25,
     width: 300,
+  }),
+  viewOnYoutube: css({
+    textDecoration: "none",
+    border: `1px solid ${brandColors.neutral.main}`,
+    padding: `${spacingEm("xxxs")} ${spacingEm("xs")}`,
+    borderRadius: spacingEm("xs"),
+    color: brandColors.neutral.main,
   }),
 } as const;
