@@ -3,11 +3,12 @@ import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
+import { LngLat } from "mapbox-gl";
 import React, { useEffect, useState } from "react";
-import ReactMapGL, { Marker } from "react-map-gl";
+import ReactMapGL, { Marker, WebMercatorViewport } from "react-map-gl";
 import { Subject } from "rxjs";
 import { H2, H3 } from "../../components/Typography";
-import { Sound } from "../../domain/base";
+import { showDateTime, showInterval, Sound } from "../../domain/base";
 import { Icon } from "../../icon";
 import { GoTo } from "../../lib/map";
 import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
@@ -15,26 +16,38 @@ import { soundId } from "../../pages/location";
 import { brandColors, colorToCssHex } from "../../theme/colors";
 import { fontSize } from "../../theme/fontSize";
 import { spacingEm, spacingRem } from "../../theme/spacing";
+import { Hover } from "./Hover";
 import { Playlist } from "./Playlist";
 
 const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
+
+const center = new LngLat(-0.001, 51.501);
+const swBound = {
+  latitude: center.lat - 0.08,
+  longitude: center.lng - 0.13,
+} as const;
+const neBound = {
+  latitude: center.lat + 0.08,
+  longitude: center.lng + 0.13,
+} as const;
+const bounds: [[number, number], [number, number]] = [
+  [swBound.longitude, swBound.latitude],
+  [neBound.longitude, neBound.latitude],
+  // [swBound.latitude, swBound.longitude],
+  // [neBound.latitude, neBound.longitude],
+];
+
 const initialViewport = {
   height: "100vh",
-  latitude: 51.501,
-  longitude: -0.001,
+  latitude: center.lat,
+  longitude: center.lng,
   width: 400,
   zoom: 11,
   maxZoom: 16,
   minZoom: 10,
 };
-const minBound = {
-  latitude: initialViewport.latitude - 0.08,
-  longitude: initialViewport.longitude - 0.13,
-} as const;
-const maxBound = {
-  latitude: initialViewport.latitude + 0.08,
-  longitude: initialViewport.longitude + 0.13,
-} as const;
+
+//  const bounds = new LngLatBounds(
 
 type Viewport = typeof initialViewport;
 
@@ -62,17 +75,81 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
     () =>
       pipe(
         viewportChange$.subscribe((v) => {
+          const mercatorViewport = new WebMercatorViewport({
+            width: window.innerWidth,
+            height: window.innerHeight,
+            latitude: v.latitude,
+            longitude: v.longitude,
+            zoom: v.zoom,
+          });
+
+          const [[wbound, sbound], [ebound, nbound]] =
+            mercatorViewport.getBounds();
+          const eDiff = Math.max(0, ebound - neBound.longitude);
+          const wDiff = Math.max(0, swBound.longitude - wbound);
+          const nDiff = Math.max(0, nbound - neBound.latitude);
+          const sDiff = Math.max(0, swBound.latitude - sbound);
+
+          // console.log("BOUNDS", mercatorViewport.getBounds());
+          // console.log(v.longitude + wDiff - eDiff);
+          // console.log(v.latitude + sDiff - nDiff);
+
+          // TODO inspect
+          // https://github.com/mapbox/mapbox-gl-js/blob/ade9271dc97df2f21c48be07e940b50fd0119c38/src/geo/transform.js#L1565
+          // const boundHeight = wbound - ebound;
+          // const newBounds: [[number, number], [number, number]] = [
+          //   [
+          //     Math.max(wbound, swBound.longitude),
+          //     Math.max(sbound, swBound.latitude),
+          //   ],
+          //   [
+          //     Math.min(ebound, neBound.longitude),
+          //     Math.min(nbound, neBound.latitude),
+          //   ],
+          // ];
+          // swBound.latitude
+          // currentBounds
+          // console.log("MERCA", newBounds);
+          // const newV = mercatorViewport.fitBounds(newBounds);
+          // console.log("NEW V", newV);
+
+          // if (0 !== wDiff - eDiff) {
+          //   console.log("LONGITUDE!", wDiff, eDiff);
+          // }
+          // if (0 !== sDiff - nDiff) {
+          //   console.log("LATITUDE!", sDiff, nDiff);
+          // }
+
           setViewport({
             ...v,
             width: window.innerWidth,
+            // latitude: v.latitude + sDiff - nDiff,
+            // longitude: v.longitude + wDiff - eDiff,
+
+            // latitude: newV.latitude,
             latitude: Math.min(
-              Math.max(v.latitude, minBound.latitude),
-              maxBound.latitude
+              Math.max(v.latitude, swBound.latitude),
+              neBound.latitude
             ),
+            // latitude:
+            //   sDiff === 0 || nDiff === 0
+            //     ? v.latitude + sDiff - nDiff
+            //     : Math.min(
+            //         Math.max(v.latitude, swBound.latitude),
+            //         neBound.latitude
+            //       ),
+            // longitude: newV.longitude,
             longitude: Math.min(
-              Math.max(v.longitude, minBound.longitude),
-              maxBound.longitude
+              Math.max(v.longitude, swBound.longitude),
+              neBound.longitude
             ),
+            // longitude:
+            //   wDiff === 0 || eDiff === 0
+            //     ? v.latitude + wDiff - eDiff
+            //     : Math.min(
+            //         Math.max(v.longitude, swBound.longitude),
+            //         neBound.longitude
+            //       ),
           });
         }),
         lazyUnsubscribe
@@ -84,13 +161,16 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
   useEffect(
     () =>
       pipe(
-        goTo$.subscribe((v) =>
-          // TODO Validate position?
-          setViewport((p) => ({
-            ...p,
-            ...v,
-          }))
-        ),
+        goTo$,
+        // TODO filter by bounds contain
+        ($) =>
+          $.subscribe((v) =>
+            // TODO Validate position?
+            setViewport((p) => ({
+              ...p,
+              ...v,
+            }))
+          ),
         lazyUnsubscribe
       ),
     [goTo$]
@@ -98,8 +178,15 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
 
   const [soundO] = useState(RA.head(sounds));
 
-  // TODO
-  const recordedDate = new Date();
+  const [hoverSoundO, setHoverSoundO] = useState<O.Option<Sound>>(() => O.none);
+  const [hoverClose$] = useState(() => new Subject<void>());
+  useEffect(() =>
+    pipe(
+      hoverClose$,
+      ($) => $.subscribe(() => setHoverSoundO(O.none)),
+      lazyUnsubscribe
+    )
+  );
 
   return (
     <ReactMapGL
@@ -172,13 +259,14 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
               <div
                 className={styles.markerContent}
                 onClick={() => {
-                  history.push(
-                    `/sound/${sId}`
-                    // REVIEW
-                    // appRoute(R_CategoryRoute[s.category], ":sound").to({
-                    //   sound: k.toString(),
-                    // }).path
-                  );
+                  setHoverSoundO(O.some(s));
+                  // history.push(
+                  //   `/sound/${sId}`
+                  //   // REVIEW
+                  //   // appRoute(R_CategoryRoute[s.category], ":sound").to({
+                  //   //   sound: k.toString(),
+                  //   // }).path
+                  // );
                 }}
               >
                 {/* <img
@@ -207,6 +295,12 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
             </Marker>
           );
         })
+      )}
+      {pipe(
+        hoverSoundO,
+        O.fold(constNull, (sound) => (
+          <Hover className={styles.hover} close$={hoverClose$} sound={sound} />
+        ))
       )}
       <aside className={styles.sidebar}>
         <header className={styles.sidebarHeader}>
@@ -249,12 +343,29 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
                   RA.map((x) => <div>{x}</div>)
                 )}
               </div>
-              <div>
-                <label>
-                  <strong>Recorded date: </strong>
-                </label>
-                <span>{recordedDate.toString()}</span>
-              </div>
+              {"interval" in sound
+                ? pipe(
+                    sound.interval,
+                    O.fold(constNull, (x) => (
+                      <div>
+                        <label>
+                          <strong>Interval: </strong>
+                        </label>
+                        <span>{showInterval(x)}</span>
+                      </div>
+                    ))
+                  )
+                : pipe(
+                    sound.dateTime,
+                    O.fold(constNull, (x) => (
+                      <div>
+                        <label>
+                          <strong>Recorded date: </strong>
+                        </label>
+                        <span>{showDateTime(x)}</span>
+                      </div>
+                    ))
+                  )}
               {pipe(
                 sound.location,
                 O.fold(constNull, (location) => (
@@ -325,6 +436,7 @@ const styles = {
     padding: spacingRem("default"),
     backgroundColor: brandColors.neutral.s95,
     position: "absolute",
+    zIndex: 2000,
     top: 0,
     bottom: 0,
     left: 0,
@@ -348,5 +460,13 @@ const styles = {
   closeButton: css({
     background: "none",
     border: "none",
+  }),
+  hover: css({
+    backgroundColor: brandColors.neutral.s95,
+    position: "absolute",
+    zIndex: 2000,
+    bottom: 60,
+    right: 25,
+    width: 300,
   }),
 } as const;

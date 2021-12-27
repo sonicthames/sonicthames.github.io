@@ -42,6 +42,7 @@ export const D_Sound = pipe(
       lng: DIO.number,
     }),
     videoSrc: DIO.string,
+    thumbnailSrc: pipe(DIO.string, DIO.nullable, DIO.map(O.fromNullable)),
   }),
   DIO.intersect(
     DIO.union(

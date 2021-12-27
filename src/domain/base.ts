@@ -64,6 +64,7 @@ export interface SoundBase {
     lng: number;
   };
   videoSrc: string;
+  thumbnailSrc: O.Option<string>;
 }
 
 export interface HasIntervalOption {
@@ -87,3 +88,14 @@ export const R_CategoryRoute = {
   See: "see",
   Feel: "feel",
 } as const;
+
+export function showDateTime(x: DateTime): string {
+  return x.toFormat("dd LLL yyyy");
+}
+
+export function showInterval(x: Interval): string {
+  const startDate = x.start.toFormat("dd LLL yyyy");
+  const startTime = x.start.toFormat("HH:mm");
+  const endTime = x.end.toFormat("HH:mm");
+  return `${startDate} ${startTime} - ${endTime}`;
+}
