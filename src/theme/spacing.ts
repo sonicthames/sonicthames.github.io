@@ -25,3 +25,5 @@ export const spacing = (
 export const spacingRem = flow(spacing, (x) => `${x}rem`);
 
 export const spacingEm = flow(spacing, (x) => `${x}em`);
+
+export const controlIconSize = "1.25rem";

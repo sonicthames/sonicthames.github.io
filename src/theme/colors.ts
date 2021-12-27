@@ -25,6 +25,11 @@ export const brandColors = {
     s75: "#C7C9CD",
     s95: "#F3F4F4",
   },
+  icons: {
+    listen: "#006837",
+    see: "#296bd2",
+    feel: "#d7331e",
+  },
   map: {
     water: [124, 187, 192],
     land: [72, 60, 51],

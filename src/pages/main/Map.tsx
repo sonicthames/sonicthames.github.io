@@ -15,7 +15,7 @@ import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
 import { soundId } from "../../pages/location";
 import { brandColors, colorToCssHex } from "../../theme/colors";
 import { fontSize } from "../../theme/fontSize";
-import { spacingEm, spacingRem } from "../../theme/spacing";
+import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
 import { Hover } from "./Hover";
 import { Playlist } from "./Playlist";
 
@@ -46,6 +46,9 @@ const initialViewport = {
   maxZoom: 16,
   minZoom: 10,
 };
+
+const markerIconSize = "1.25rem";
+const headerIconSize = "2rem";
 
 //  const bounds = new LngLatBounds(
 
@@ -251,7 +254,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
           const sId = soundId(s);
           return (
             <Marker
-              key={s.title}
+              key={sId}
               latitude={s.coordinates.lat}
               longitude={s.coordinates.lng}
               className={styles.marker}
@@ -274,20 +277,49 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
               width={30}
               height={30}
             /> */}
-                <div className={styles.markerNote}>{s.marker}</div>
+                {/* <div className={styles.markerNote}>{s.marker}</div> */}
                 {((c) => {
                   switch (c) {
                     case "Listen":
                       return (
-                        <Icon name="MarkerL" width="2.5rem" height="2.5rem" />
+                        <div
+                          className={styles.markerIcon(
+                            brandColors.icons.listen
+                          )}
+                        >
+                          <Icon
+                            name="Listen"
+                            color="white"
+                            width={markerIconSize}
+                            height={markerIconSize}
+                          />
+                        </div>
                       );
                     case "See":
                       return (
-                        <Icon name="MarkerS" width="2.5rem" height="2.5rem" />
+                        <div
+                          className={styles.markerIcon(brandColors.icons.see)}
+                        >
+                          <Icon
+                            name="See"
+                            color="white"
+                            width={markerIconSize}
+                            height={markerIconSize}
+                          />
+                        </div>
                       );
                     case "Feel":
                       return (
-                        <Icon name="MarkerF" width="2.5rem" height="2.5rem" />
+                        <div
+                          className={styles.markerIcon(brandColors.icons.feel)}
+                        >
+                          <Icon
+                            name="Feel"
+                            color="white"
+                            width={markerIconSize}
+                            height={markerIconSize}
+                          />
+                        </div>
                       );
                   }
                 })(s.category)}
@@ -305,13 +337,31 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
       <aside className={styles.sidebar}>
         <header className={styles.sidebarHeader}>
           <H2>Sonic Thames</H2>
-          <div>
-            <Icon name="MarkerL" width="2.5rem" height="2.5rem" />
-            <Icon name="MarkerS" width="2.5rem" height="2.5rem" />
-            <Icon name="MarkerF" width="2.5rem" height="2.5rem" />
+          <div className={styles.sidebarHeaderIcons}>
+            <button className={styles.iconButton}>
+              <Icon
+                name="Listen"
+                width={headerIconSize}
+                height={headerIconSize}
+              />
+            </button>
+            <button className={styles.iconButton}>
+              <Icon name="See" width={headerIconSize} height={headerIconSize} />
+            </button>
+            <button className={styles.iconButton}>
+              <Icon
+                name="Feel"
+                width={headerIconSize}
+                height={headerIconSize}
+              />
+            </button>
           </div>
-          <button className={styles.closeButton}>
-            <Icon name="Close" width="2rem" height="2rem" />
+          <button className={styles.iconButton}>
+            <Icon
+              name="Close"
+              width={controlIconSize}
+              height={controlIconSize}
+            />
           </button>
         </header>
         {pipe(
@@ -431,6 +481,15 @@ const styles = {
     // borderRadius: spaceRem(),
     cursor: "pointer",
   }),
+  markerIcon: (color: string) =>
+    css({
+      display: "flex",
+      alignItems: "center",
+      background: color,
+      borderRadius: "50%",
+      padding: spacingRem("xxs"),
+      border: "1px solid white",
+    }),
   sidebar: css({
     // backgroundColor: colorToCssRGBA([0, 0, 0, 0.4] as const),
     padding: spacingRem("default"),
@@ -447,6 +506,10 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
   }),
+  sidebarHeaderIcons: css({
+    display: "flex",
+    gap: spacingRem("default"),
+  }),
   sound: css({
     "> *": css({
       marginTop: spacingRem("default"),
@@ -457,7 +520,9 @@ const styles = {
     alignItems: "center",
     justifyContent: "space-between",
   }),
-  closeButton: css({
+  iconButton: css({
+    display: "flex",
+    alignItems: "center",
     background: "none",
     border: "none",
   }),

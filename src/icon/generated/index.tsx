@@ -1,6 +1,9 @@
-export { default as Close } from './Close'
-export { default as Headphones } from './Headphones'
-export { default as MarkerB } from './MarkerB'
-export { default as MarkerF } from './MarkerF'
-export { default as MarkerL } from './MarkerL'
-export { default as MarkerS } from './MarkerS'
+export { default as Close } from "./Close";
+export { default as ExpandedView } from "./ExpandedView";
+export { default as Feel } from "./Feel";
+export { default as Listen } from "./Listen";
+export { default as Next } from "./Next";
+export { default as Play } from "./Play";
+export { default as Previous } from "./Previous";
+export { default as See } from "./See";
+export { default as WindowView } from "./WindowView";

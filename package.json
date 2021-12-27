@@ -64,7 +64,7 @@
     "test": "craco test",
     "render": "ts-node src/ssg.ts",
     "build-icons": "rm -rf ./src/icon/generated && yarn generate-icons",
-    "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#B4B8BA=currentColor' --out-dir=./src/icon/generated ./static/icons"
+    "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
   },
   "eslintConfig": {
     "extends": [

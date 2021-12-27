@@ -11,7 +11,7 @@ import {
   Sound,
 } from "../../domain/base";
 import { Icon } from "../../icon";
-import { spacingEm, spacingRem } from "../../theme/spacing";
+import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
 import { Subject } from "rxjs";
 
 interface Props {
@@ -27,9 +27,9 @@ export const Hover = ({ sound, close$, ...props }: Props) => {
   hasInterval.interval;
 
   return (
-    <div ref={ref.containerRef} {...props} style={{ cursor: "initial" }}>
+    <div ref={ref.containerRef} {...props}>
       <button onClick={() => close$.next()} className={styles.closeButton}>
-        <Icon name="Close" width="2rem" height="2rem" />
+        <Icon name="Close" width={controlIconSize} height={controlIconSize} />
       </button>
       <img
         title={sound.title}
