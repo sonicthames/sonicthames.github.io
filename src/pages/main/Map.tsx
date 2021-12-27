@@ -5,7 +5,11 @@ import * as RA from "fp-ts/ReadonlyArray";
 import { History } from "history";
 import { LngLat } from "mapbox-gl";
 import React, { useEffect, useState } from "react";
-import ReactMapGL, { Marker, WebMercatorViewport } from "react-map-gl";
+import ReactMapGL, {
+  Marker,
+  WebMercatorViewport,
+  _useMapControl,
+} from "react-map-gl";
 import { Subject } from "rxjs";
 import { H2, H3 } from "../../components/Typography";
 import { showDateTime, showInterval, Sound } from "../../domain/base";
@@ -58,6 +62,121 @@ interface Props {
   readonly history: History;
   readonly sounds: ReadonlyArray<Sound>;
 }
+
+const Sidebar = ({
+  sounds,
+  soundO,
+  goTo$,
+}: {
+  sounds: ReadonlyArray<Sound>;
+  soundO: O.Option<Sound>;
+  goTo$: Subject<GoTo>;
+}) => {
+  const sidebarRef = _useMapControl({
+    capturePointerMove: true,
+    captureClick: true,
+    captureDoubleClick: true,
+    captureScroll: true,
+    captureDrag: true,
+  });
+
+  return (
+    <aside ref={sidebarRef.containerRef} className={styles.sidebar}>
+      <header className={styles.sidebarHeader}>
+        <H2>Sonic Thames</H2>
+        <div className={styles.sidebarHeaderIcons}>
+          <button className={styles.iconButton}>
+            <Icon
+              name="Listen"
+              width={headerIconSize}
+              height={headerIconSize}
+            />
+          </button>
+          <button className={styles.iconButton}>
+            <Icon name="See" width={headerIconSize} height={headerIconSize} />
+          </button>
+          <button className={styles.iconButton}>
+            <Icon name="Feel" width={headerIconSize} height={headerIconSize} />
+          </button>
+        </div>
+        <button className={styles.iconButton}>
+          <Icon name="Close" width={controlIconSize} height={controlIconSize} />
+        </button>
+      </header>
+      {pipe(
+        soundO,
+        O.fold(constNull, (sound) => (
+          <div className={styles.sound}>
+            <iframe
+              title={sound.title}
+              width="320"
+              height="240"
+              style={{
+                width: "100%",
+                border: "none",
+                boxSizing: "border-box",
+              }}
+              src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
+            />
+            <div className={styles.soundHeader}>
+              <H3>{sound.title}</H3>
+              <div>
+                <a
+                  className={styles.viewOnYoutube}
+                  href={`https://www.youtube.com/v/${sound.videoSrc}`}
+                >
+                  view on youtube
+                </a>
+              </div>
+            </div>
+            <div>
+              {pipe(
+                sound.description,
+                RA.map((x) => <div>{x}</div>)
+              )}
+            </div>
+            {"interval" in sound
+              ? pipe(
+                  sound.interval,
+                  O.fold(constNull, (x) => (
+                    <div>
+                      <label>
+                        <strong>Interval: </strong>
+                      </label>
+                      <span>{showInterval(x)}</span>
+                    </div>
+                  ))
+                )
+              : pipe(
+                  sound.dateTime,
+                  O.fold(constNull, (x) => (
+                    <div>
+                      <label>
+                        <strong>Recorded date: </strong>
+                      </label>
+                      <span>{showDateTime(x)}</span>
+                    </div>
+                  ))
+                )}
+            {pipe(
+              sound.location,
+              O.fold(constNull, (location) => (
+                <div>
+                  <label>
+                    <strong>Place: </strong>
+                  </label>
+                  <span>{location}</span>
+                </div>
+              ))
+            )}
+          </div>
+        ))
+      )}
+      <hr />
+      <Playlist sounds={sounds} goTo$={goTo$} />
+    </aside>
+  );
+};
 
 export const Map = ({ history, sounds }: Props): JSX.Element => {
   const [viewport, setViewport] = useState<Viewport>(initialViewport);
@@ -334,108 +453,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
           <Hover className={styles.hover} close$={hoverClose$} sound={sound} />
         ))
       )}
-      <aside className={styles.sidebar}>
-        <header className={styles.sidebarHeader}>
-          <H2>Sonic Thames</H2>
-          <div className={styles.sidebarHeaderIcons}>
-            <button className={styles.iconButton}>
-              <Icon
-                name="Listen"
-                width={headerIconSize}
-                height={headerIconSize}
-              />
-            </button>
-            <button className={styles.iconButton}>
-              <Icon name="See" width={headerIconSize} height={headerIconSize} />
-            </button>
-            <button className={styles.iconButton}>
-              <Icon
-                name="Feel"
-                width={headerIconSize}
-                height={headerIconSize}
-              />
-            </button>
-          </div>
-          <button className={styles.iconButton}>
-            <Icon
-              name="Close"
-              width={controlIconSize}
-              height={controlIconSize}
-            />
-          </button>
-        </header>
-        {pipe(
-          soundO,
-          O.fold(constNull, (sound) => (
-            <div className={styles.sound}>
-              <iframe
-                title={sound.title}
-                width="320"
-                height="240"
-                style={{
-                  width: "100%",
-                  border: "none",
-                  boxSizing: "border-box",
-                }}
-                src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
-              />
-              <div className={styles.soundHeader}>
-                <H3>{sound.title}</H3>
-                <div>
-                  <a
-                    className={styles.viewOnYoutube}
-                    href={`https://www.youtube.com/v/${sound.videoSrc}`}
-                  >
-                    view on youtube
-                  </a>
-                </div>
-              </div>
-              <div>
-                {pipe(
-                  sound.description,
-                  RA.map((x) => <div>{x}</div>)
-                )}
-              </div>
-              {"interval" in sound
-                ? pipe(
-                    sound.interval,
-                    O.fold(constNull, (x) => (
-                      <div>
-                        <label>
-                          <strong>Interval: </strong>
-                        </label>
-                        <span>{showInterval(x)}</span>
-                      </div>
-                    ))
-                  )
-                : pipe(
-                    sound.dateTime,
-                    O.fold(constNull, (x) => (
-                      <div>
-                        <label>
-                          <strong>Recorded date: </strong>
-                        </label>
-                        <span>{showDateTime(x)}</span>
-                      </div>
-                    ))
-                  )}
-              {pipe(
-                sound.location,
-                O.fold(constNull, (location) => (
-                  <div>
-                    <label>
-                      <strong>Place: </strong>
-                    </label>
-                    <span>{location}</span>
-                  </div>
-                ))
-              )}
-            </div>
-          ))
-        )}
-        <hr />
-        <Playlist sounds={sounds} goTo$={goTo$} />
-      </aside>
+      <Sidebar sounds={sounds} soundO={soundO} goTo$={goTo$} />
     </ReactMapGL>
   );
 };
@@ -503,6 +521,8 @@ const styles = {
     bottom: 0,
     left: 0,
     width: 500,
+    overflow: "auto",
+    cursor: "initial",
   }),
   sidebarHeader: css({
     display: "flex",

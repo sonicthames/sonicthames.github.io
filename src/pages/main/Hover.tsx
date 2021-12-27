@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { constNull, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
@@ -15,11 +15,17 @@ interface Props {
   close$: Subject<void>;
 }
 
-export const Hover = ({ sound, close$, ...props }: Props) => {
-  const ref = _useMapControl({});
+export const Hover = ({ sound, close$, className }: Props) => {
+  const ref = _useMapControl({
+    captureDrag: true,
+    capturePointerMove: true,
+    captureClick: true,
+    captureDoubleClick: true,
+    captureScroll: true,
+  });
 
   return (
-    <div ref={ref.containerRef} {...props}>
+    <div ref={ref.containerRef} className={cx(styles.component, className)}>
       <button onClick={() => close$.next()} className={styles.closeButton}>
         <Icon name="Close" width={controlIconSize} height={controlIconSize} />
       </button>
@@ -78,6 +84,9 @@ export const Hover = ({ sound, close$, ...props }: Props) => {
 };
 
 const styles = {
+  component: css({
+    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
+  }),
   soundHeader: css({
     display: "flex",
     alignItems: "center",
