@@ -1,3 +1,5 @@
+/* eslint-disable functional/no-this-expression */
+/* eslint-disable functional/no-class */
 import React from "react";
 
 export interface Props {
