@@ -4,10 +4,10 @@ import * as E from "fp-ts/Either";
 import { identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
-import { History } from "history";
+import type { History } from "history";
 import React, { useEffect, useState } from "react";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
-import { D_Data } from "./data";
+import { D_Data } from "./data.io";
 import rawData from "./data.json";
 import { AboutPage } from "./pages/about/Page";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
@@ -27,8 +27,8 @@ const ShowDrawer = ({
   set,
   show = false,
 }: {
-  set: React.Dispatch<React.SetStateAction<boolean>>;
-  show?: boolean;
+  readonly set: React.Dispatch<React.SetStateAction<boolean>>;
+  readonly show?: boolean;
 }) => {
   useEffect(() => set(show), [set, show]);
 
@@ -150,7 +150,7 @@ export const App = ({ history }: Props) => {
   );
 };
 
-const makeStyles = ({ showDrawer }: { showDrawer: boolean }) => {
+const makeStyles = ({ showDrawer }: { readonly showDrawer: boolean }) => {
   return {
     map: css({ position: "absolute", zIndex: 0 }),
     pages: css({

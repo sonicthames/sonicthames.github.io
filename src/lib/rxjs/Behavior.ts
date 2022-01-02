@@ -5,5 +5,5 @@ import { Observable } from "rxjs/internal/Observable";
  * also holds a mutable `value` with the latest push.
  */
 export interface Behavior<T> extends Observable<T> {
-  value: T;
+  readonly value: T;
 }

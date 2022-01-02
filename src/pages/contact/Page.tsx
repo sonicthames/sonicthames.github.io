@@ -74,7 +74,7 @@ export const ContactPage = (_: Props) => {
   );
 };
 
-const makeStyles = ({ deviceType }: { deviceType: DeviceType }) =>
+const makeStyles = ({ deviceType }: { readonly deviceType: DeviceType }) =>
   ({
     content: cx(
       css({

@@ -116,7 +116,11 @@ export const PageHeader = () => {
   );
 };
 
-const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
+const makeCommonStyles = ({
+  deviceType,
+}: {
+  readonly deviceType: DeviceType;
+}) =>
   ({
     component: css({
       position: "sticky",
@@ -166,7 +170,11 @@ const makeCommonStyles = ({ deviceType }: { deviceType: DeviceType }) =>
     ),
   } as const);
 
-const makePageHeaderStyles = ({ deviceType }: { deviceType: DeviceType }) =>
+const makePageHeaderStyles = ({
+  deviceType,
+}: {
+  readonly deviceType: DeviceType;
+}) =>
   ({
     component: css({
       backgroundColor: colorToCssRGB(brandColors.main.dark),

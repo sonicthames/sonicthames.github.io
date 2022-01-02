@@ -10,7 +10,7 @@ import { constNA } from "../common/message";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
-  sound: Sound;
+  readonly sound: Sound;
 }
 
 /**

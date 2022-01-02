@@ -13,8 +13,8 @@ import { soundId } from "../location";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
-  category: Category;
-  sounds: ReadonlyArray<Sound>;
+  readonly category: Category;
+  readonly sounds: ReadonlyArray<Sound>;
 }
 
 /**
@@ -65,7 +65,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                           ? [x.description]
                           : x.description,
                         RA.head,
-                        O.fold(constNull, (x) => <p>{x}</p>)
+                        O.fold(constNull, (y) => <p>{y}</p>)
                       )}
                     </div>
                   </div>

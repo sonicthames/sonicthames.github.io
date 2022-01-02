@@ -9,9 +9,9 @@ import { Coordinate, GoTo } from "../../lib/map";
 import { spacingRem } from "../../theme/spacing";
 
 interface PlaylistItemProps {
-  name: string;
-  goTo$: Subject<GoTo>;
-  coordinates: Coordinate;
+  readonly name: string;
+  readonly goTo$: Subject<GoTo>;
+  readonly coordinates: Coordinate;
 }
 
 export const PlaylistItem = ({
@@ -48,8 +48,8 @@ export const PlaylistItem = ({
 };
 
 interface PlaylistProps {
-  sounds: ReadonlyArray<Sound>;
-  goTo$: Subject<GoTo>;
+  readonly sounds: ReadonlyArray<Sound>;
+  readonly goTo$: Subject<GoTo>;
 }
 
 export const Playlist = ({ sounds, goTo$ }: PlaylistProps): JSX.Element => {

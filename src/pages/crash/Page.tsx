@@ -5,7 +5,7 @@ import { spacingRem } from "../../theme/spacing";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
-  error: Error;
+  readonly error: Error;
 }
 
 export const CrashPage = ({ error }: Props) => {

@@ -2,7 +2,7 @@
 export type Key = keyof any;
 
 export type PathTree<T> = {
-  [P in keyof T]-?: T[P] extends object
+  readonly [P in keyof T]-?: T[P] extends object
     ? readonly [P] | readonly [P, ...Path<T[P]>]
     : readonly [P];
 };
@@ -10,7 +10,7 @@ export type PathTree<T> = {
 export type Path<T> = PathTree<T>[keyof PathTree<T>];
 
 export type LeafPathTree<T> = {
-  [P in keyof T]-?: T[P] extends object
+  readonly [P in keyof T]-?: T[P] extends object
     ? readonly [P, ...LeafPath<T[P]>]
     : readonly [P];
 };

@@ -10,9 +10,9 @@ import { Icon } from "../../icon";
 import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
 
 interface Props {
-  sound: Sound;
-  className?: string;
-  close$: Subject<void>;
+  readonly sound: Sound;
+  readonly className?: string;
+  readonly close$: Subject<void>;
 }
 
 export const Hover = ({ sound, close$, className }: Props) => {

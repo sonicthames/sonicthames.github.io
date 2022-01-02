@@ -1,5 +1,5 @@
 import { Show } from "fp-ts/lib/Show";
-import { ExtractRouteParams, generatePath } from "react-router";
+import { generatePath } from "react-router";
 import type { JoinTuple } from "./typescript";
 import { joinTuple } from "./typescript";
 
@@ -7,7 +7,7 @@ export type RelativePath<FS extends readonly string[]> = JoinTuple<"/", FS>;
 export type AbsolutePath<FS extends readonly string[]> = `/${RelativePath<FS>}`;
 
 export type RouteTree<T> = {
-  [P in keyof T]: null | (T[P] extends RouteTree<T[P]> ? T[P] : never);
+  readonly [P in keyof T]: null | (T[P] extends RouteTree<T[P]> ? T[P] : never);
 };
 
 export type RouteNode<T, FS extends readonly unknown[]> = FS extends readonly []
@@ -27,13 +27,13 @@ type ConsumedShowInstances<
   T,
   FS extends readonly string[]
 > = T extends AppRoutes<T>
-  ? FS extends []
+  ? FS extends readonly []
     ? {}
-    : FS extends [infer F]
+    : FS extends readonly [infer F]
     ? F extends keyof T
       ? T[F]["showInstances"]
       : {}
-    : FS extends [infer F, ...infer RS]
+    : FS extends readonly [infer F, ...infer RS]
     ? F extends keyof T
       ? RS extends readonly string[]
         ? T[F]["showInstances"] & ConsumedShowInstances<T[F]["fragments"], RS>
@@ -42,8 +42,14 @@ type ConsumedShowInstances<
     : never
   : never;
 
-type Test_ConsumedShowInstances = ConsumedShowInstances<TestTree, ["leaf"]>;
-type Test_ConsumedShowInstances2 = ConsumedShowInstances<TestTree, ["base"]>;
+type Test_ConsumedShowInstances = ConsumedShowInstances<
+  TestTree,
+  readonly ["leaf"]
+>;
+type Test_ConsumedShowInstances2 = ConsumedShowInstances<
+  TestTree,
+  readonly ["base"]
+>;
 
 // {  ...ConsumedShowInstances<T[P]["fragments"], RS> }
 
@@ -67,9 +73,9 @@ export type RouteSegment<
   FS extends readonly string[],
   B extends string = "/"
 > = {
-  path: `${B}${RelativePath<FS>}`;
-  routes: RouteNode<T, FS>;
-  fragments: FS;
+  readonly path: `${B}${RelativePath<FS>}`;
+  readonly routes: RouteNode<T, FS>;
+  readonly fragments: FS;
 };
 
 export type ToRouteSegment<
@@ -78,23 +84,25 @@ export type ToRouteSegment<
   B extends string = "/"
 > = RouteSegment<T, FS, B> & {
   // NOTE: Temp to function, should instead use Show<T>
-  to: (
+  readonly to: (
     _: ExtractRouteParams<RelativePath<FS>>
-  ) => ToRouteSegment<T, [], `${B}${RelativePath<FS>}`>;
+  ) => ToRouteSegment<T, readonly [], `${B}${RelativePath<FS>}`>;
 };
 
 type TestTree = {
-  leaf: {
-    fragments: null;
+  readonly leaf: {
+    readonly fragments: null;
   };
-  base: {
-    fragments: {
-      ":work": {
-        showInstances: { work: { show: () => "1" } };
-        fragments: {
-          ":multiple": {
-            showInstances: { multiple: { show: () => "1" } };
-            fragments: null;
+  readonly base: {
+    readonly fragments: {
+      readonly ":work": {
+        readonly showInstances: { readonly work: { readonly show: () => "1" } };
+        readonly fragments: {
+          readonly ":multiple": {
+            readonly showInstances: {
+              readonly multiple: { readonly show: () => "1" };
+            };
+            readonly fragments: null;
           };
         };
       };
@@ -105,12 +113,12 @@ type TestTree = {
 export type FragmentShowInstances<P> = P extends string
   ? {} extends ShowInstances<P>
     ? {}
-    : Readonly<{ showInstances: ShowInstances<P> }>
+    : Readonly<{ readonly showInstances: ShowInstances<P> }>
   : {};
 
 export type AppRoutes<T> = {
-  [P in keyof T]-?: T[P] extends Readonly<{
-    fragments: infer W;
+  readonly [P in keyof T]-?: T[P] extends Readonly<{
+    readonly fragments: infer W;
     // showInstances?: P extends string ? ShowInstances<P> : undefined;
   }> &
     FragmentShowInstances<P>
@@ -142,10 +150,10 @@ export type ShowInstances<P extends string> = Readonly<
 type Test_ShowInstances = ShowInstances<"works/:work:kkoko/:00909/">;
 
 export type PathTree<T> = {
-  [P in keyof T]-?: T[P] extends {
-    fragments: object;
+  readonly [P in keyof T]-?: T[P] extends {
+    readonly fragments: object;
     // TODO Is this check even needed? Probably not
-    showInstances?: P extends string ? ShowInstances<P> : undefined;
+    readonly showInstances?: P extends string ? ShowInstances<P> : undefined;
   }
     ? readonly [P] | readonly [P, ...Path<T[P]["fragments"]>]
     : readonly [P];
@@ -188,10 +196,13 @@ export const routePath =
     ): ToRouteSegment<T, FS> => {
       const len = fragments.length;
       const path = `/${joinTuple("/")<FS>(...fragments)}` as const;
+      // eslint-disable-next-line functional/no-let
       let remainder = routes;
-      for (let i = 0; i < len; i++) {
+      // eslint-disable-next-line functional/no-let
+      let i;
+      // eslint-disable-next-line functional/no-loop-statement
+      for (i = 0; i < len; i++) {
         const k = fragments[i];
-        // @ts-ignore Too heavy for the compiler to work this one out.
         remainder = remainder[k]["fragments"];
         // showInstances[] =
       }
@@ -200,9 +211,7 @@ export const routePath =
         path,
         fragments,
         to: (props) => ({
-          // @ts-ignore
           path: generatePath(path, props),
-          // @ts-ignore
           fragments,
           routes,
         }),

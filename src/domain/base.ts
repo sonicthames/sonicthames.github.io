@@ -52,27 +52,27 @@ import type { DateTime, Duration, Interval } from "luxon";
 export type Category = "Listen" | "See" | "Feel";
 
 export interface SoundBase {
-  title: string;
-  description: readonly string[];
-  marker: string;
-  category: Category;
-  duration: Duration;
-  location: O.Option<string>;
-  access: O.Option<string>;
-  coordinates: {
-    lat: number;
-    lng: number;
+  readonly title: string;
+  readonly description: readonly string[];
+  readonly marker: string;
+  readonly category: Category;
+  readonly duration: Duration;
+  readonly location: O.Option<string>;
+  readonly access: O.Option<string>;
+  readonly coordinates: {
+    readonly lat: number;
+    readonly lng: number;
   };
-  videoSrc: string;
-  thumbnailSrc: O.Option<string>;
+  readonly videoSrc: string;
+  readonly thumbnailSrc: O.Option<string>;
 }
 
 export interface HasIntervalOption {
-  interval: O.Option<Interval>;
+  readonly interval: O.Option<Interval>;
 }
 
 export interface HasDateTimeOption {
-  dateTime: O.Option<DateTime>;
+  readonly dateTime: O.Option<DateTime>;
 }
 
 export type Sound = SoundBase & (HasIntervalOption | HasDateTimeOption);

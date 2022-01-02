@@ -1,11 +1,11 @@
 import React from "react";
 
 export interface Props {
-  fallback: (error: Error) => React.ReactNode;
+  readonly fallback: (error: Error) => React.ReactNode;
 }
 
 interface State {
-  error: Error | null;
+  readonly error: Error | null;
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {

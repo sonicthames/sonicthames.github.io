@@ -1,9 +1,7 @@
 import { ReactNode } from "react";
-import {
-  ExtractRouteParams,
-  RouteComponentProps,
-  RouteProps,
-} from "react-router";
+import type { RouteProps } from "react-router";
+// ExtractRouteParams,
+// RouteComponentProps,
 import { Route } from "react-router-dom";
 import { RelativePath, RouteSegment, ToRouteSegment } from "../../lib/routing";
 import { appRoutes } from "../location";
@@ -11,19 +9,18 @@ import { appRoutes } from "../location";
 interface Props<
   // B extends string,
   FS extends readonly string[],
-  Params extends { [K: string]: string | undefined } = ExtractRouteParams<
-    RelativePath<FS>,
-    string
-  >
+  Params extends {
+    readonly [K: string]: string | undefined;
+  } = ExtractRouteParams<RelativePath<FS>, string>
 > extends Omit<
     RouteProps<RelativePath<FS>, Params>,
     "path" | "children" | "component" | "render"
   > {
-  segment: ToRouteSegment<typeof appRoutes, FS>;
-  children:
+  readonly segment: ToRouteSegment<typeof appRoutes, FS>;
+  readonly children:
     | ((
         props: RouteComponentProps<Params> & {
-          segment: RouteSegment<typeof appRoutes, FS>;
+          readonly segment: RouteSegment<typeof appRoutes, FS>;
         }
       ) => ReactNode)
     | ReactNode
