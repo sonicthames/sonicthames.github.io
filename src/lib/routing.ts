@@ -1,7 +1,7 @@
 import { Show } from "fp-ts/lib/Show";
 import { generatePath } from "react-router";
 import type { ExtractRouteParams } from "react-router";
-import type { JoinTuple } from "./typescript";
+import type { EmptyObject, JoinTuple } from "./typescript";
 import { joinTuple } from "./typescript";
 
 export type RelativePath<FS extends readonly string[]> = JoinTuple<"/", FS>;
@@ -29,11 +29,11 @@ type ConsumedShowInstances<
   FS extends readonly string[]
 > = T extends AppRoutes<T>
   ? FS extends readonly []
-    ? {}
+    ? EmptyObject
     : FS extends readonly [infer F]
     ? F extends keyof T
       ? T[F]["showInstances"]
-      : {}
+      : EmptyObject
     : FS extends readonly [infer F, ...infer RS]
     ? F extends keyof T
       ? RS extends readonly string[]
@@ -112,10 +112,10 @@ type TestTree = {
 };
 
 export type FragmentShowInstances<P> = P extends string
-  ? {} extends ShowInstances<P>
-    ? {}
+  ? EmptyObject extends ShowInstances<P>
+    ? EmptyObject
     : Readonly<{ readonly showInstances: ShowInstances<P> }>
-  : {};
+  : EmptyObject;
 
 export type AppRoutes<T> = {
   readonly [P in keyof T]-?: T[P] extends Readonly<{
