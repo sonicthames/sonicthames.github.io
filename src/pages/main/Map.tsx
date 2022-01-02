@@ -1,4 +1,5 @@
 import { css } from "@emotion/css";
+import { foldSumType } from "../../lib/typescript/foldSumType";
 import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
@@ -397,50 +398,39 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
               height={30}
             /> */}
                 {/* <div className={styles.markerNote}>{s.marker}</div> */}
-                {((c) => {
-                  switch (c) {
-                    case "Listen":
-                      return (
-                        <div
-                          className={styles.markerIcon(
-                            brandColors.icons.listen
-                          )}
-                        >
-                          <Icon
-                            name="Listen"
-                            color="white"
-                            width={markerIconSize}
-                            height={markerIconSize}
-                          />
-                        </div>
-                      );
-                    case "See":
-                      return (
-                        <div
-                          className={styles.markerIcon(brandColors.icons.see)}
-                        >
-                          <Icon
-                            name="See"
-                            color="white"
-                            width={markerIconSize}
-                            height={markerIconSize}
-                          />
-                        </div>
-                      );
-                    case "Feel":
-                      return (
-                        <div
-                          className={styles.markerIcon(brandColors.icons.feel)}
-                        >
-                          <Icon
-                            name="Feel"
-                            color="white"
-                            width={markerIconSize}
-                            height={markerIconSize}
-                          />
-                        </div>
-                      );
-                  }
+                {foldSumType({
+                  Listen: () => (
+                    <div
+                      className={styles.markerIcon(brandColors.icons.listen)}
+                    >
+                      <Icon
+                        name="Listen"
+                        color="white"
+                        width={markerIconSize}
+                        height={markerIconSize}
+                      />
+                    </div>
+                  ),
+                  See: () => (
+                    <div className={styles.markerIcon(brandColors.icons.see)}>
+                      <Icon
+                        name="See"
+                        color="white"
+                        width={markerIconSize}
+                        height={markerIconSize}
+                      />
+                    </div>
+                  ),
+                  Feel: () => (
+                    <div className={styles.markerIcon(brandColors.icons.feel)}>
+                      <Icon
+                        name="Feel"
+                        color="white"
+                        width={markerIconSize}
+                        height={markerIconSize}
+                      />
+                    </div>
+                  ),
                 })(s.category)}
               </div>
             </Marker>

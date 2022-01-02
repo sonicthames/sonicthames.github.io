@@ -40,3 +40,12 @@ export function joinTuple<S extends string>(separator: S) {
     return fragments.join(separator) as unknown as any;
   };
 }
+
+/**
+ * @param  {Key} key Key expected in the object
+ * @param  {T} obj Object that should contain the expected key
+ * @returns {boolean} whether key is a keyof obj
+ */
+export function isKeyOf<T>(key: Key, obj: T): key is keyof T {
+  return key in obj;
+}
