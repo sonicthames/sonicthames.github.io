@@ -1,9 +1,7 @@
 import { css } from "@emotion/css";
-import { foldSumType } from "../../lib/typescript/foldSumType";
 import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
-import { History } from "history";
 import { LngLat } from "mapbox-gl";
 import React, { useEffect, useState } from "react";
 import ReactMapGL, {
@@ -17,6 +15,7 @@ import { showDateTime, showInterval, Sound } from "../../domain/base";
 import { Icon } from "../../icon";
 import { GoTo } from "../../lib/map";
 import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
+import { foldSumType } from "../../lib/typescript/foldSumType";
 import { soundId } from "../../pages/location";
 import { brandColors, colorToCssHex } from "../../theme/colors";
 import { fontSize } from "../../theme/fontSize";
@@ -35,12 +34,13 @@ const neBound = {
   latitude: center.lat + 0.08,
   longitude: center.lng + 0.13,
 } as const;
-const bounds: [[number, number], [number, number]] = [
-  [swBound.longitude, swBound.latitude],
-  [neBound.longitude, neBound.latitude],
-  // [swBound.latitude, swBound.longitude],
-  // [neBound.latitude, neBound.longitude],
-];
+const bounds: readonly [readonly [number, number], readonly [number, number]] =
+  [
+    [swBound.longitude, swBound.latitude],
+    [neBound.longitude, neBound.latitude],
+    // [swBound.latitude, swBound.longitude],
+    // [neBound.latitude, neBound.longitude],
+  ];
 
 const initialViewport = {
   height: "100vh",
@@ -69,9 +69,9 @@ const Sidebar = ({
   soundO,
   goTo$,
 }: {
-  sounds: ReadonlyArray<Sound>;
-  soundO: O.Option<Sound>;
-  goTo$: Subject<GoTo>;
+  readonly sounds: ReadonlyArray<Sound>;
+  readonly soundO: O.Option<Sound>;
+  readonly goTo$: Subject<GoTo>;
 }) => {
   const sidebarRef = _useMapControl({
     capturePointerMove: true,
