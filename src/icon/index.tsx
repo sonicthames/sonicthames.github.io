@@ -6,11 +6,11 @@ export type KnownIcons = keyof typeof icons;
 export type KnownIcon = KnownIcons;
 
 export interface IconProps {
-  name: KnownIcons;
-  className?: string;
-  height?: number | string;
-  width?: number | string;
-  color?: string;
+  readonly name: KnownIcons;
+  readonly className?: string;
+  readonly height?: number | string;
+  readonly width?: number | string;
+  readonly color?: string;
 }
 
 export const Icon = ({ name, className, ...props }: IconProps): JSX.Element => {

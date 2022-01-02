@@ -1,5 +1,6 @@
 import { Show } from "fp-ts/lib/Show";
 import { generatePath } from "react-router";
+import type { ExtractRouteParams } from "react-router";
 import type { JoinTuple } from "./typescript";
 import { joinTuple } from "./typescript";
 
@@ -203,6 +204,7 @@ export const routePath =
       // eslint-disable-next-line functional/no-loop-statement
       for (i = 0; i < len; i++) {
         const k = fragments[i];
+        // @ts-expect-error Too heavy for the compiler to work this one out.
         remainder = remainder[k]["fragments"];
         // showInstances[] =
       }
@@ -210,11 +212,16 @@ export const routePath =
       return {
         path,
         fragments,
-        to: (props) => ({
-          path: generatePath(path, props),
-          fragments,
-          routes,
-        }),
+        // @ts-expect-error Too heavy for the compiler to work this one out.
+        to: (props) => {
+          return {
+            // TODO a better version of generatePath
+            // @ts-expect-error generatePath generates the correct shape
+            path: generatePath(path, props),
+            fragments,
+            routes,
+          };
+        },
         routes: remainder as RouteNode<T, FS>,
       };
     };

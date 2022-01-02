@@ -1,7 +1,6 @@
 import { ReactNode } from "react";
-import type { RouteProps } from "react-router";
-// ExtractRouteParams,
-// RouteComponentProps,
+import type { ExtractRouteParams, RouteProps } from "react-router";
+import type { RouteComponentProps } from "react-router-dom";
 import { Route } from "react-router-dom";
 import { RelativePath, RouteSegment, ToRouteSegment } from "../../lib/routing";
 import { appRoutes } from "../location";
@@ -35,7 +34,8 @@ export const AppRoute = <FS extends readonly string[]>({
     <Route
       path={rest.segment.path}
       render={(props): ReactNode =>
-        // @ts-ignore
+        // TODO Review
+        // @ts-expect-error Needed?
         children({ segment: rest.segment, ...props })
       }
       {...rest}

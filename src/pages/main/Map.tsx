@@ -2,6 +2,7 @@ import { css } from "@emotion/css";
 import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
+import type { History } from "history";
 import { LngLat } from "mapbox-gl";
 import React, { useEffect, useState } from "react";
 import ReactMapGL, {
