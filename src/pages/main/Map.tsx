@@ -134,7 +134,7 @@ const Sidebar = ({
             <div>
               {pipe(
                 sound.description,
-                RA.map((x) => <div>{x}</div>)
+                RA.map((x) => <div key={x}>{x}</div>)
               )}
             </div>
             {"interval" in sound
