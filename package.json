@@ -36,6 +36,7 @@
     "io-ts": "^2.2.16",
     "luxon": "^2.2.0",
     "material-ui": "^0.20.2",
+    "prettier": "^2.5.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-map-gl": "^6.1.18",
@@ -59,12 +60,17 @@
     "deploy": "gh-pages -d build",
     "dev": "webpack serve --open --mode development",
     "build": "webpack --mode production",
+    "format": "prettier --write *.$npm_package_config_prettier_extensions **/*.$npm_package_config_prettier_extensions",
+    "format:check": "prettier --check *.$npm_package_config_prettier_extensions **/*.$npm_package_config_prettier_extensions",
     "serve": "serve dist -p 3001 -s",
     "clean": "rm -rf dist",
     "test": "craco test",
     "render": "ts-node src/ssg.ts",
     "build-icons": "rm -rf ./src/icon/generated && yarn generate-icons",
     "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
+  },
+  "config": {
+    "prettier_extensions": "{ts,tsx,js,json,yml,yaml,scss,css}"
   },
   "eslintConfig": {
     "extends": [
