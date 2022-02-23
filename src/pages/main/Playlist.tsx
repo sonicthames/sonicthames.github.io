@@ -60,6 +60,7 @@ export const Playlist = ({ sounds, goTo$ }: PlaylistProps): JSX.Element => {
           sounds,
           RA.map(({ title, coordinates }) => (
             <PlaylistItem
+              key={title}
               name={title}
               goTo$={goTo$}
               // TODO Rename lat lng

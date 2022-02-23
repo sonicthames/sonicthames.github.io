@@ -3166,6 +3166,16 @@
     schema-utils "^3.0.0"
     source-map "^0.7.3"
 
+"@react-hooke/react@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@react-hooke/react/-/react-0.1.1.tgz#66edfd254387374edc5d0b642182c0da68dcdece"
+  integrity sha512-W5cAR2AYSyc5/K8q8rgnN+PaewCYiBnBvTiDvxesz7CM++hPoPFfDD/2283OCFELBZjUXaB6ruAs9MZBsqyEDA==
+
+"@react-hooke/rxjs@^0.1.1":
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/@react-hooke/rxjs/-/rxjs-0.1.1.tgz#c0b286b236ce6add73e4e60c8b9a0101e192f43d"
+  integrity sha512-dC29vsZqfUEw2Bkj21W+W5RG96KYW0mHzg4fYTUN1EYGGHOZflmQF+N4AVfJJIu+OuzFMulBFyLR7RQ+xYQXsA==
+
 "@rollup/plugin-babel@^5.2.0":
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/@rollup/plugin-babel/-/plugin-babel-5.3.0.tgz#9cb1c5146ddd6a4968ad96f209c50c62f92f9879"

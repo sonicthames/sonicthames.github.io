@@ -1,7 +1,10 @@
 import { css } from "@emotion/css";
+import { useDependent } from "@react-hooke/react";
+import { useObservableState } from "@react-hooke/rxjs";
 import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
+import * as RTU from "fp-ts/ReadonlyTuple";
 import type { History } from "history";
 import { LngLat } from "mapbox-gl";
 import React, { useEffect, useState } from "react";
@@ -10,13 +13,15 @@ import ReactMapGL, {
   WebMercatorViewport,
   _useMapControl,
 } from "react-map-gl";
-import { Subject } from "rxjs";
+import { Subject, merge } from "rxjs";
+import * as RX from "rxjs/operators";
 import { H2, H3 } from "../../components/Typography";
 import { showDateTime, showInterval, Sound } from "../../domain/base";
 import { Icon } from "../../icon";
 import { GoTo } from "../../lib/map";
 import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
 import { foldSumType } from "../../lib/typescript/foldSumType";
+import { useWindowResize$ } from "../../lib/window/hooks";
 import { soundId } from "../../pages/location";
 import { brandColors, colorToCssHex } from "../../theme/colors";
 import { fontSize } from "../../theme/fontSize";
@@ -182,6 +187,21 @@ const Sidebar = ({
 
 export const Map = ({ history, sounds }: Props): JSX.Element => {
   const [viewport, setViewport] = useState<Viewport>(initialViewport);
+  const windowResize$ = useWindowResize$();
+  useEffect(() => {
+    pipe(
+      windowResize$,
+      ($) =>
+        $.subscribe(() => {
+          setViewport((prevState) => ({
+            ...prevState,
+            width: window.innerWidth,
+          }));
+        }),
+      lazyUnsubscribe
+    );
+  }, [windowResize$]);
+
   useEffect(() => {
     function resize() {
       setViewport((prevState) => ({
@@ -300,6 +320,35 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
     [goTo$]
   );
 
+  const viewport$ = useDependent(() => {
+    pipe(
+      merge(goTo$, viewportChange$),
+      RX.reduce(
+        ([_, v]: readonly [Viewport, Viewport], x) => {
+          const newV = {
+            ...v,
+            ...x,
+          };
+          return [v, newV] as const;
+        },
+        [initialViewport, initialViewport] as const
+      ),
+      RX.filter(([x, y]) => {
+        return true;
+      }),
+      RX.map(RTU.snd)
+    );
+  }, [goTo$]);
+
+  const x = pipe(
+    goTo$,
+    RX.map((y) => "11")
+  );
+
+  const goTo = useObservableState(x, () => "");
+
+  console.log({ goTo });
+
   const [soundO] = useState(RA.head(sounds));
 
   const [hoverSoundO, setHoverSoundO] = useState<O.Option<Sound>>(() => O.none);
@@ -317,55 +366,8 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
       {...viewport}
       mapboxApiAccessToken={MAPBOX_TOKEN}
       onViewportChange={subjectHandle(viewportChange$)}
-      mapStyle={{
-        version: 8,
-        name: "Test",
-        sources: {
-          mapbox: {
-            url: "mapbox://mapbox.mapbox-streets-v8",
-            type: "vector",
-            minzoom: 7,
-            maxzoom: 12,
-          },
-        },
-        sprite: "mapbox://sprites/mapbox/basic-v8",
-        glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
-        layers: [
-          {
-            id: "background",
-            type: "background",
-            paint: {
-              "background-color": colorToCssHex(brandColors.map.land),
-            },
-          },
-          {
-            id: "road",
-            source: "mapbox",
-            "source-layer": "road",
-            type: "line",
-            paint: {
-              "line-color": brandColors.neutral.black,
-            },
-          },
-          {
-            id: "waterway",
-            source: "mapbox",
-            "source-layer": "water",
-            type: "fill",
-            //   features: {
-            //   simplification: 6,
-            // },
-            paint: {
-              "fill-color": colorToCssHex(brandColors.map.water),
-            },
-            // maxzoom: 8,
-          },
-        ],
-      }}
+      mapStyle={mapStyle}
     >
-      <div style={{ position: "absolute", right: 50, top: 50 }}>
-        {/* <NavigationControl onViewportChange={this.updateViewport} /> */}
-      </div>
       <div className={styles.logo}>
         <img src="/logo-05.svg" alt="logo" />
       </div>
@@ -448,6 +450,52 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
     </ReactMapGL>
   );
 };
+
+const mapStyle = {
+  version: 8,
+  name: "Test",
+  sources: {
+    mapbox: {
+      url: "mapbox://mapbox.mapbox-streets-v8",
+      type: "vector",
+      minzoom: 7,
+      maxzoom: 12,
+    },
+  },
+  sprite: "mapbox://sprites/mapbox/basic-v8",
+  glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  layers: [
+    {
+      id: "background",
+      type: "background",
+      paint: {
+        "background-color": colorToCssHex(brandColors.map.land),
+      },
+    },
+    {
+      id: "road",
+      source: "mapbox",
+      "source-layer": "road",
+      type: "line",
+      paint: {
+        "line-color": brandColors.neutral.black,
+      },
+    },
+    {
+      id: "waterway",
+      source: "mapbox",
+      "source-layer": "water",
+      type: "fill",
+      //   features: {
+      //   simplification: 6,
+      // },
+      paint: {
+        "fill-color": colorToCssHex(brandColors.map.water),
+      },
+      // maxzoom: 8,
+    },
+  ],
+} as const;
 
 const styles = {
   logo: css({
