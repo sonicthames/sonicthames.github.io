@@ -1,18 +1,20 @@
 import { css } from "@emotion/css";
+import { IconButton } from "@material-ui/core";
+import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { constNull, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import type { History } from "history";
 import { LngLat } from "mapbox-gl";
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ReactMapGL, {
   Marker,
   WebMercatorViewport,
   _useMapControl,
 } from "react-map-gl";
-import { Subject } from "rxjs";
+import { BehaviorSubject, Subject } from "rxjs";
 import { H2, H3 } from "../../components/Typography";
-import { showDateTime, showInterval, Sound } from "../../domain/base";
+import { Category, showDateTime, showInterval, Sound } from "../../domain/base";
 import { Icon } from "../../icon";
 import { GoTo } from "../../lib/map";
 import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
@@ -60,20 +62,25 @@ const headerIconSize = "2rem";
 
 type Viewport = typeof initialViewport;
 
-interface Props {
-  readonly history: History;
-  readonly sounds: ReadonlyArray<Sound>;
-}
-
 const Sidebar = ({
   sounds,
   soundO,
   goTo$,
+  filters$,
 }: {
   readonly sounds: ReadonlyArray<Sound>;
   readonly soundO: O.Option<Sound>;
   readonly goTo$: Subject<GoTo>;
+  readonly filters$: BehaviorSubject<readonly Category[]>;
 }) => {
+  const [filters, setFilters] = useState<readonly Category[]>(filters$.value);
+  useEffect(() => {
+    const subscription = filters$.subscribe((fs) => {
+      setFilters(fs);
+    });
+    return () => subscription.unsubscribe();
+  }, [filters$]);
+
   const sidebarRef = _useMapControl({
     capturePointerMove: true,
     captureClick: true,
@@ -87,23 +94,33 @@ const Sidebar = ({
       <header className={styles.sidebarHeader}>
         <H2>Sonic Thames</H2>
         <div className={styles.sidebarHeaderIcons}>
-          <button className={styles.iconButton}>
-            <Icon
-              name="Listen"
-              width={headerIconSize}
-              height={headerIconSize}
-            />
-          </button>
-          <button className={styles.iconButton}>
-            <Icon name="See" width={headerIconSize} height={headerIconSize} />
-          </button>
-          <button className={styles.iconButton}>
-            <Icon name="Feel" width={headerIconSize} height={headerIconSize} />
-          </button>
+          <ToggleButtonGroup
+            value={filters}
+            onChange={(e, value) => filters$.next(value)}
+            aria-label="filters"
+          >
+            <ToggleButton value="Listen">
+              <Icon
+                name="Listen"
+                width={headerIconSize}
+                height={headerIconSize}
+              />
+            </ToggleButton>
+            <ToggleButton value="See">
+              <Icon name="See" width={headerIconSize} height={headerIconSize} />
+            </ToggleButton>
+            <ToggleButton value="Feel">
+              <Icon
+                name="Feel"
+                width={headerIconSize}
+                height={headerIconSize}
+              />
+            </ToggleButton>
+          </ToggleButtonGroup>
         </div>
-        <button className={styles.iconButton}>
+        <IconButton>
           <Icon name="Close" width={controlIconSize} height={controlIconSize} />
-        </button>
+        </IconButton>
       </header>
       {pipe(
         soundO,
@@ -179,6 +196,11 @@ const Sidebar = ({
     </aside>
   );
 };
+
+interface Props {
+  readonly history: History;
+  readonly sounds: ReadonlyArray<Sound>;
+}
 
 export const Map = ({ history, sounds }: Props): JSX.Element => {
   const [viewport, setViewport] = useState<Viewport>(initialViewport);
@@ -312,6 +334,17 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
     )
   );
 
+  const [filters$] = useState(
+    () => new BehaviorSubject<readonly Category[]>(["Feel", "Listen", "See"])
+  );
+  const [filters, setFilters] = useState<readonly Category[]>(filters$.value);
+  useEffect(() => {
+    const subscription = filters$.subscribe((fs) => {
+      setFilters(fs);
+    });
+    return () => subscription.unsubscribe();
+  }, [filters$]);
+
   return (
     <ReactMapGL
       {...viewport}
@@ -374,67 +407,71 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
         RA.mapWithIndex((k, s) => {
           const sId = soundId(s);
           return (
-            <Marker
-              key={sId}
-              latitude={s.coordinates.lat}
-              longitude={s.coordinates.lng}
-              className={styles.marker}
-            >
-              <div
-                className={styles.markerContent}
-                onClick={() => {
-                  setHoverSoundO(O.some(s));
-                  // history.push(
-                  //   `/sound/${sId}`
-                  //   // REVIEW
-                  //   // appRoute(R_CategoryRoute[s.category], ":sound").to({
-                  //   //   sound: k.toString(),
-                  //   // }).path
-                  // );
-                }}
+            filters.includes(s.category) && (
+              <Marker
+                key={sId}
+                latitude={s.coordinates.lat}
+                longitude={s.coordinates.lng}
+                className={styles.marker}
               >
-                {/* <img
+                <div
+                  className={styles.markerContent}
+                  onClick={() => {
+                    setHoverSoundO(O.some(s));
+                    // history.push(
+                    //   `/sound/${sId}`
+                    //   // REVIEW
+                    //   // appRoute(R_CategoryRoute[s.category], ":sound").to({
+                    //   //   sound: k.toString(),
+                    //   // }).path
+                    // );
+                  }}
+                >
+                  {/* <img
               alt={`${s.title} thumbnail`}
               width={30}
               height={30}
             /> */}
-                {/* <div className={styles.markerNote}>{s.marker}</div> */}
-                {foldSumType({
-                  Listen: () => (
-                    <div
-                      className={styles.markerIcon(brandColors.icons.listen)}
-                    >
-                      <Icon
-                        name="Listen"
-                        color="white"
-                        width={markerIconSize}
-                        height={markerIconSize}
-                      />
-                    </div>
-                  ),
-                  See: () => (
-                    <div className={styles.markerIcon(brandColors.icons.see)}>
-                      <Icon
-                        name="See"
-                        color="white"
-                        width={markerIconSize}
-                        height={markerIconSize}
-                      />
-                    </div>
-                  ),
-                  Feel: () => (
-                    <div className={styles.markerIcon(brandColors.icons.feel)}>
-                      <Icon
-                        name="Feel"
-                        color="white"
-                        width={markerIconSize}
-                        height={markerIconSize}
-                      />
-                    </div>
-                  ),
-                })(s.category)}
-              </div>
-            </Marker>
+                  {/* <div className={styles.markerNote}>{s.marker}</div> */}
+                  {foldSumType({
+                    Listen: () => (
+                      <div
+                        className={styles.markerIcon(brandColors.icons.listen)}
+                      >
+                        <Icon
+                          name="Listen"
+                          color="white"
+                          width={markerIconSize}
+                          height={markerIconSize}
+                        />
+                      </div>
+                    ),
+                    See: () => (
+                      <div className={styles.markerIcon(brandColors.icons.see)}>
+                        <Icon
+                          name="See"
+                          color="white"
+                          width={markerIconSize}
+                          height={markerIconSize}
+                        />
+                      </div>
+                    ),
+                    Feel: () => (
+                      <div
+                        className={styles.markerIcon(brandColors.icons.feel)}
+                      >
+                        <Icon
+                          name="Feel"
+                          color="white"
+                          width={markerIconSize}
+                          height={markerIconSize}
+                        />
+                      </div>
+                    ),
+                  })(s.category)}
+                </div>
+              </Marker>
+            )
           );
         })
       )}
@@ -444,7 +481,12 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
           <Hover className={styles.hover} close$={hoverClose$} sound={sound} />
         ))
       )}
-      <Sidebar sounds={sounds} soundO={soundO} goTo$={goTo$} />
+      <Sidebar
+        sounds={sounds}
+        soundO={soundO}
+        goTo$={goTo$}
+        filters$={filters$}
+      />
     </ReactMapGL>
   );
 };
@@ -519,6 +561,7 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
+    marginBottom: spacingRem("default"),
   }),
   sidebarHeaderIcons: css({
     display: "flex",
@@ -533,12 +576,6 @@ const styles = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-  }),
-  iconButton: css({
-    display: "flex",
-    alignItems: "center",
-    background: "none",
-    border: "none",
   }),
   hover: css({
     backgroundColor: brandColors.neutral.s95,

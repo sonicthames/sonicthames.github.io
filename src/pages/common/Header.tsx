@@ -15,7 +15,11 @@ export const Header = () => {
   return (
     <header className={styles.component}>
       <div className={cx(styles.content)}>
-        <nav>
+        <nav
+          className={css({
+            pointerEvents: "initial",
+          })}
+        >
           <Link
             color="initial"
             component={RouterLink}
@@ -124,21 +128,21 @@ const makeCommonStyles = ({
   ({
     component: css({
       position: "sticky",
-      top: 0,
-      // backgroundColor: brandColors.neutral.main,
       backgroundImage:
-        "linear-gradient(90deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2))",
+        "linear-gradient(90deg, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.0) 500px, rgba(0, 0, 0, 0.6))",
       // backgroundColor: colorToCssRGBA([...brandColors.neutral.main, 0.7]),
       color: "white",
       fontSize: fontSize("l"),
       fontWeight: "bold",
       gap: spacingRem(),
+      pointerEvents: "none",
       textTransform: "uppercase",
+      top: 0,
+      zIndex: 1,
       nav: css({
         display: "flex",
         gap: spacingRem(),
       }),
-      zIndex: 1,
     }),
     content: cx(
       css({
@@ -178,15 +182,16 @@ const makePageHeaderStyles = ({
   ({
     component: css({
       backgroundColor: colorToCssRGB(brandColors.main.dark),
-      position: "sticky",
-      top: 0,
       fontSize: fontSize("l"),
       gap: spacingRem(),
+      pointerEvents: "initial",
+      position: "sticky",
       textTransform: "uppercase",
+      top: 0,
+      zIndex: 1,
       nav: css({
         display: "flex",
         gap: spacingRem(),
       }),
-      zIndex: 1,
     }),
   } as const);
