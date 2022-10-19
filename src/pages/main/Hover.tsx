@@ -1,4 +1,6 @@
 import { css, cx } from "@emotion/css";
+import { IconButton } from "@material-ui/core";
+import { Button } from "@mui/material";
 import { constNull, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
@@ -7,15 +9,16 @@ import { Subject } from "rxjs";
 import { H3 } from "../../components/Typography";
 import { showDateTime, showInterval, Sound } from "../../domain/base";
 import { Icon } from "../../icon";
-import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
+import { controlIconSize, spacingRem } from "../../theme/spacing";
 
 interface Props {
   readonly sound: Sound;
   readonly className?: string;
   readonly close$: Subject<void>;
+  readonly play$: Subject<string>;
 }
 
-export const Hover = ({ sound, close$, className }: Props) => {
+export const Hover = ({ sound, close$, play$, className }: Props) => {
   const ref = _useMapControl({
     captureDrag: true,
     capturePointerMove: true,
@@ -26,18 +29,46 @@ export const Hover = ({ sound, close$, className }: Props) => {
 
   return (
     <div ref={ref.containerRef} className={cx(styles.component, className)}>
-      <button onClick={() => close$.next()} className={styles.closeButton}>
-        <Icon name="Close" width={controlIconSize} height={controlIconSize} />
-      </button>
+      <header
+        className={css({
+          position: "absolute",
+          top: 0,
+          right: 0,
+          left: 0,
+          padding: spacingRem("xxs"),
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+        })}
+      >
+        <IconButton onClick={() => close$.next()}>
+          <Icon name="Close" width={controlIconSize} height={controlIconSize} />
+        </IconButton>
+      </header>
       <img
         title={sound.title}
         className={styles.image}
         src="/thumbnails/placeholder.jpeg"
       />
       <div className={styles.content}>
-        <div className={styles.soundHeader}>
-          <H3>{sound.title}</H3>
-        </div>
+        <header>
+          <Button
+            sx={{ justifyContent: "start" }}
+            fullWidth
+            variant="text"
+            size="small"
+            endIcon={
+              <Icon
+                name="Play"
+                width={controlIconSize}
+                height={controlIconSize}
+              />
+            }
+            onClick={() => play$.next(sound.title)}
+          >
+            <H3>{sound.title}</H3>
+          </Button>
+        </header>
         <div>
           {pipe(
             sound.description,
@@ -86,11 +117,7 @@ export const Hover = ({ sound, close$, className }: Props) => {
 const styles = {
   component: css({
     boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-  }),
-  soundHeader: css({
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
+    cursor: "initial",
   }),
   image: css({
     width: "100%",
@@ -98,16 +125,10 @@ const styles = {
     border: "none",
     boxSizing: "border-box",
   }),
-  closeButton: css({
-    position: "absolute",
-    right: spacingEm("s"),
-    top: spacingEm("s"),
-    background: "none",
-    border: "none",
-    cursor: "pointer",
-    padding: 0,
-  }),
   content: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: spacingRem("xxs"),
     padding: spacingRem("s"),
   }),
 };

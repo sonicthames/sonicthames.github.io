@@ -1,4 +1,4 @@
-import { css } from "@emotion/css";
+import { css, cx } from "@emotion/css";
 import { IconButton } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
 import { constNull, pipe } from "fp-ts/lib/function";
@@ -63,21 +63,29 @@ const headerIconSize = "2rem";
 type Viewport = typeof initialViewport;
 
 const Sidebar = ({
+  expand$,
+  filters$,
+  goTo$,
+  play$,
   sounds,
   soundO,
-  goTo$,
-  filters$,
 }: {
-  readonly sounds: ReadonlyArray<Sound>;
-  readonly soundO: O.Option<Sound>;
-  readonly goTo$: Subject<GoTo>;
+  readonly expand$: BehaviorSubject<boolean>;
   readonly filters$: BehaviorSubject<readonly Category[]>;
+  readonly goTo$: Subject<GoTo>;
+  readonly play$: Subject<string>;
+  readonly soundO: O.Option<Sound>;
+  readonly sounds: ReadonlyArray<Sound>;
 }) => {
+  const [expand, setExpand] = useState<boolean>(expand$.value);
+  useEffect(() => {
+    const subscription = expand$.subscribe(setExpand);
+    return () => subscription.unsubscribe();
+  }, [expand$]);
+
   const [filters, setFilters] = useState<readonly Category[]>(filters$.value);
   useEffect(() => {
-    const subscription = filters$.subscribe((fs) => {
-      setFilters(fs);
-    });
+    const subscription = filters$.subscribe(setFilters);
     return () => subscription.unsubscribe();
   }, [filters$]);
 
@@ -90,26 +98,33 @@ const Sidebar = ({
   });
 
   return (
-    <aside ref={sidebarRef.containerRef} className={styles.sidebar}>
+    <aside
+      ref={sidebarRef.containerRef}
+      className={cx(
+        styles.sidebar,
+        css({ transform: expand ? "translateX(0%)" : "translateX(-100%)" })
+      )}
+    >
       <header className={styles.sidebarHeader}>
         <H2>Sonic Thames</H2>
         <div className={styles.sidebarHeaderIcons}>
           <ToggleButtonGroup
             value={filters}
             onChange={(e, value) => filters$.next(value)}
+            size="small"
             aria-label="filters"
           >
-            <ToggleButton value="Listen">
+            <ToggleButton value="Listen" title="toggle listen">
               <Icon
                 name="Listen"
                 width={headerIconSize}
                 height={headerIconSize}
               />
             </ToggleButton>
-            <ToggleButton value="See">
+            <ToggleButton value="See" title="toggle see">
               <Icon name="See" width={headerIconSize} height={headerIconSize} />
             </ToggleButton>
-            <ToggleButton value="Feel">
+            <ToggleButton value="Feel" title="toggle feel">
               <Icon
                 name="Feel"
                 width={headerIconSize}
@@ -118,7 +133,7 @@ const Sidebar = ({
             </ToggleButton>
           </ToggleButtonGroup>
         </div>
-        <IconButton>
+        <IconButton onClick={() => setExpand(false)} title="close">
           <Icon name="Close" width={controlIconSize} height={controlIconSize} />
         </IconButton>
       </header>
@@ -192,7 +207,7 @@ const Sidebar = ({
         ))
       )}
       <hr />
-      <Playlist sounds={sounds} goTo$={goTo$} />
+      <Playlist play$={play$} goTo$={goTo$} sounds={sounds} soundO={soundO} />
     </aside>
   );
 };
@@ -322,7 +337,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
     [goTo$]
   );
 
-  const [soundO] = useState(RA.head(sounds));
+  const [soundO, setSoundO] = useState(RA.head(sounds));
 
   const [hoverSoundO, setHoverSoundO] = useState<O.Option<Sound>>(() => O.none);
   const [hoverClose$] = useState(() => new Subject<void>());
@@ -333,6 +348,23 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
       lazyUnsubscribe
     )
   );
+
+  const [expand$] = useState(
+    () => new BehaviorSubject<boolean>(O.isSome(soundO))
+  );
+
+  const [play$] = useState(() => new Subject<string>());
+  useEffect(() => {
+    const subscription = play$.subscribe((sound) => {
+      pipe(
+        sounds,
+        RA.findFirst((x) => x.title === sound),
+        setSoundO
+      );
+      expand$.next(true);
+    });
+    return () => subscription.unsubscribe();
+  }, [play$]);
 
   const [filters$] = useState(
     () => new BehaviorSubject<readonly Category[]>(["Feel", "Listen", "See"])
@@ -478,14 +510,21 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
       {pipe(
         hoverSoundO,
         O.fold(constNull, (sound) => (
-          <Hover className={styles.hover} close$={hoverClose$} sound={sound} />
+          <Hover
+            className={styles.hover}
+            close$={hoverClose$}
+            play$={play$}
+            sound={sound}
+          />
         ))
       )}
       <Sidebar
-        sounds={sounds}
-        soundO={soundO}
+        expand$={expand$}
         goTo$={goTo$}
         filters$={filters$}
+        play$={play$}
+        sounds={sounds}
+        soundO={soundO}
       />
     </ReactMapGL>
   );
@@ -554,6 +593,9 @@ const styles = {
     bottom: 0,
     left: 0,
     width: 500,
+    transitionDuration: "150ms",
+    msTransitionProperty: "transform",
+    transitionTimingFunction: "ease-in-out",
     overflow: "auto",
     cursor: "initial",
   }),
