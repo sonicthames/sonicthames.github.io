@@ -1,9 +1,11 @@
 import { css, cx } from "@emotion/css";
 import { IconButton } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
+import * as E from "fp-ts/Either";
 import { constNull, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
+import * as D from "io-ts/Decoder";
 import type { History } from "history";
 import { LngLat } from "mapbox-gl";
 import { useEffect, useState } from "react";
@@ -26,7 +28,24 @@ import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
 import { Hover } from "./Hover";
 import { Playlist } from "./Playlist";
 
-const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? "";
+const EnvDecoder = D.struct({
+  VITE_MAPBOX_TOKEN: pipe(
+    D.string,
+    D.refine(
+      (value): value is string => value.trim().length > 0,
+      "Mapbox token"
+    )
+  ),
+});
+
+const env = pipe(
+  EnvDecoder.decode(import.meta.env),
+  E.getOrElseW((errors) => {
+    throw new Error(D.draw(errors));
+  })
+);
+
+const MAPBOX_TOKEN = env.VITE_MAPBOX_TOKEN;
 
 const center = new LngLat(-0.001, 51.501);
 const swBound = {

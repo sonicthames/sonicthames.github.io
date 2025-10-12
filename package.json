@@ -51,8 +51,7 @@
     "vitest": "^3.2.4"
   },
   "scripts": {
-    "predeploy": "pnpm run build",
-    "deploy": "gh-pages -d dist",
+    "deploy": "tsx scripts/deploy.ts",
     "dev": "vite --open --port 3001",
     "build": "vite build",
     "format": "biome check --write .",
