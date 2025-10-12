@@ -11,7 +11,7 @@
     "@material-ui/core": "^4.12.4",
     "@mui/icons-material": "^5.10.9",
     "@mui/material": "^5.10.10",
-    "@svgr/cli": "^6.1.2",
+    "@svgr/cli": "^8.1.0",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -62,7 +62,7 @@
     "clean": "rm -rf dist",
     "test": "vitest",
     "build-icons": "rm -rf ./src/icon/generated && pnpm run generate-icons",
-    "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
+    "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --expand-props none --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
   },
   "browserslist": {
     "production": [
