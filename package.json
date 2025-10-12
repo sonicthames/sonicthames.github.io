@@ -3,6 +3,7 @@
   "homepage": "https://sonicthames.github.io",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@9.12.3",
   "dependencies": {
     "@babel/core": "^7.16.5",
     "@babel/preset-env": "^7.16.5",
@@ -69,7 +70,7 @@
     "webpack-dev-server": "^4.7.1"
   },
   "scripts": {
-    "predeploy": "yarn build",
+    "predeploy": "pnpm run build",
     "deploy": "gh-pages -d build",
     "dev": "webpack serve --open --mode development",
     "build": "webpack --mode production",
@@ -80,7 +81,7 @@
     "clean": "rm -rf dist",
     "test": "craco test",
     "render": "ts-node src/ssg.ts",
-    "build-icons": "rm -rf ./src/icon/generated && yarn generate-icons",
+    "build-icons": "rm -rf ./src/icon/generated && pnpm run generate-icons",
     "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
   },
   "config": {
