@@ -1,4 +1,4 @@
-import * as T from "fp-ts/Task";
+import type * as T from "fp-ts/Task";
 import { from } from "rxjs";
 import type { Observable } from "rxjs/internal/Observable";
 

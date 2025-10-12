@@ -5,7 +5,7 @@ import type { Subscription } from "rxjs/internal/Subscription";
  * @returns A function to lazily handle unsubscriptions from Observables.
  */
 export function lazyUnsubscribe(s: Subscription) {
-  return function () {
+  return () => {
     s.unsubscribe();
   };
 }

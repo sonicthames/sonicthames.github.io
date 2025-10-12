@@ -1,4 +1,4 @@
-import { Show } from "fp-ts/lib/Show";
+import type { Show } from "fp-ts/lib/Show";
 import { generatePath } from "react-router";
 import type { ExtractRouteParams } from "react-router";
 import type { EmptyObject, JoinTuple } from "./typescript";
@@ -145,7 +145,7 @@ type Test_AppRoutes = AppRoutes<TestTree>;
 // }
 
 export type ShowInstances<P extends string> = Readonly<
-  Record<keyof ExtractRouteParams<P>, Show<any>>
+  Record<keyof ExtractRouteParams<P>, Show<unknown>>
 >;
 
 type Test_ShowInstances = ShowInstances<"works/:work:kkoko/:00909/">;
@@ -199,13 +199,11 @@ export const routePath =
       const path = `/${joinTuple("/")<FS>(...fragments)}` as const;
       // eslint-disable-next-line functional/no-let
       let remainder = routes;
-      // eslint-disable-next-line functional/no-let
-      let i;
       // eslint-disable-next-line functional/no-loop-statement
-      for (i = 0; i < len; i++) {
+      for (let i = 0; i < len; i += 1) {
         const k = fragments[i];
         // @ts-expect-error Too heavy for the compiler to work this one out.
-        remainder = remainder[k]["fragments"];
+        remainder = remainder[k].fragments;
         // showInstances[] =
       }
 

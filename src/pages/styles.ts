@@ -1,6 +1,6 @@
 import { css, cx } from "@emotion/css";
 import { brandColors, colorToCssRGB } from "../theme/colors";
-import { DeviceType } from "../theme/device";
+import type { DeviceType } from "../theme/device";
 import { fontSize } from "../theme/fontSize";
 import { maxPageWidth } from "../theme/media";
 import { spacingRem } from "../theme/spacing";

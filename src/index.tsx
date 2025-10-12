@@ -8,7 +8,9 @@ import reportWebVitals from "./reportWebVitals";
 const history = createBrowserHistory();
 // TODO: Review rules for scroll reset.
 // TODO, put effect only in relevant pages
-history.listen(() => (window.scrollTo(0, 0), undefined));
+history.listen(() => {
+  window.scrollTo(0, 0);
+});
 
 ReactDOM.render(
   <React.StrictMode>

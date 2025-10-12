@@ -1,6 +1,6 @@
 require("dotenv").config();
 
-const path = require("path");
+const path = require("node:path");
 const webpack = require("webpack");
 const CopyPlugin = require("copy-webpack-plugin");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
@@ -11,8 +11,7 @@ const DefinePlugin = webpack.DefinePlugin;
 
 const PORT = 3001;
 
-module.exports = function (_, argv) {
-  return {
+module.exports = (_, argv) => ({
     entry: path.resolve(__dirname, "./src/index.tsx"),
     devServer: {
       static: {
@@ -108,5 +107,4 @@ module.exports = function (_, argv) {
           ]
         : []
     ),
-  };
-};
+  });

@@ -5,11 +5,9 @@ import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
-interface Props {}
-
 /**
  */
-export const NotFoundPage = (_: Props) => {
+export const NotFoundPage = (): JSX.Element => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
   return (

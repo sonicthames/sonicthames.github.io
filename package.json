@@ -30,21 +30,11 @@
     "@types/react-dom": "^17.0.11",
     "@types/react-router": "^5.1.20",
     "@types/react-router-dom": "^5.3.3",
-    "@typescript-eslint/eslint-plugin": "^5.8.1",
-    "@typescript-eslint/parser": "^5.8.1",
     "babel-loader": "^8.2.3",
     "copy-webpack-plugin": "^10.2.0",
     "css-loader": "^6.5.1",
     "d3-ease": "^3.0.1",
     "dotenv": "^10.0.0",
-    "eslint": "^8.6.0",
-    "eslint-config-prettier": "^8.3.0",
-    "eslint-plugin-functional": "^4.0.2",
-    "eslint-plugin-import": "^2.25.3",
-    "eslint-plugin-jest": "^25.3.4",
-    "eslint-plugin-react": "^7.28.0",
-    "eslint-plugin-react-hooks": "^4.3.0",
-    "eslint-plugin-unused-imports": "^2.0.0",
     "fork-ts-checker-webpack-plugin": "^6.5.0",
     "fp-ts": "^2.11.5",
     "gh-pages": "^3.2.3",
@@ -55,7 +45,6 @@
     "luxon": "^2.2.0",
     "mapbox-gl": "^2.15.0",
     "material-ui": "^0.20.2",
-    "prettier": "^2.5.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-map-gl": "^6.1.18",
@@ -75,29 +64,24 @@
     "webpack-cli": "^4.9.1",
     "webpack-dev-server": "^4.7.1"
   },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.3"
+  },
   "scripts": {
     "predeploy": "pnpm run build",
     "deploy": "gh-pages -d build",
     "dev": "webpack serve --open --mode development",
     "build": "webpack --mode production",
-    "format": "prettier --write *.$npm_package_config_prettier_extensions **/*.$npm_package_config_prettier_extensions",
-    "format:check": "prettier --check *.$npm_package_config_prettier_extensions **/*.$npm_package_config_prettier_extensions",
-    "lint": "eslint './src/**/*.{ts,tsx}'",
+    "format": "biome check --write .",
+    "format:check": "biome check .",
+    "lint": "biome lint .",
+    "typecheck": "tsc --noEmit",
     "serve": "serve dist -p 3001 -s",
     "clean": "rm -rf dist",
     "test": "craco test",
     "render": "ts-node src/ssg.ts",
     "build-icons": "rm -rf ./src/icon/generated && pnpm run generate-icons",
     "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
-  },
-  "config": {
-    "prettier_extensions": "{ts,tsx,js,json,yml,yaml,scss,css}"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
   },
   "browserslist": {
     "production": [

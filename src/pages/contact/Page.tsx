@@ -1,15 +1,13 @@
 import { css, cx } from "@emotion/css";
 import { Button, TextField } from "@material-ui/core";
 import React from "react";
-import { DeviceType } from "../../theme/device";
+import type { DeviceType } from "../../theme/device";
 import { useDeviceType } from "../../theme/media";
 import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
-interface Props {}
-
-export const ContactPage = (_: Props) => {
+export const ContactPage = (): JSX.Element => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
   const styles = makeStyles({ deviceType });

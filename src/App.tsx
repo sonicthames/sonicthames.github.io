@@ -5,7 +5,8 @@ import { identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import type { History } from "history";
-import React, { useEffect, useState } from "react";
+import type React from "react";
+import { useEffect, useState } from "react";
 import { Redirect, Route, Router, Switch } from "react-router-dom";
 import { D_Data } from "./data.io";
 import rawData from "./data.json";
@@ -15,7 +16,7 @@ import { Header } from "./pages/common/Header";
 import { ContactPage } from "./pages/contact/Page";
 import { CrashPage } from "./pages/crash/Page";
 import { appRoute, soundId } from "./pages/location";
-import { Map } from "./pages/main/Map";
+import { MainMap } from "./pages/main/Map";
 import { NotFoundPage } from "./pages/not-found/Page";
 import { SoundPage } from "./pages/sound/Page";
 import { SoundsPage } from "./pages/sounds/Page";
@@ -60,7 +61,7 @@ export const App = ({ history }: Props) => {
         <ThemeProvider theme={theme}>
           <Header />
           <div className={styles.map}>
-            <Map history={history} sounds={sounds} />
+            <MainMap history={history} sounds={sounds} />
           </div>
           {/* TODO Maybe use a simple effect instead...? */}
           <Switch>

@@ -1,4 +1,4 @@
-import { Observable } from "rxjs/internal/Observable";
+import type { Observable } from "rxjs/internal/Observable";
 
 /**
  * A `Behavior` is a custom structure subset of the BehaviorSubject, which acts as an Observable, but

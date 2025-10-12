@@ -6,11 +6,11 @@ import { constFalse, pipe } from "fp-ts/function";
 import * as O from "fp-ts/lib/Option";
 import * as RA from "fp-ts/lib/ReadonlyArray";
 import { _useMapControl } from "react-map-gl";
-import { Subject } from "rxjs";
-import { Sound } from "../../domain/base";
+import type { Subject } from "rxjs";
+import type { Sound } from "../../domain/base";
 
 import { Icon } from "../../icon";
-import { Coordinate, GoTo } from "../../lib/map";
+import type { Coordinate, GoTo } from "../../lib/map";
 import { spacingRem } from "../../theme/spacing";
 
 interface PlaylistItemProps {
@@ -84,6 +84,7 @@ export const Playlist = ({
           sounds,
           RA.map(({ title, coordinates }) => (
             <PlaylistItem
+              key={title}
               goTo$={goTo$}
               focused={pipe(
                 soundO,

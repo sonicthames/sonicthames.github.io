@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-export type Key = keyof any;
+export type Key = PropertyKey;
 
 export type EmptyObject = Readonly<Record<string, unknown>>;
 
@@ -36,11 +35,9 @@ export type JoinTuple<
   : never;
 
 export function joinTuple<S extends string>(separator: S) {
-  return function <KS extends readonly string[]>(
+  return <KS extends readonly string[]>(
     ...fragments: KS
-  ): JoinTuple<S, KS> {
-    return fragments.join(separator) as unknown as any;
-  };
+  ): JoinTuple<S, KS> => fragments.join(separator) as JoinTuple<S, KS>;
 }
 
 /**

@@ -3,7 +3,7 @@ import { pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import React from "react";
-import { Sound } from "../../domain/base";
+import type { Sound } from "../../domain/base";
 import { maxPageWidth, useDeviceType } from "../../theme/media";
 import { PageHeader } from "../common/Header";
 import { constNA } from "../common/message";

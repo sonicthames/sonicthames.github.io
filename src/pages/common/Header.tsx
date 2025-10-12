@@ -3,7 +3,7 @@ import { Link } from "@material-ui/core";
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
 import { brandColors, colorToCssRGB } from "../../theme/colors";
-import { DeviceType } from "../../theme/device";
+import type { DeviceType } from "../../theme/device";
 import { fontSize } from "../../theme/fontSize";
 import { maxPageWidth, useDeviceType } from "../../theme/media";
 import { spacingRem } from "../../theme/spacing";

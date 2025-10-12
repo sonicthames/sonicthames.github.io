@@ -14,9 +14,9 @@ import ReactMapGL, {
 } from "react-map-gl";
 import { BehaviorSubject, Subject } from "rxjs";
 import { H2, H3 } from "../../components/Typography";
-import { Category, showDateTime, showInterval, Sound } from "../../domain/base";
+import { type Category, showDateTime, showInterval, type Sound } from "../../domain/base";
 import { Icon } from "../../icon";
-import { GoTo } from "../../lib/map";
+import type { GoTo } from "../../lib/map";
 import { lazyUnsubscribe, subjectHandle } from "../../lib/rxjs";
 import { foldSumType } from "../../lib/typescript/foldSumType";
 import { soundId } from "../../pages/location";
@@ -174,9 +174,7 @@ const Sidebar = ({
                   sound.interval,
                   O.fold(constNull, (x) => (
                     <div>
-                      <label>
-                        <strong>Interval: </strong>
-                      </label>
+                      <strong>Interval: </strong>
                       <span>{showInterval(x)}</span>
                     </div>
                   ))
@@ -185,9 +183,7 @@ const Sidebar = ({
                   sound.dateTime,
                   O.fold(constNull, (x) => (
                     <div>
-                      <label>
-                        <strong>Recorded date: </strong>
-                      </label>
+                      <strong>Recorded date: </strong>
                       <span>{showDateTime(x)}</span>
                     </div>
                   ))
@@ -196,9 +192,7 @@ const Sidebar = ({
               sound.location,
               O.fold(constNull, (location) => (
                 <div>
-                  <label>
-                    <strong>Place: </strong>
-                  </label>
+                  <strong>Place: </strong>
                   <span>{location}</span>
                 </div>
               ))
@@ -217,7 +211,7 @@ interface Props {
   readonly sounds: ReadonlyArray<Sound>;
 }
 
-export const Map = ({ history, sounds }: Props): JSX.Element => {
+export const MainMap = ({ history, sounds }: Props): JSX.Element => {
   const [viewport, setViewport] = useState<Viewport>(initialViewport);
   useEffect(() => {
     function resize() {
@@ -229,7 +223,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
     }
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
-  }, [setViewport]);
+  }, []);
 
   const [viewportChange$] = useState(() => new Subject<Viewport>());
   useEffect(
@@ -364,7 +358,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
       expand$.next(true);
     });
     return () => subscription.unsubscribe();
-  }, [play$]);
+  }, [expand$, play$, sounds]);
 
   const [filters$] = useState(
     () => new BehaviorSubject<readonly Category[]>(["Feel", "Listen", "See"])
@@ -446,7 +440,8 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
                 longitude={s.coordinates.lng}
                 className={styles.marker}
               >
-                <div
+                <button
+                  type="button"
                   className={styles.markerContent}
                   onClick={() => {
                     setHoverSoundO(O.some(s));
@@ -501,7 +496,7 @@ export const Map = ({ history, sounds }: Props): JSX.Element => {
                       </div>
                     ),
                   })(s.category)}
-                </div>
+                </button>
               </Marker>
             )
           );
@@ -565,6 +560,10 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
+    background: "none",
+    border: "none",
+    padding: 0,
+    cursor: "pointer",
   }),
   markerNote: css({
     // backgroundColor: colorToCssRGB(brandColors.neve.primary),

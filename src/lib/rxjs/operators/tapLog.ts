@@ -8,5 +8,8 @@ import * as RX from "rxjs/operators";
  * @param {RX.Observable} $ Observable stream
  */
 export const tapLog = <A>(s: string) =>
-  // eslint-disable-next-line no-console
-  RX.tap<A>((x) => (console.log(s, x), x));
+  RX.tap<A>((value) => {
+    // eslint-disable-next-line no-console
+    console.log(s, value);
+    return value;
+  });

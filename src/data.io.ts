@@ -3,7 +3,7 @@ import { flow, pipe } from "fp-ts/lib/function";
 import * as O from "fp-ts/Option";
 import * as DIO from "io-ts/Decoder";
 import { DateTime, Duration, Interval } from "luxon";
-import { SoundBase } from "./domain/base";
+import type { SoundBase } from "./domain/base";
 
 export const D_Category = DIO.union(
   DIO.literal("Listen"),

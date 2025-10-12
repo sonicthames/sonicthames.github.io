@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import React, { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { brandColors, colorToCssHex } from "../theme/colors";
 import { fontSize } from "../theme/fontSize";
 import { spacingRem } from "../theme/spacing";

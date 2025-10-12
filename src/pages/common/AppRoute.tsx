@@ -1,9 +1,9 @@
-import { ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { ExtractRouteParams, RouteProps } from "react-router";
 import type { RouteComponentProps } from "react-router-dom";
 import { Route } from "react-router-dom";
-import { RelativePath, RouteSegment, ToRouteSegment } from "../../lib/routing";
-import { appRoutes } from "../location";
+import type { RelativePath, RouteSegment, ToRouteSegment } from "../../lib/routing";
+import type { appRoutes } from "../location";
 
 interface Props<
   // B extends string,
@@ -30,17 +30,25 @@ export const AppRoute = <FS extends readonly string[]>({
   children,
   ...rest
 }: Props<FS>): JSX.Element => {
-  return typeof children === "function" ? (
+  if (typeof children === "function") {
+    return (
+      <Route
+        path={rest.segment.path}
+        render={(props): ReactNode =>
+          // TODO Review
+          // @ts-expect-error Needed?
+          children({ segment: rest.segment, ...props })
+        }
+        {...rest}
+      />
+    );
+  }
+
+  return (
     <Route
       path={rest.segment.path}
-      render={(props): ReactNode =>
-        // TODO Review
-        // @ts-expect-error Needed?
-        children({ segment: rest.segment, ...props })
-      }
+      render={() => (children !== undefined ? children : null)}
       {...rest}
     />
-  ) : (
-    <Route path={rest.segment.path} children={children} {...rest} />
   );
 };

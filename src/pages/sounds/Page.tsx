@@ -5,7 +5,7 @@ import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import React from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { Category, R_CategoryFlavor, Sound } from "../../domain/base";
+import { type Category, R_CategoryFlavor, type Sound } from "../../domain/base";
 import { useDeviceType } from "../../theme/media";
 import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";

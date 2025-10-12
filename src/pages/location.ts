@@ -1,5 +1,6 @@
 import * as S from "fp-ts/string";
-import { Sound } from "../domain/base";
+import type { Show } from "fp-ts/Show";
+import type { Sound } from "../domain/base";
 import { routePath } from "../lib/routing";
 
 export const appRoutes = {
@@ -8,7 +9,7 @@ export const appRoutes = {
   sound: {
     fragments: {
       ":sound": {
-        showInstances: { sound: S.Show },
+        showInstances: { sound: S.Show as Show<unknown> },
         fragments: null,
       },
     },

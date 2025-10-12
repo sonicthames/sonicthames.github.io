@@ -1,4 +1,4 @@
-import { isKeyOf, Key } from "../typescript";
+import { isKeyOf, type Key } from "../typescript";
 
 /**
  * @example
@@ -51,9 +51,7 @@ export function foldSumType_<D, K extends Key, A>(
     readonly [P in K]: (k: P) => A;
   }
 ) {
-  return function <L extends Key>(
+  return <L extends Key>(
     k: Exclude<K, L> extends undefined ? L : never
-  ): A | D {
-    return isKeyOf(k, fns) ? fns[k](k) : def();
-  };
+  ): A | D => isKeyOf(k, fns) ? fns[k](k) : def();
 }

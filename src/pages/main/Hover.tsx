@@ -5,9 +5,9 @@ import { constNull, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import { _useMapControl } from "react-map-gl";
-import { Subject } from "rxjs";
+import type { Subject } from "rxjs";
 import { H3 } from "../../components/Typography";
-import { showDateTime, showInterval, Sound } from "../../domain/base";
+import { showDateTime, showInterval, type Sound } from "../../domain/base";
 import { Icon } from "../../icon";
 import { controlIconSize, spacingRem } from "../../theme/spacing";
 
@@ -46,6 +46,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
         </IconButton>
       </header>
       <img
+        alt={`${sound.title} thumbnail`}
         title={sound.title}
         className={styles.image}
         src="/thumbnails/placeholder.jpeg"
@@ -80,9 +81,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
               sound.interval,
               O.fold(constNull, (x) => (
                 <div>
-                  <label>
-                    <strong>Interval: </strong>
-                  </label>
+                  <strong>Interval: </strong>
                   <span>{showInterval(x)}</span>
                 </div>
               ))
@@ -91,9 +90,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
               sound.dateTime,
               O.fold(constNull, (x) => (
                 <div>
-                  <label>
-                    <strong>Recorded date: </strong>
-                  </label>
+                  <strong>Recorded date: </strong>
                   <span>{showDateTime(x)}</span>
                 </div>
               ))
@@ -102,9 +99,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
           sound.location,
           O.fold(constNull, (location) => (
             <div>
-              <label>
-                <strong>Place: </strong>
-              </label>
+              <strong>Place: </strong>
               <span>{location}</span>
             </div>
           ))
