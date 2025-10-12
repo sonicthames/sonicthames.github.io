@@ -45,6 +45,6 @@ export function joinTuple<S extends string>(separator: S) {
  * @param  {T} obj Object that should contain the expected key
  * @returns {boolean} whether key is a keyof obj
  */
-export function isKeyOf<T>(key: Key, obj: T): key is keyof T {
+export function isKeyOf<T extends object>(key: Key, obj: T): key is keyof T {
   return key in obj;
 }

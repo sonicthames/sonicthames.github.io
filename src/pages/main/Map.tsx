@@ -26,7 +26,7 @@ import { controlIconSize, spacingEm, spacingRem } from "../../theme/spacing";
 import { Hover } from "./Hover";
 import { Playlist } from "./Playlist";
 
-const MAPBOX_TOKEN = process.env.REACT_APP_MAPBOX_TOKEN ?? "";
+const MAPBOX_TOKEN = import.meta.env.VITE_MAPBOX_TOKEN ?? "";
 
 const center = new LngLat(-0.001, 51.501);
 const swBound = {
