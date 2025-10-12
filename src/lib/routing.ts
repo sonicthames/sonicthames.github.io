@@ -1,4 +1,4 @@
-import type { Show } from "fp-ts/lib/Show";
+import type { Show } from "fp-ts/Show";
 import { generatePath } from "react-router";
 import type { ExtractRouteParams } from "react-router";
 import type { EmptyObject, JoinTuple } from "./typescript";

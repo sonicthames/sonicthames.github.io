@@ -16,7 +16,7 @@
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
     "d3-ease": "^3.0.1",
-    "fp-ts": "^2.11.5",
+    "fp-ts": "^2.16.11",
     "gh-pages": "^3.2.3",
     "history": "^4.10.1",
     "io-ts": "^2.2.22",

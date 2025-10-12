@@ -1,7 +1,7 @@
 import { css, cx } from "@emotion/css";
 import { IconButton } from "@material-ui/core";
 import { ToggleButton, ToggleButtonGroup } from "@mui/material";
-import { constNull, pipe } from "fp-ts/lib/function";
+import { constNull, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import type { History } from "history";

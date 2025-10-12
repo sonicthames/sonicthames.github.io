@@ -1,4 +1,4 @@
-import { flow } from "fp-ts/lib/function";
+import { flow } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RX from "rxjs/operators";
 

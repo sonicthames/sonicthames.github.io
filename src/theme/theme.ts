@@ -1,5 +1,5 @@
 import { createTheme } from "@material-ui/core/styles";
-import { pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/function";
 import * as RR from "fp-ts/ReadonlyRecord";
 import { brandColors, colorToCssRGB } from "./colors";
 

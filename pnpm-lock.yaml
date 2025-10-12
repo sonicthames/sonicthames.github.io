@@ -42,8 +42,8 @@ importers:
         specifier: ^3.0.1
         version: 3.0.1
       fp-ts:
-        specifier: ^2.11.5
-        version: 2.11.5
+        specifier: ^2.16.11
+        version: 2.16.11
       gh-pages:
         specifier: ^3.2.3
         version: 3.2.3
@@ -52,7 +52,7 @@ importers:
         version: 4.10.1
       io-ts:
         specifier: ^2.2.22
-        version: 2.2.22(fp-ts@2.11.5)
+        version: 2.2.22(fp-ts@2.16.11)
       luxon:
         specifier: ^2.2.0
         version: 2.2.0
@@ -1581,8 +1581,8 @@ packages:
     resolution: {integrity: sha512-PpOwAdQ/YlXQ2vj8a3h8IipDuYRi3wceVQQGYWxNINccq40Anw7BlsEXCMbt1Zt+OLA6Fq9suIpIWD0OsnISlw==}
     engines: {node: '>=8'}
 
-  fp-ts@2.11.5:
-    resolution: {integrity: sha512-OqlwJq1BdpB83BZXTqI+dNcA6uYk6qk4u9Cgnt64Y+XS7dwdbp/mobx8S2KXf2AXH+scNmA/UVK3SEFHR3vHZA==}
+  fp-ts@2.16.11:
+    resolution: {integrity: sha512-LaI+KaX2NFkfn1ZGHoKCmcfv7yrZsC3b8NtWsTVQeHkq4F27vI5igUuO53sxqDEa2gNQMHFPmpojDw/1zmUK7w==}
 
   fs-extra@8.1.0:
     resolution: {integrity: sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g==}
@@ -3972,7 +3972,7 @@ snapshots:
       locate-path: 5.0.0
       path-exists: 4.0.0
 
-  fp-ts@2.11.5: {}
+  fp-ts@2.16.11: {}
 
   fs-extra@8.1.0:
     dependencies:
@@ -4104,9 +4104,9 @@ snapshots:
       bowser: 1.9.4
       css-in-js-utils: 2.0.1
 
-  io-ts@2.2.22(fp-ts@2.11.5):
+  io-ts@2.2.22(fp-ts@2.16.11):
     dependencies:
-      fp-ts: 2.11.5
+      fp-ts: 2.16.11
 
   is-arrayish@0.2.1: {}
 

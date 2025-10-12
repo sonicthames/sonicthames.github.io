@@ -1,5 +1,5 @@
 import { css } from "@emotion/css";
-import { pipe } from "fp-ts/lib/function";
+import { pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
 import React from "react";
