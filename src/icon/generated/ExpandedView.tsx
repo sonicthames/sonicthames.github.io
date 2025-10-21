@@ -1,8 +1,7 @@
 import * as React from "react";
 import type { SVGProps } from "react";
 export function SvgExpandedView(props: SVGProps<SVGSVGElement>): JSX.Element {
-  const { "aria-label": ariaLabel = "Expanded View icon", ...restProps } =
-    props;
+  const { "aria-label": ariaLabel = "Expanded View icon", ...restProps } = props;
   return (
     <svg
       role="img"

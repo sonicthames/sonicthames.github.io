@@ -1,5 +1,5 @@
-import { flow, pipe } from "fp-ts/function";
 import * as RA from "fp-ts/ReadonlyArray";
+import { flow, pipe } from "fp-ts/function";
 
 export const raw_spacing = {
   xxxs: 0.2,
@@ -14,13 +14,10 @@ export const raw_spacing = {
 };
 type Spacing = keyof typeof raw_spacing;
 
-export const spacing = (
-  first: Spacing = "default",
-  ...args: ReadonlyArray<Spacing>
-) =>
+export const spacing = (first: Spacing = "default", ...args: ReadonlyArray<Spacing>) =>
   pipe(
     args,
-    RA.reduce(raw_spacing[first], (acc, x) => acc + raw_spacing[x])
+    RA.reduce(raw_spacing[first], (acc, x) => acc + raw_spacing[x]),
   );
 
 export const spacingRem = flow(spacing, (x) => `${x}rem`);

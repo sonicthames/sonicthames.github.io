@@ -1,9 +1,11 @@
 import { createBrowserHistory } from "history";
 import React from "react";
-import ReactDOM from "react-dom";
+import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import "./index.css";
+import "./styles/tailwind.css";
 import reportWebVitals from "./reportWebVitals";
+import { lightTheme } from "./styles/theme.css";
 
 const history = createBrowserHistory();
 // TODO: Review rules for scroll reset.
@@ -12,11 +14,16 @@ history.listen(() => {
   window.scrollTo(0, 0);
 });
 
-ReactDOM.render(
+const rootElement = document.getElementById("root");
+if (!rootElement) throw new Error("Failed to find the root element");
+
+const root = createRoot(rootElement);
+root.render(
   <React.StrictMode>
-    <App history={history} />
+    <div className={lightTheme}>
+      <App history={history} />
+    </div>
   </React.StrictMode>,
-  document.getElementById("root")
 );
 
 // If you want to start measuring performance in your app, pass a function

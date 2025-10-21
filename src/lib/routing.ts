@@ -14,43 +14,34 @@ export type RouteTree<T> = {
 export type RouteNode<T, FS extends readonly unknown[]> = FS extends readonly []
   ? T
   : FS extends readonly [infer F]
-  ? F extends keyof RouteTree<T>
-    ? T[F]
-    : never
-  : FS extends readonly [infer F, ...infer RS]
-  ? F extends keyof RouteTree<T>
-    ? RouteNode<RouteTree<T>[F], RS>
-    : never
-  : never;
+    ? F extends keyof RouteTree<T>
+      ? T[F]
+      : never
+    : FS extends readonly [infer F, ...infer RS]
+      ? F extends keyof RouteTree<T>
+        ? RouteNode<RouteTree<T>[F], RS>
+        : never
+      : never;
 
 // TODO
-type ConsumedShowInstances<
-  T,
-  FS extends readonly string[]
-> = T extends AppRoutes<T>
+type ConsumedShowInstances<T, FS extends readonly string[]> = T extends AppRoutes<T>
   ? FS extends readonly []
     ? EmptyObject
     : FS extends readonly [infer F]
-    ? F extends keyof T
-      ? T[F]["showInstances"]
-      : EmptyObject
-    : FS extends readonly [infer F, ...infer RS]
-    ? F extends keyof T
-      ? RS extends readonly string[]
-        ? T[F]["showInstances"] & ConsumedShowInstances<T[F]["fragments"], RS>
+      ? F extends keyof T
+        ? T[F]["showInstances"]
+        : EmptyObject
+      : FS extends readonly [infer F, ...infer RS]
+        ? F extends keyof T
+          ? RS extends readonly string[]
+            ? T[F]["showInstances"] & ConsumedShowInstances<T[F]["fragments"], RS>
+            : never
+          : never
         : never
-      : never
-    : never
   : never;
 
-type Test_ConsumedShowInstances = ConsumedShowInstances<
-  TestTree,
-  readonly ["leaf"]
->;
-type Test_ConsumedShowInstances2 = ConsumedShowInstances<
-  TestTree,
-  readonly ["base"]
->;
+type Test_ConsumedShowInstances = ConsumedShowInstances<TestTree, readonly ["leaf"]>;
+type Test_ConsumedShowInstances2 = ConsumedShowInstances<TestTree, readonly ["base"]>;
 
 // {  ...ConsumedShowInstances<T[P]["fragments"], RS> }
 
@@ -69,24 +60,20 @@ type Test_ConsumedShowInstances2 = ConsumedShowInstances<
 //   to: (_: ExtractRouteParams<RelativePath<FS>>) => RouteSegment<T, FS>;
 // };
 
-export type RouteSegment<
-  T,
-  FS extends readonly string[],
-  B extends string = "/"
-> = {
+export type RouteSegment<T, FS extends readonly string[], B extends string = "/"> = {
   readonly path: `${B}${RelativePath<FS>}`;
   readonly routes: RouteNode<T, FS>;
   readonly fragments: FS;
 };
 
-export type ToRouteSegment<
+export type ToRouteSegment<T, FS extends readonly string[], B extends string = "/"> = RouteSegment<
   T,
-  FS extends readonly string[],
-  B extends string = "/"
-> = RouteSegment<T, FS, B> & {
+  FS,
+  B
+> & {
   // NOTE: Temp to function, should instead use Show<T>
   readonly to: (
-    _: ExtractRouteParams<RelativePath<FS>>
+    _: ExtractRouteParams<RelativePath<FS>>,
   ) => ToRouteSegment<T, readonly [], `${B}${RelativePath<FS>}`>;
 };
 
@@ -190,11 +177,8 @@ type Test_Path = Path<TestTree>;
 export const routePath =
   // <T extends RouteTree>(routes: T) =>
 
-
     <T>(routes: AppRoutes<T>) =>
-    <FS extends readonly string[] & Path<T>>(
-      ...fragments: FS
-    ): ToRouteSegment<T, FS> => {
+    <FS extends readonly string[] & Path<T>>(...fragments: FS): ToRouteSegment<T, FS> => {
       const len = fragments.length;
       const path = `/${joinTuple("/")<FS>(...fragments)}` as const;
       // eslint-disable-next-line functional/no-let

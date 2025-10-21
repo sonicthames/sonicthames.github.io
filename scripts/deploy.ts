@@ -11,8 +11,8 @@ const EnvDecoder = D.struct({
     D.string,
     D.refine(
       (value): value is string => value.trim().length > 0,
-      "VITE_MAPBOX_TOKEN must be defined"
-    )
+      "VITE_MAPBOX_TOKEN must be defined",
+    ),
   ),
 });
 
@@ -39,9 +39,9 @@ const decodedEnv = pipe(
         D.draw(errors),
         "",
         "Set VITE_MAPBOX_TOKEN (or MAPBOX_TOKEN / MAPBOX_ACCESS_TOKEN) locally or in your CI environment.",
-      ].join("\n")
+      ].join("\n"),
     );
-  })
+  }),
 );
 
 const run = (command: string) => {

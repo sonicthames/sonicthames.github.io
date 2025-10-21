@@ -1,5 +1,5 @@
-import * as S from "fp-ts/string";
 import type { Show } from "fp-ts/Show";
+import * as S from "fp-ts/string";
 import type { Sound } from "../domain/base";
 import { routePath } from "../lib/routing";
 
@@ -30,5 +30,4 @@ export type Routes = typeof appRoutes;
 
 export const appRoute = routePath(appRoutes);
 
-export const soundId = (s: Sound) =>
-  s.marker.toLowerCase().replaceAll(" ", "_");
+export const soundId = (s: Sound) => s.marker.toLowerCase().replaceAll(" ", "_");

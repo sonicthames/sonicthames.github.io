@@ -94,6 +94,60 @@ Added run_if to cutscene update and modified GamePlugin schedule...
 - Regenerate icon components with `pnpm build-icons` after adding SVGs under `static/icons/`.
 - Store secrets outside the repo—use `.env` based on `.env.template` for local development.
 
+## UI Architecture
+
+The project uses a modern hybrid styling approach:
+
+### Styling System
+
+- **Tailwind CSS v3** - Utility-first CSS framework for rapid UI development
+- **vanilla-extract** - Type-safe CSS-in-JS for design tokens and theme management
+- **Radix UI** - Unstyled, accessible UI primitives
+- **shadcn/ui** - Composable components built on Radix
+- **CVA (class-variance-authority)** - For component variants
+
+### Design Tokens
+
+Design tokens are defined in `src/styles/theme.css.ts` using vanilla-extract:
+- Colors (bg, fg, accent, primary, action, etc.)
+- Border radii (sm, md, lg, xl)
+- Shadows (card)
+- Spacing (page)
+
+These tokens are exposed as CSS custom properties for use with Tailwind.
+
+### Component Library
+
+UI components live in `src/components/ui/`:
+- `Button` - CVA-based button with variants (primary, ghost, link)
+- `Link` - Router-aware link component with theming
+- `Panel` - Reusable card/panel component
+- `Dialog`, `ScrollArea` - Radix primitives with Tailwind styling
+
+### Adding New Components
+
+1. Create component in `src/components/ui/ComponentName.tsx`
+2. Use Tailwind utilities for styling: `className="flex gap-4 p-4 bg-bg text-fg"`
+3. For variants, use CVA or vanilla-extract recipes
+4. Export from `src/components/ui/index.ts`
+5. Import using path alias: `import { ComponentName } from "@/components/ui"`
+
+### Styling Guidelines
+
+- **Prefer Tailwind utilities** for most styling needs
+- Use **arbitrary values** for one-off designs: `w-[500px]`, `bg-[#F3F4F4]`
+- Use **theme colors** from design tokens: `bg-primary`, `text-accent`, `border-border`
+- Use **cn() utility** (`@/lib/utils`) to merge classes safely
+- Use **vanilla-extract recipes** for complex, reusable component variants
+- Avoid inline styles unless required for dynamic values
+
+### Theme Management
+
+The light theme is applied in `src/index.tsx`. To add dark mode support:
+1. Import `darkTheme` from `src/styles/theme.css.ts`
+2. Add theme toggle state/context
+3. Apply theme class conditionally: `<div className={isDark ? darkTheme : lightTheme}>`
+
 ## Questions?
 
 Open an issue or start a discussion before large refactors or architectural changes. We are happy to help scope the work and share context.

@@ -1,15 +1,22 @@
-import { css } from "@emotion/css";
-import { ThemeProvider } from "@material-ui/core";
+import { cn } from "@/lib/utils";
 import * as E from "fp-ts/Either";
-import { identity, pipe } from "fp-ts/function";
 import * as O from "fp-ts/Option";
 import * as RA from "fp-ts/ReadonlyArray";
+import { identity, pipe } from "fp-ts/function";
 import type { History } from "history";
-import type React from "react";
 import { useEffect, useState } from "react";
-import { Redirect, Route, Router, Switch } from "react-router-dom";
+import {
+  Navigate,
+  Route,
+  Routes,
+  matchPath,
+  unstable_HistoryRouter as HistoryRouter,
+  useLocation,
+  useParams,
+} from "react-router-dom";
 import { D_Data } from "./data.io";
 import rawData from "./data.json";
+import type { Sound } from "./domain/base";
 import { AboutPage } from "./pages/about/Page";
 import { ErrorBoundary } from "./pages/common/ErrorBoundary";
 import { Header } from "./pages/common/Header";
@@ -22,149 +29,161 @@ import { SoundPage } from "./pages/sound/Page";
 import { SoundsPage } from "./pages/sounds/Page";
 import { makeCommonStyles } from "./pages/styles";
 import { useDeviceType } from "./theme/media";
-import { theme } from "./theme/theme";
-
-const ShowDrawer = ({
-  set,
-  show = false,
-}: {
-  readonly set: React.Dispatch<React.SetStateAction<boolean>>;
-  readonly show?: boolean;
-}) => {
-  useEffect(() => set(show), [set, show]);
-
-  return <></>;
-};
 
 interface Props {
   readonly history: History;
 }
 
+const useShowDrawer = (pathname: string) => {
+  return !matchPath({ path: appRoute("main").path, end: true }, pathname);
+};
+
 export const App = ({ history }: Props) => {
-  const [showDrawer, setShowDrawer] = useState(false);
-  const styles = makeStyles({ showDrawer });
-
-  const deviceType = useDeviceType();
-  const commonStyles = makeCommonStyles(deviceType);
-
   const sounds = pipe(
     rawData,
     D_Data.decode,
     E.fold((e) => {
       throw new Error(JSON.stringify(e));
-    }, identity)
+    }, identity),
   );
 
   return (
-    <Router history={history}>
-      <ErrorBoundary fallback={(error) => <CrashPage error={error} />}>
-        <ThemeProvider theme={theme}>
-          <Header />
-          <div className={styles.map}>
-            <MainMap history={history} sounds={sounds} />
-          </div>
-          {/* TODO Maybe use a simple effect instead...? */}
-          <Switch>
-            <Route path={appRoute("main").path}>
-              <ShowDrawer set={setShowDrawer} />
-            </Route>
-            <Route path="*">
-              <ShowDrawer set={setShowDrawer} show />
-            </Route>
-          </Switch>
-          <div className={styles.pages}>
-            <Switch>
-              <Route path={appRoute("main").path}>
-                <div className={commonStyles.page} />
-              </Route>
-              <Route path={appRoute("about").path}>
-                <AboutPage />
-              </Route>
-              <Route path={appRoute("listen").path}>
-                <SoundsPage
-                  category="Listen"
-                  sounds={pipe(
-                    sounds,
-                    RA.filter((x) => x.category === "Listen")
-                  )}
-                />
-              </Route>
-              <Route path={appRoute("see").path}>
-                <SoundsPage
-                  category="See"
-                  sounds={pipe(
-                    sounds,
-                    RA.filter((x) => x.category === "See")
-                  )}
-                />
-              </Route>
-              <Route path={appRoute("feel").path}>
-                <SoundsPage
-                  category="Feel"
-                  sounds={pipe(
-                    sounds,
-                    RA.filter((x) => x.category === "Feel")
-                  )}
-                />
-              </Route>
-              <Route
-                path={appRoute("sound", ":sound").path}
-                render={(props) =>
-                  pipe(
-                    sounds,
-                    RA.findFirst(
-                      (s) => soundId(s) === props.match.params.sound
-                    ),
-                    O.fold(
-                      () => <NotFoundPage />,
-                      (sound) => <SoundPage sound={sound} />
-                    )
-                  )
-                }
-              />
-              <Route path={appRoute("contact").path}>
-                <ContactPage />
-              </Route>
-              <Route path="*">
-                {(props) =>
-                  pipe(props.location, (l) =>
-                    l.pathname === "/" && l.search.startsWith("?/") ? (
-                      <Redirect to={l.search.substr(1)} />
-                    ) : (
-                      <Switch>
-                        <Route exact path="/">
-                          <Redirect to={appRoute("main").to({}).path} />
-                        </Route>
-                        <Route path="*">
-                          <NotFoundPage />
-                        </Route>
-                      </Switch>
-                    )
-                  )
-                }
-              </Route>
-            </Switch>
-          </div>
-        </ThemeProvider>
-      </ErrorBoundary>
-    </Router>
+    <HistoryRouter history={history}>
+      <AppContent history={history} sounds={sounds} />
+    </HistoryRouter>
   );
 };
 
-const makeStyles = ({ showDrawer }: { readonly showDrawer: boolean }) => {
-  return {
-    map: css({ position: "absolute", zIndex: 0 }),
-    pages: css({
-      position: "absolute",
-      transform: showDrawer ? "translateX(0)" : "translateX(100%)",
-      transition: "transform 100ms",
-      top: 0,
-      bottom: 0,
-      left: 0,
-      right: 0,
-      display: "flex",
-      flexDirection: "column",
-      zIndex: 500,
-    }),
-  } as const;
+const AppContent = ({
+  history,
+  sounds,
+}: {
+  readonly history: History;
+  readonly sounds: ReadonlyArray<Sound>;
+}) => {
+  const location = useLocation();
+  const [showDrawer, setShowDrawer] = useState(() => useShowDrawer(location.pathname));
+  const deviceType = useDeviceType();
+  const commonStyles = makeCommonStyles(deviceType);
+
+  useEffect(() => {
+    setShowDrawer(useShowDrawer(location.pathname));
+  }, [location.pathname]);
+
+  const pageClass = commonStyles.page;
+
+  const wrapWithPage = (node: JSX.Element) => <div className={pageClass}>{node}</div>;
+
+  const renderRoutes = (wrapper: (node: JSX.Element) => JSX.Element) => (
+    <Routes>
+      <Route path={appRoute("main").path} element={null} />
+      <Route path={appRoute("about").path} element={wrapper(<AboutPage />)} />
+      <Route
+        path={appRoute("listen").path}
+        element={wrapper(
+          <SoundsPage
+            category="Listen"
+            sounds={pipe(
+              sounds,
+              RA.filter((x) => x.category === "Listen"),
+            )}
+          />,
+        )}
+      />
+      <Route
+        path={appRoute("see").path}
+        element={wrapper(
+          <SoundsPage
+            category="See"
+            sounds={pipe(
+              sounds,
+              RA.filter((x) => x.category === "See"),
+            )}
+          />,
+        )}
+      />
+      <Route
+        path={appRoute("feel").path}
+        element={wrapper(
+          <SoundsPage
+            category="Feel"
+            sounds={pipe(
+              sounds,
+              RA.filter((x) => x.category === "Feel"),
+            )}
+          />,
+        )}
+      />
+      <Route
+        path={appRoute("sound", ":sound").path}
+        element={wrapper(<SoundRoute sounds={sounds} />)}
+      />
+      <Route path={appRoute("contact").path} element={wrapper(<ContactPage />)} />
+      <Route path="/" element={<RootRedirect />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Routes>
+  );
+
+  return (
+    <ErrorBoundary fallback={(error) => <CrashPage error={error} />}>
+      <div className="relative h-screen w-screen overflow-hidden">
+        <div className="absolute inset-0">
+          <MainMap history={history} sounds={sounds} />
+        </div>
+        <div className="absolute inset-x-0 top-0 z-[600]">
+          <Header />
+        </div>
+        <div
+          className={cn(
+            "absolute z-[700] flex transition-transform duration-200 ease-out",
+            showDrawer
+              ? "pointer-events-auto inset-0 justify-center px-4 py-6 sm:px-8"
+              : "pointer-events-none inset-y-0 right-0 translate-x-full",
+          )}
+        >
+          {showDrawer ? (
+            <>
+              <div className="pointer-events-none absolute inset-0 bg-primary-dark/45 backdrop-blur-md" />
+              <div className="pointer-events-auto relative z-10 flex h-full w-full max-w-full flex-col overflow-hidden rounded-xl border border-border bg-primary-light/98 shadow-[0_12px_48px_rgba(0,0,0,0.35)]">
+                {renderRoutes(wrapWithPage)}
+              </div>
+            </>
+          ) : (
+            <div className="pointer-events-auto flex h-full w-full max-w-full flex-col border-l border-border bg-primary-light/96 backdrop-blur-md shadow-[0_0_32px_rgba(0,0,0,0.25)] md:w-[440px] lg:w-[500px]">
+              {renderRoutes(wrapWithPage)}
+            </div>
+          )}
+        </div>
+      </div>
+    </ErrorBoundary>
+  );
+};
+
+const SoundRoute = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
+  const params = useParams<{ sound?: string }>();
+
+  return pipe(
+    params.sound,
+    O.fromNullable,
+    O.chain((soundParam) =>
+      pipe(
+        sounds,
+        RA.findFirst((s) => soundId(s) === soundParam),
+      ),
+    ),
+    O.fold(
+      () => <NotFoundPage />,
+      (sound) => <SoundPage sound={sound} />,
+    ),
+  );
+};
+
+const RootRedirect = () => {
+  const location = useLocation();
+
+  if (location.search.startsWith("?/")) {
+    return <Navigate to={location.search.substring(1)} replace />;
+  }
+
+  return <Navigate to={appRoute("main").to({}).path} replace />;
 };

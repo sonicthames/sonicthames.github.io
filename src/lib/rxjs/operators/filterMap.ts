@@ -1,5 +1,5 @@
-import { flow } from "fp-ts/function";
 import * as O from "fp-ts/Option";
+import { flow } from "fp-ts/function";
 import * as RX from "rxjs/operators";
 
 /**
@@ -11,5 +11,5 @@ export const filterMap = <A, B>(f: (_: A) => O.Option<B>) =>
   flow(
     RX.map(f),
     RX.filter<O.Option<B>, O.Some<B>>((o): o is O.Some<B> => O.isSome(o)),
-    RX.map((o) => o.value)
+    RX.map((o) => o.value),
   );

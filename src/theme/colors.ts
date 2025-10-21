@@ -36,12 +36,10 @@ export const brandColors = {
   },
 } as const;
 
-export const colorToCssRGB = ([r, g, b]: RGBColor): string =>
-  `rgb(${r},${g},${b})`;
+export const colorToCssRGB = ([r, g, b]: RGBColor): string => `rgb(${r},${g},${b})`;
 
 // Safari transparency issue: https://stackoverflow.com/a/30674347/836839
-export const colorToCssRGBA = ([r, g, b, a = 1]: RGBAColor): string =>
-  `rgba(${r},${g},${b},${a})`;
+export const colorToCssRGBA = ([r, g, b, a = 1]: RGBAColor): string => `rgba(${r},${g},${b},${a})`;
 
 export const colorToCssHex = ([r, g, b]: RGBColor): string =>
   `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`;

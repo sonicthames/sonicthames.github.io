@@ -10,17 +10,14 @@ interface Props<
   FS extends readonly string[],
   Params extends {
     readonly [K: string]: string | undefined;
-  } = ExtractRouteParams<RelativePath<FS>, string>
-> extends Omit<
-    RouteProps<RelativePath<FS>, Params>,
-    "path" | "children" | "component" | "render"
-  > {
+  } = ExtractRouteParams<RelativePath<FS>, string>,
+> extends Omit<RouteProps<RelativePath<FS>, Params>, "path" | "children" | "component" | "render"> {
   readonly segment: ToRouteSegment<typeof appRoutes, FS>;
   readonly children:
     | ((
         props: RouteComponentProps<Params> & {
           readonly segment: RouteSegment<typeof appRoutes, FS>;
-        }
+        },
       ) => ReactNode)
     | ReactNode
     | undefined;

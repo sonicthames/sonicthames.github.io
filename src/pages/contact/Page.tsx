@@ -1,67 +1,72 @@
-import { css, cx } from "@emotion/css";
-import { Button, TextField } from "@material-ui/core";
+import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import React from "react";
-import type { DeviceType } from "../../theme/device";
 import { useDeviceType } from "../../theme/media";
-import { spacingRem } from "../../theme/spacing";
 import { PageHeader } from "../common/Header";
 import { makeCommonStyles } from "../styles";
 
 export const ContactPage = (): JSX.Element => {
   const deviceType = useDeviceType();
   const commonStyles = makeCommonStyles(deviceType);
-  const styles = makeStyles({ deviceType });
   return (
     <div className={commonStyles.page}>
       <PageHeader />
-      <main className={commonStyles.main}>
-        <div className={styles.content}>
+      <main className={commonStyles.main} style={commonStyles.mainStyle}>
+        <div
+          className={cn(
+            "flex mt-12 gap-6",
+            deviceType === "mobile" ? "flex-col" : "flex-row [&>*]:flex-[50%]",
+          )}
+        >
           <div>
-            <h1>Send us a message</h1>
+            <h1 className="text-2xl font-bold mb-4">Send us a message</h1>
             <div>
-              Get in touch with us by sending us a message here. Let us know
-              your opinion about the Sonic Thames Project. We value your
-              feedback, input, suggestions and of course you positive feedback.
+              Get in touch with us by sending us a message here. Let us know your opinion about the
+              Sonic Thames Project. We value your feedback, input, suggestions and of course you
+              positive feedback.
             </div>
           </div>
           <form
-            className={styles.form}
+            className="flex flex-col gap-4"
             action="mailto:sonicthames@gmail.com"
             encType="multipart/form-data"
           >
             <input type="hidden" name="subject" value="Send us your thoughts" />
             <div>
-              <TextField
-                fullWidth
-                label="Name"
-                margin="dense"
+              <label htmlFor="name" className="block text-sm font-medium mb-1">
+                Name
+              </label>
+              <input
+                id="name"
+                type="text"
                 name="name"
-                variant="outlined"
+                className="w-full px-3 py-2 border border-border rounded-md bg-bg text-fg focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
             <div>
-              <TextField
-                fullWidth
-                label="Email"
-                margin="dense"
-                name="email"
+              <label htmlFor="email" className="block text-sm font-medium mb-1">
+                Email
+              </label>
+              <input
+                id="email"
                 type="email"
-                variant="outlined"
+                name="email"
+                className="w-full px-3 py-2 border border-border rounded-md bg-bg text-fg focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
             <div>
-              <TextField
-                fullWidth
-                label="Message"
+              <label htmlFor="body" className="block text-sm font-medium mb-1">
+                Message
+              </label>
+              <textarea
+                id="body"
                 name="body"
-                margin="dense"
-                minRows={3}
-                multiline={true}
-                variant="outlined"
+                rows={3}
+                className="w-full px-3 py-2 border border-border rounded-md bg-bg text-fg focus:outline-none focus:ring-2 focus:ring-accent"
               />
             </div>
             <div>
-              <Button type="submit" variant="outlined">
+              <Button type="submit" variant="ghost">
                 Send Message
               </Button>
             </div>
@@ -71,27 +76,3 @@ export const ContactPage = (): JSX.Element => {
     </div>
   );
 };
-
-const makeStyles = ({ deviceType }: { readonly deviceType: DeviceType }) =>
-  ({
-    content: cx(
-      css({
-        display: "flex",
-        marginTop: spacingRem("xl"),
-        gap: spacingRem("l"),
-        "> *": css({
-          flex: "50%",
-        }),
-      }),
-      deviceType === "mobile"
-        ? css({
-            flexDirection: "column",
-          })
-        : undefined
-    ),
-    form: css({
-      display: "flex",
-      flexDirection: "column",
-      gap: spacingRem(),
-    }),
-  } as const);

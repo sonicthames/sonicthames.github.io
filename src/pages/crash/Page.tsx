@@ -1,7 +1,5 @@
-import { css } from "@emotion/css";
 import React from "react";
 import { useDeviceType } from "../../theme/media";
-import { spacingRem } from "../../theme/spacing";
 import { makeCommonStyles } from "../styles";
 
 interface Props {
@@ -13,18 +11,12 @@ export const CrashPage = ({ error }: Props) => {
   const commonStyles = makeCommonStyles(deviceType);
   return (
     <div className={commonStyles.page}>
-      <main className={commonStyles.main}>
-        <div className={styles.content}>
-          <h1>Opps! Something happened...</h1>
-          <div>{error.message}</div>
+      <main className={commonStyles.main} style={commonStyles.mainStyle}>
+        <div className="mt-12">
+          <h1 className="text-2xl font-bold">Opps! Something happened...</h1>
+          <div className="mt-4">{error.message}</div>
         </div>
       </main>
     </div>
   );
-};
-
-const styles = {
-  content: css({
-    marginTop: spacingRem("xl"),
-  }),
 };

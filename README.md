@@ -20,8 +20,10 @@ The application features recordings of various Thames locations including wooden
 ### Frontend
 - **React 17** - UI framework
 - **TypeScript** - Type safety
-- **Emotion** - CSS-in-JS styling
-- **Material-UI / MUI** - Component library
+- **Tailwind CSS v3** - Utility-first CSS framework
+- **vanilla-extract** - Type-safe CSS-in-JS for design tokens
+- **Radix UI** - Accessible UI primitives
+- **shadcn/ui** - Composable component library
 - **React Router** - Client-side routing
 - **Mapbox GL** - Interactive mapping
 
@@ -138,6 +140,7 @@ sonicthames.github.io/
 ├── scripts/             # Build and deployment scripts
 ├── src/
 │   ├── components/      # Reusable UI components
+│   │   └── ui/          # UI component library (Button, Link, Panel, Dialog, etc.)
 │   ├── domain/          # Domain models and types
 │   ├── icon/            # Icon components
 │   │   ├── generated/   # Auto-generated icon components
@@ -150,7 +153,11 @@ sonicthames.github.io/
 │   │   ├── main/        # Main page with map
 │   │   ├── sound/       # Individual sound detail page
 │   │   └── sounds/      # Category listing pages
-│   ├── theme/           # Theme configuration (colors, spacing, media queries)
+│   ├── styles/          # Styling system
+│   │   ├── theme.css.ts     # vanilla-extract design tokens and themes
+│   │   ├── recipes.css.ts   # vanilla-extract component recipes
+│   │   └── tailwind.css     # Tailwind CSS entry point
+│   ├── theme/           # Legacy theme utilities (colors, spacing, media queries)
 │   ├── App.tsx          # Main application component
 │   ├── data.json        # Sound recordings data
 │   ├── data.io.ts       # Runtime type validation for data
@@ -159,6 +166,8 @@ sonicthames.github.io/
 │   └── icons/           # Source SVG icons
 ├── index.html           # HTML entry point
 ├── package.json         # Dependencies and scripts
+├── tailwind.config.ts   # Tailwind configuration
+├── postcss.config.js    # PostCSS configuration
 ├── tsconfig.json        # TypeScript configuration
 └── vite.config.ts       # Vite configuration
 ```

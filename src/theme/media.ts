@@ -8,7 +8,7 @@ export const mobilePageWidth = 768;
 
 export function isUserAgentMobile(): boolean {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini|Mobile/i.test(
-    navigator.userAgent
+    navigator.userAgent,
   );
 }
 
@@ -34,8 +34,8 @@ export function useDeviceType(): DeviceType {
       ? "mobile"
       : "portrait"
     : isUnderPortraitWidth
-    ? isUnderMobilePageWidth
-      ? "mobile"
-      : "portrait"
-    : "desktop";
+      ? isUnderMobilePageWidth
+        ? "mobile"
+        : "portrait"
+      : "desktop";
 }

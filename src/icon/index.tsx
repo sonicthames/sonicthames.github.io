@@ -1,4 +1,4 @@
-import { css, cx } from "@emotion/css";
+import { cn } from "@/lib/utils";
 import React from "react";
 import * as icons from "./generated";
 
@@ -15,7 +15,5 @@ export interface IconProps {
 
 export const Icon = ({ name, className, ...props }: IconProps): JSX.Element => {
   const C = icons[name];
-  return (
-    <C className={cx([css({ overflow: "visible" }), className])} {...props} />
-  );
+  return <C className={cn("overflow-visible", className)} {...props} />;
 };
