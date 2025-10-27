@@ -1,30 +1,31 @@
 /* eslint-disable functional/no-this-expression */
 /* eslint-disable functional/no-class */
-import React from "react";
+import React from "react"
 
 export interface Props {
-  readonly fallback: (error: Error) => React.ReactNode;
+  readonly fallback: (error: Error) => React.ReactNode
+  readonly children: React.ReactNode
 }
 
 interface State {
-  readonly error: Error | null;
+  readonly error: Error | null
 }
 
 export class ErrorBoundary extends React.Component<Props, State> {
   constructor(props: Props) {
-    super(props);
+    super(props)
     this.state = {
       error: null,
-    };
+    }
   }
 
   componentDidCatch(error: Error) {
-    this.setState({ error });
+    this.setState({ error })
   }
 
   render() {
     return this.state.error !== null
       ? this.props.fallback(this.state.error)
-      : this.props.children;
+      : this.props.children
   }
 }

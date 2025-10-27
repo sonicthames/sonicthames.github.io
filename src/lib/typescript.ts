@@ -1,43 +1,42 @@
-export type Key = PropertyKey;
+export type Key = PropertyKey
 
-export type EmptyObject = Readonly<Record<string, unknown>>;
+export type EmptyObject = Record<never, never>
 
 export type PathTree<T> = {
   readonly [P in keyof T]-?: T[P] extends object
     ? readonly [P] | readonly [P, ...Path<T[P]>]
-    : readonly [P];
-};
+    : readonly [P]
+}
 
-export type Path<T> = PathTree<T>[keyof PathTree<T>];
+export type Path<T> = PathTree<T>[keyof PathTree<T>]
 
 export type LeafPathTree<T> = {
   readonly [P in keyof T]-?: T[P] extends object
     ? readonly [P, ...LeafPath<T[P]>]
-    : readonly [P];
-};
-export type LeafPath<T> = LeafPathTree<T>[keyof LeafPathTree<T>];
+    : readonly [P]
+}
+export type LeafPath<T> = LeafPathTree<T>[keyof LeafPathTree<T>]
 
 export type JoinTuple<
   S extends string,
-  KS extends readonly string[]
+  KS extends readonly string[],
 > = KS extends readonly []
   ? ""
   : KS extends readonly [infer K]
-  ? K extends string
-    ? K
-    : never
-  : KS extends readonly [infer K, ...infer RS]
-  ? K extends string
-    ? RS extends readonly string[]
-      ? `${K}${S}${JoinTuple<S, RS>}`
+    ? K extends string
+      ? K
       : never
-    : never
-  : never;
+    : KS extends readonly [infer K, ...infer RS]
+      ? K extends string
+        ? RS extends readonly string[]
+          ? `${K}${S}${JoinTuple<S, RS>}`
+          : never
+        : never
+      : never
 
 export function joinTuple<S extends string>(separator: S) {
-  return <KS extends readonly string[]>(
-    ...fragments: KS
-  ): JoinTuple<S, KS> => fragments.join(separator) as JoinTuple<S, KS>;
+  return <KS extends readonly string[]>(...fragments: KS): JoinTuple<S, KS> =>
+    fragments.join(separator) as JoinTuple<S, KS>
 }
 
 /**
@@ -46,5 +45,5 @@ export function joinTuple<S extends string>(separator: S) {
  * @returns {boolean} whether key is a keyof obj
  */
 export function isKeyOf<T extends object>(key: Key, obj: T): key is keyof T {
-  return key in obj;
+  return key in obj
 }

@@ -1,21 +1,45 @@
-import { css, cx } from "@emotion/css";
-import React from "react";
-import * as icons from "./generated";
+import type { ComponentType, SVGProps } from "react"
+import { cn } from "@/lib/utils"
+import {
+  Close,
+  ExpandedView,
+  Feel,
+  FeelV0,
+  Listen,
+  Next,
+  Play,
+  Previous,
+  See,
+  WindowView,
+} from "./generated"
 
-export type KnownIcons = keyof typeof icons;
-export type KnownIcon = KnownIcons;
+type IconComponent = ComponentType<SVGProps<SVGSVGElement>>
+
+const ICONS = {
+  Close,
+  ExpandedView,
+  Feel,
+  FeelV0,
+  Listen,
+  Next,
+  Play,
+  Previous,
+  See,
+  WindowView,
+} satisfies Record<string, IconComponent>
+
+export type KnownIcons = keyof typeof ICONS
+export type KnownIcon = KnownIcons
 
 export interface IconProps {
-  readonly name: KnownIcons;
-  readonly className?: string;
-  readonly height?: number | string;
-  readonly width?: number | string;
-  readonly color?: string;
+  readonly name: KnownIcons
+  readonly className?: string
+  readonly height?: number | string
+  readonly width?: number | string
+  readonly color?: string
 }
 
-export const Icon = ({ name, className, ...props }: IconProps): JSX.Element => {
-  const C = icons[name];
-  return (
-    <C className={cx([css({ overflow: "visible" }), className])} {...props} />
-  );
-};
+export const Icon = ({ name, className, ...props }: IconProps) => {
+  const C = ICONS[name]
+  return <C className={cn("overflow-visible", className)} {...props} />
+}

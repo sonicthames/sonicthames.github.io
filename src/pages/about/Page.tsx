@@ -1,21 +1,18 @@
-import { css } from "@emotion/css";
-import React from "react";
-import { Link } from "react-router-dom";
-import { useDeviceType } from "../../theme/media";
-import { spacingRem } from "../../theme/spacing";
-import { PageHeader } from "../common/Header";
-import { makeCommonStyles } from "../styles";
+import { Link } from "@/components/ui"
+import { useDeviceType } from "../../theme/media"
+import { PageHeader } from "../common/Header"
+import { makeCommonStyles } from "../styles"
 
 /**
  */
-export const AboutPage = (): JSX.Element => {
-  const deviceType = useDeviceType();
-  const commonStyles = makeCommonStyles(deviceType);
+export const AboutPage = () => {
+  const deviceType = useDeviceType()
+  const commonStyles = makeCommonStyles(deviceType)
   return (
     <div className={commonStyles.page}>
       <PageHeader />
-      <main className={commonStyles.main}>
-        <div className={styles.content}>
+      <main className={commonStyles.main} style={commonStyles.mainStyle}>
+        <div className="mt-12 gap-6 flex flex-col">
           <h1>About</h1>
           <p>
             Sonic Thames has been Inspired by exploring the river upstream at
@@ -63,9 +60,14 @@ export const AboutPage = (): JSX.Element => {
           </p>
           <p>
             {"All work produced is being placed online at "}
-            <Link to="/">sonicthames.org.uk</Link>
+            <Link to="/" className="inline">
+              sonicthames.org.uk
+            </Link>
             {" and our "}
-            <a href="https://www.youtube.com/channel/UCqkDGMVIu4slWH1z90XIdyQ">
+            <a
+              href="https://www.youtube.com/channel/UCqkDGMVIu4slWH1z90XIdyQ"
+              className="text-action hover:opacity-80"
+            >
               YouTube channel
             </a>
             . Two main uses can be derived from these platforms. On one side,
@@ -85,12 +87,5 @@ export const AboutPage = (): JSX.Element => {
         </div>
       </main>
     </div>
-  );
-};
-
-const styles = {
-  content: css({
-    marginTop: spacingRem("xl"),
-    gap: spacingRem("l"),
-  }),
-};
+  )
+}

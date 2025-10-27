@@ -1,33 +1,10 @@
-import { css, cx } from "@emotion/css";
-import { brandColors, colorToCssRGB } from "../theme/colors";
-import type { DeviceType } from "../theme/device";
-import { fontSize } from "../theme/fontSize";
-import { maxPageWidth } from "../theme/media";
-import { spacingRem } from "../theme/spacing";
+import { cn } from "@/lib/utils"
+import type { DeviceType } from "../theme/device"
+import { maxPageWidth } from "../theme/media"
 
-export const makeCommonStyles = (deviceType: DeviceType) =>
-  ({
-    page: css({
-      display: "flex",
-      flex: 1,
-      flexDirection: "column",
-      position: "relative",
-      backgroundColor: colorToCssRGB(brandColors.main.light),
-    }),
-    // TODO Should be main
-    main: cx(
-      css({ flex: 1 }),
-      deviceType === "desktop"
-        ? css({
-            margin: "0 auto",
-            width: "100%",
-            maxWidth: maxPageWidth,
-          })
-        : css({
-            padding: `0 ${spacingRem()}`,
-          })
-    ),
-    crest: css({
-      fontSize: fontSize("xl"),
-    }),
-  } as const);
+export const makeCommonStyles = (deviceType: DeviceType) => ({
+  page: "flex flex-1 flex-col relative bg-primary-light overflow-y-auto",
+  main: cn("flex-1", deviceType === "desktop" ? "mx-auto w-full" : "px-4"),
+  mainStyle: deviceType === "desktop" ? { maxWidth: maxPageWidth } : {},
+  crest: "text-4xl",
+})

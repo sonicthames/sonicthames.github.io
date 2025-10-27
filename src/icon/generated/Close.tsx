@@ -1,7 +1,6 @@
-import * as React from "react";
-import type { SVGProps } from "react";
-export function SvgClose(props: SVGProps<SVGSVGElement>): JSX.Element {
-  const { "aria-label": ariaLabel = "Close icon", ...restProps } = props;
+import type { SVGProps } from "react"
+export function SvgClose(props: SVGProps<SVGSVGElement>) {
+  const { "aria-label": ariaLabel = "Close icon", ...restProps } = props
   return (
     <svg
       role="img"
@@ -19,6 +18,6 @@ export function SvgClose(props: SVGProps<SVGSVGElement>): JSX.Element {
         d="M18.517 16 32.404 2.113A1.218 1.218 0 0 0 30.682.39L16.795 14.278 2.908.39a1.218 1.218 0 0 0-1.723 1.723L15.073 16 1.185 29.887a1.218 1.218 0 1 0 1.723 1.723l13.887-13.888L30.682 31.61a1.218 1.218 0 1 0 1.722-1.723z"
       />
     </svg>
-  );
+  )
 }
-export default SvgClose;
+export default SvgClose

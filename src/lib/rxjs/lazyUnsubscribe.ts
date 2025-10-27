@@ -1,4 +1,4 @@
-import type { Subscription } from "rxjs/internal/Subscription";
+import type { Subscription } from "rxjs/internal/Subscription"
 
 /**
  * @param s Subscription to an Observable stream.
@@ -6,6 +6,6 @@ import type { Subscription } from "rxjs/internal/Subscription";
  */
 export function lazyUnsubscribe(s: Subscription) {
   return () => {
-    s.unsubscribe();
-  };
+    s.unsubscribe()
+  }
 }

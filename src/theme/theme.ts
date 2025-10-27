@@ -1,17 +1,4 @@
-import { createTheme } from "@material-ui/core/styles";
-import { pipe } from "fp-ts/function";
-import * as RR from "fp-ts/ReadonlyRecord";
-import { brandColors, colorToCssRGB } from "./colors";
-
-export const theme = createTheme({
-  palette: {
-    primary: {
-      ...pipe(brandColors.action, RR.map(colorToCssRGB)),
-      contrastText: "#fff",
-    },
-    secondary: {
-      ...pipe(brandColors.main, RR.map(colorToCssRGB)),
-      contrastText: "#fff",
-    },
-  },
-});
+// This file previously contained MUI theme configuration
+// The new theming system is located in src/styles/theme.css.ts
+// using vanilla-extract for design tokens and Tailwind CSS for utility classes
+export {}

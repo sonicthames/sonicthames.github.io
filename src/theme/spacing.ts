@@ -1,5 +1,5 @@
-import { flow, pipe } from "fp-ts/function";
-import * as RA from "fp-ts/ReadonlyArray";
+import { flow, pipe } from "fp-ts/function"
+import * as RA from "fp-ts/ReadonlyArray"
 
 export const raw_spacing = {
   xxxs: 0.2,
@@ -11,8 +11,8 @@ export const raw_spacing = {
   xl: 1.4,
   xxl: 1.6,
   xxxl: 1.8,
-};
-type Spacing = keyof typeof raw_spacing;
+}
+type Spacing = keyof typeof raw_spacing
 
 export const spacing = (
   first: Spacing = "default",
@@ -20,11 +20,11 @@ export const spacing = (
 ) =>
   pipe(
     args,
-    RA.reduce(raw_spacing[first], (acc, x) => acc + raw_spacing[x])
-  );
+    RA.reduce(raw_spacing[first], (acc, x) => acc + raw_spacing[x]),
+  )
 
-export const spacingRem = flow(spacing, (x) => `${x}rem`);
+export const spacingRem = flow(spacing, (x) => `${x}rem`)
 
-export const spacingEm = flow(spacing, (x) => `${x}em`);
+export const spacingEm = flow(spacing, (x) => `${x}em`)
 
-export const controlIconSize = "1.25rem";
+export const controlIconSize = "1.25rem"

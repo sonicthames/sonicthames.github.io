@@ -1,5 +1,5 @@
-export type RGBColor = readonly [number, number, number];
-export type RGBAColor = readonly [...RGBColor, number?];
+export type RGBColor = readonly [number, number, number]
+export type RGBAColor = readonly [...RGBColor, number?]
 
 export const brandColors = {
   main: {
@@ -34,14 +34,14 @@ export const brandColors = {
     water: [124, 187, 192],
     land: [72, 60, 51],
   },
-} as const;
+} as const
 
 export const colorToCssRGB = ([r, g, b]: RGBColor): string =>
-  `rgb(${r},${g},${b})`;
+  `rgb(${r},${g},${b})`
 
 // Safari transparency issue: https://stackoverflow.com/a/30674347/836839
 export const colorToCssRGBA = ([r, g, b, a = 1]: RGBAColor): string =>
-  `rgba(${r},${g},${b},${a})`;
+  `rgba(${r},${g},${b},${a})`
 
 export const colorToCssHex = ([r, g, b]: RGBColor): string =>
-  `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`;
+  `#${r.toString(16)}${g.toString(16)}${b.toString(16)}`

@@ -1,1 +1,1 @@
-export const constNA = () => "N/A";
+export const constNA = () => "N/A"

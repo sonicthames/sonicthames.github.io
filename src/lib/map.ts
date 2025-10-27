@@ -1,16 +1,12 @@
-import type { ViewportProps } from "react-map-gl";
-
 export interface Coordinate {
-  readonly latitude: number;
-  readonly longitude: number;
+  readonly latitude: number
+  readonly longitude: number
 }
 
-export type GoTo = Pick<
-  ViewportProps,
-  | "longitude"
-  | "latitude"
-  | "zoom"
-  | "transitionDuration"
-  | "transitionInterpolator"
-  | "transitionEasing"
->;
+export interface GoTo {
+  readonly longitude: number
+  readonly latitude: number
+  readonly zoom?: number
+  readonly transitionDuration?: number
+  readonly transitionEasing?: (time: number) => number
+}

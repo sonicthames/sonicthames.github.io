@@ -1,54 +1,36 @@
-import type { ReactNode } from "react";
-import type { ExtractRouteParams, RouteProps } from "react-router";
-import type { RouteComponentProps } from "react-router-dom";
-import { Route } from "react-router-dom";
-import type { RelativePath, RouteSegment, ToRouteSegment } from "../../lib/routing";
-import type { appRoutes } from "../location";
+import type { ReactNode } from "react"
+import { Route } from "react-router-dom"
+import type { ToRouteSegment } from "../../lib/routing"
+import type { appRoutes } from "../location"
 
-interface Props<
-  // B extends string,
-  FS extends readonly string[],
-  Params extends {
-    readonly [K: string]: string | undefined;
-  } = ExtractRouteParams<RelativePath<FS>, string>
-> extends Omit<
-    RouteProps<RelativePath<FS>, Params>,
-    "path" | "children" | "component" | "render"
-  > {
-  readonly segment: ToRouteSegment<typeof appRoutes, FS>;
-  readonly children:
-    | ((
-        props: RouteComponentProps<Params> & {
-          readonly segment: RouteSegment<typeof appRoutes, FS>;
-        }
-      ) => ReactNode)
-    | ReactNode
-    | undefined;
+/**
+ * Type-safe wrapper around React Router's Route component.
+ *
+ * React Router v6/v7 pattern: use the `element` prop (not `render` or `component`).
+ * To access route params, use the `useParams()` hook inside your component.
+ *
+ * Example:
+ *   <AppRoute segment={appRoute("sound", ":sound")} element={<SoundPage />} />
+ */
+interface Props<FS extends readonly string[]> {
+  readonly segment: ToRouteSegment<typeof appRoutes, FS>
+  readonly element: ReactNode
+  readonly index?: boolean
+  readonly caseSensitive?: boolean
 }
 
 export const AppRoute = <FS extends readonly string[]>({
-  children,
-  ...rest
-}: Props<FS>): JSX.Element => {
-  if (typeof children === "function") {
-    return (
-      <Route
-        path={rest.segment.path}
-        render={(props): ReactNode =>
-          // TODO Review
-          // @ts-expect-error Needed?
-          children({ segment: rest.segment, ...props })
-        }
-        {...rest}
-      />
-    );
-  }
-
+  segment,
+  element,
+  index,
+  caseSensitive,
+}: Props<FS>) => {
   return (
     <Route
-      path={rest.segment.path}
-      render={() => (children !== undefined ? children : null)}
-      {...rest}
+      path={segment.path}
+      element={element}
+      index={index}
+      caseSensitive={caseSensitive}
     />
-  );
-};
+  )
+}

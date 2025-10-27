@@ -1,79 +1,63 @@
-import { css, cx } from "@emotion/css";
-import { IconButton } from "@material-ui/core";
-import { Button } from "@mui/material";
-import { constNull, pipe } from "fp-ts/function";
-import * as O from "fp-ts/Option";
-import * as RA from "fp-ts/ReadonlyArray";
-import { _useMapControl } from "react-map-gl";
-import type { Subject } from "rxjs";
-import { H3 } from "../../components/Typography";
-import { showDateTime, showInterval, type Sound } from "../../domain/base";
-import { Icon } from "../../icon";
-import { controlIconSize, spacingRem } from "../../theme/spacing";
+import { constNull, pipe } from "fp-ts/function"
+import * as O from "fp-ts/Option"
+import * as RA from "fp-ts/ReadonlyArray"
+import type { Subject } from "rxjs"
+import { Button } from "@/components/ui"
+import { cn } from "@/lib/utils"
+import { H3 } from "../../components/Typography"
+import type { Sound } from "../../domain/base"
+import { showDateTime, showInterval } from "../../domain/base"
+import { Icon } from "../../icon"
+import { controlIconSize } from "../../theme/spacing"
 
 interface Props {
-  readonly sound: Sound;
-  readonly className?: string;
-  readonly close$: Subject<void>;
-  readonly play$: Subject<string>;
+  readonly sound: Sound
+  readonly className?: string
+  readonly close$: Subject<void>
+  readonly play$: Subject<string>
 }
 
 export const Hover = ({ sound, close$, play$, className }: Props) => {
-  const ref = _useMapControl({
-    captureDrag: true,
-    capturePointerMove: true,
-    captureClick: true,
-    captureDoubleClick: true,
-    captureScroll: true,
-  });
-
   return (
-    <div ref={ref.containerRef} className={cx(styles.component, className)}>
-      <header
-        className={css({
-          position: "absolute",
-          top: 0,
-          right: 0,
-          left: 0,
-          padding: spacingRem("xxs"),
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-        })}
-      >
-        <IconButton onClick={() => close$.next()}>
+    <div
+      className={cn("shadow-md cursor-default pointer-events-auto", className)}
+    >
+      <header className="absolute top-0 right-0 left-0 p-2 flex items-center justify-end">
+        <button
+          type="button"
+          onClick={() => close$.next()}
+          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+          aria-label="close"
+        >
           <Icon name="Close" width={controlIconSize} height={controlIconSize} />
-        </IconButton>
+        </button>
       </header>
       <img
         alt={`${sound.title} thumbnail`}
         title={sound.title}
-        className={styles.image}
+        className="w-full h-[140px] border-none box-border"
         src="/thumbnails/placeholder.jpeg"
       />
-      <div className={styles.content}>
+      <div className="flex flex-col gap-2 p-4">
         <header>
           <Button
-            sx={{ justifyContent: "start" }}
-            fullWidth
-            variant="text"
-            size="small"
-            endIcon={
-              <Icon
-                name="Play"
-                width={controlIconSize}
-                height={controlIconSize}
-              />
-            }
+            variant="link"
+            size="sm"
+            className="w-full justify-start p-0 h-auto text-left"
             onClick={() => play$.next(sound.title)}
           >
-            <H3>{sound.title}</H3>
+            <H3 className="mr-2">{sound.title}</H3>
+            <Icon
+              name="Play"
+              width={controlIconSize}
+              height={controlIconSize}
+            />
           </Button>
         </header>
         <div>
           {pipe(
             sound.description,
-            RA.map((x) => <div key={x}>{x}</div>)
+            RA.map((x) => <div key={x}>{x}</div>),
           )}
         </div>
         {"interval" in sound
@@ -84,7 +68,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
                   <strong>Interval: </strong>
                   <span>{showInterval(x)}</span>
                 </div>
-              ))
+              )),
             )
           : pipe(
               sound.dateTime,
@@ -93,7 +77,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
                   <strong>Recorded date: </strong>
                   <span>{showDateTime(x)}</span>
                 </div>
-              ))
+              )),
             )}
         {pipe(
           sound.location,
@@ -102,28 +86,9 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
               <strong>Place: </strong>
               <span>{location}</span>
             </div>
-          ))
+          )),
         )}
       </div>
     </div>
-  );
-};
-
-const styles = {
-  component: css({
-    boxShadow: "0 2px 4px rgba(0,0,0,0.3)",
-    cursor: "initial",
-  }),
-  image: css({
-    width: "100%",
-    height: 140,
-    border: "none",
-    boxSizing: "border-box",
-  }),
-  content: css({
-    display: "flex",
-    flexDirection: "column",
-    gap: spacingRem("xxs"),
-    padding: spacingRem("s"),
-  }),
-};
+  )
+}

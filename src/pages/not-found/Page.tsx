@@ -1,29 +1,20 @@
-import { css } from "@emotion/css";
-import React from "react";
-import { useDeviceType } from "../../theme/media";
-import { spacingRem } from "../../theme/spacing";
-import { PageHeader } from "../common/Header";
-import { makeCommonStyles } from "../styles";
+import { useDeviceType } from "../../theme/media"
+import { PageHeader } from "../common/Header"
+import { makeCommonStyles } from "../styles"
 
 /**
  */
-export const NotFoundPage = (): JSX.Element => {
-  const deviceType = useDeviceType();
-  const commonStyles = makeCommonStyles(deviceType);
+export const NotFoundPage = () => {
+  const deviceType = useDeviceType()
+  const commonStyles = makeCommonStyles(deviceType)
   return (
     <div className={commonStyles.page}>
       <PageHeader />
-      <main className={commonStyles.main}>
-        <div className={styles.content}>
-          <h1>Page not found!</h1>
+      <main className={commonStyles.main} style={commonStyles.mainStyle}>
+        <div className="mt-12">
+          <h1 className="text-2xl font-bold">Page not found!</h1>
         </div>
       </main>
     </div>
-  );
-};
-
-const styles = {
-  content: css({
-    marginTop: spacingRem("xl"),
-  }),
-};
+  )
+}

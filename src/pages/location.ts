@@ -1,9 +1,10 @@
-import * as S from "fp-ts/string";
-import type { Show } from "fp-ts/Show";
-import type { Sound } from "../domain/base";
-import { routePath } from "../lib/routing";
+import type { Show } from "fp-ts/Show"
+import * as S from "fp-ts/string"
+import type { Sound } from "../domain/base"
+import type { AppRoutes } from "../lib/routing"
+import { routePath } from "../lib/routing"
 
-export const appRoutes = {
+const routesDefinition = {
   main: { fragments: null },
   about: { fragments: null },
   sound: {
@@ -25,10 +26,11 @@ export const appRoutes = {
   },
 
   contact: { fragments: null },
-} as const;
-export type Routes = typeof appRoutes;
+} as const
+export type Routes = typeof routesDefinition
 
-export const appRoute = routePath(appRoutes);
+export const appRoutes: AppRoutes<Routes> = routesDefinition
 
-export const soundId = (s: Sound) =>
-  s.marker.toLowerCase().replaceAll(" ", "_");
+export const appRoute = routePath(appRoutes)
+
+export const soundId = (s: Sound) => s.marker.toLowerCase().replaceAll(" ", "_")
