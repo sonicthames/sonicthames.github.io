@@ -1,12 +1,19 @@
-# Sonicthames
+# Sonic Thames
 
 An interactive audio-visual web experience exploring the River Thames through sound, sight, and sensation. This project maps geolocated multimedia recordings along the Thames, presenting them through an immersive interface with categories: **Listen**, **See**, and **Feel**.
 
 🌐 **Live Site**: [https://sonicthames.github.io](https://sonicthames.github.io)
 
+## Documentation
+
+- `README.md` (this file) – overview, setup, and scripts
+- `AGENTS.md` – architecture, code patterns, and conventions
+- `DEVELOPMENT.md` – quick reference for commands, debugging, and common tasks
+- `CONTRIBUTING.md` – git workflow and PR process
+
 ## About
 
-Sonicthames is a React-based web application that combines interactive mapping with multimedia content to create a unique sonic exploration of the Thames. Users can:
+Sonic Thames is a React-based web application that combines interactive mapping with multimedia content to create a unique sonic exploration of the Thames. Users can:
 
 - 🗺️ Navigate an interactive Mapbox map showing recording locations along the River Thames
 - 🎧 Browse audio-visual recordings categorized by sensory experience (Listen, See, Feel)
@@ -20,8 +27,10 @@ The application features recordings of various Thames locations including wooden
 ### Frontend
 - **React 17** - UI framework
 - **TypeScript** - Type safety
-- **Emotion** - CSS-in-JS styling
-- **Material-UI / MUI** - Component library
+- **Tailwind CSS v3** - Utility-first CSS framework
+- **vanilla-extract** - Type-safe CSS-in-JS for design tokens
+- **Radix UI** - Accessible UI primitives
+- **shadcn/ui** - Composable component library
 - **React Router** - Client-side routing
 - **Mapbox GL** - Interactive mapping
 
@@ -138,6 +147,7 @@ sonicthames.github.io/
 ├── scripts/             # Build and deployment scripts
 ├── src/
 │   ├── components/      # Reusable UI components
+│   │   └── ui/          # UI component library (Button, Link, Panel, Dialog, etc.)
 │   ├── domain/          # Domain models and types
 │   ├── icon/            # Icon components
 │   │   ├── generated/   # Auto-generated icon components
@@ -150,7 +160,11 @@ sonicthames.github.io/
 │   │   ├── main/        # Main page with map
 │   │   ├── sound/       # Individual sound detail page
 │   │   └── sounds/      # Category listing pages
-│   ├── theme/           # Theme configuration (colors, spacing, media queries)
+│   ├── styles/          # Styling system
+│   │   ├── theme.css.ts     # vanilla-extract design tokens and themes
+│   │   ├── recipes.css.ts   # vanilla-extract component recipes
+│   │   └── tailwind.css     # Tailwind CSS entry point
+│   ├── theme/           # Legacy theme utilities (colors, spacing, media queries)
 │   ├── App.tsx          # Main application component
 │   ├── data.json        # Sound recordings data
 │   ├── data.io.ts       # Runtime type validation for data
@@ -159,6 +173,8 @@ sonicthames.github.io/
 │   └── icons/           # Source SVG icons
 ├── index.html           # HTML entry point
 ├── package.json         # Dependencies and scripts
+├── tailwind.config.ts   # Tailwind configuration
+├── postcss.config.js    # PostCSS configuration
 ├── tsconfig.json        # TypeScript configuration
 └── vite.config.ts       # Vite configuration
 ```
@@ -237,7 +253,7 @@ The application is optimized for modern browsers:
 
 ## Contributing
 
-This appears to be a personal portfolio/art project. If you'd like to contribute or report issues, please check with the repository owner.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for git workflow and PR process. For architecture and code patterns, check [AGENTS.md](AGENTS.md). For development setup and commands, see [DEVELOPMENT.md](DEVELOPMENT.md).
 
 ## Icon Generation
 
