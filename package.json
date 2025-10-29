@@ -37,7 +37,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.2",
+    "@modelcontextprotocol/sdk": "^1.20.2",
     "@playwright/mcp": "^0.0.44",
+    "@testing-library/dom": "^10.0.0",
     "@types/d3-ease": "^3.0.2",
     "@types/history": "^4.7.11",
     "@types/luxon": "3.7.1",
@@ -59,19 +61,20 @@
     "vitest": "4.0.1"
   },
   "scripts": {
+    "build-icons": "rm -rf ./src/icon/generated && pnpm run generate-icons",
+    "build": "vite build",
+    "clean": "rm -rf dist",
     "deploy": "tsx scripts/deploy.ts",
     "dev": "vite --open --port 3001",
-    "build": "vite build",
-    "format": "biome format",
     "format:check": "biome check",
-    "lint": "biome check",
+    "format": "biome format",
+    "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --expand-props none --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons",
     "lint:fix": "biome check --write",
-    "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "mcp:discover": "pnpm tsx scripts/mcp-discover.ts",
     "serve": "vite preview --port 3001 --open",
-    "clean": "rm -rf dist",
     "test": "vitest",
-    "build-icons": "rm -rf ./src/icon/generated && pnpm run generate-icons",
-    "generate-icons": "svgr --template ./src/icon/template.js --typescript --ext tsx --icon --expand-props none --replace-attr-values '#FFF=currentColor,#181E27=currentColor' --out-dir=./src/icon/generated ./static/icons"
+    "typecheck": "tsc --noEmit"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],

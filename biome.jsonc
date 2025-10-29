@@ -21,6 +21,11 @@
     "expand": "auto",
     "useEditorconfig": true
   },
+  "css": {
+    "parser": {
+      "tailwindDirectives": true
+    }
+  },
   "javascript": {
     "formatter": {
       "quoteStyle": "double",
@@ -43,7 +48,13 @@
         "noUnusedVariables": "error"
       },
       "suspicious": {
-        "noExplicitAny": "error"
+        "noExplicitAny": "error",
+        "noUnknownAtRules": {
+          "level": "error",
+          "options": {
+            "ignore": ["tailwind", "apply"]
+          }
+        }
       },
       "style": {
         "useConst": "error",
