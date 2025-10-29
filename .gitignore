@@ -120,3 +120,6 @@ dist
 
 # Custom
 /priv
+
+# Playwright MCP
+.playwright-mcp/
