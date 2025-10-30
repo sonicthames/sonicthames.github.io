@@ -3,7 +3,7 @@ import { identity, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import type { ReactElement } from "react"
-import { useEffect, useState } from "react"
+import { useEffect } from "react"
 import {
   matchPath,
   Navigate,
@@ -47,14 +47,12 @@ export const App = () => {
 
 const AppContent = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
   const location = useLocation()
-  const [showDrawer, setShowDrawer] = useState(() =>
-    shouldShowDrawer(location.pathname),
-  )
+  const showDrawer = shouldShowDrawer(location.pathname)
   const deviceType = useDeviceType()
   const commonStyles = makeCommonStyles(deviceType)
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally scroll to top on route change
   useEffect(() => {
-    setShowDrawer(shouldShowDrawer(location.pathname))
     window.scrollTo(0, 0)
   }, [location.pathname])
 

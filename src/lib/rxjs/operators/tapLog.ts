@@ -9,7 +9,6 @@ import * as RX from "rxjs/operators"
  */
 export const tapLog = <A>(s: string) =>
   RX.tap<A>((value) => {
-    // eslint-disable-next-line no-console
     console.log(s, value)
     return value
   })
