@@ -72,7 +72,7 @@
     "clean": "rm -rf dist",
     "compiler:verify": "pnpm run build && pnpm run lint:compiler && pnpm run test -- --run",
     "deploy": "tsx scripts/deploy.ts",
-    "dev": "vite --open --port 3001",
+    "dev": "vite",
     "eslint": "eslint .",
     "eslint:compiler": "eslint . --max-warnings=0",
     "format:check": "biome check",
@@ -82,7 +82,7 @@
     "lint:fix": "biome check --write",
     "lint": "biome check",
     "mcp:discover": "pnpm tsx scripts/mcp-discover.ts",
-    "serve": "vite preview --port 3001 --open",
+    "serve": "vite preview",
     "test": "vitest",
     "typecheck": "tsc --noEmit"
   },

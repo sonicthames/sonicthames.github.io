@@ -1,6 +1,7 @@
 import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin"
 import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import type { UserConfig } from "vite"
+import { defineConfig } from "vitest/config"
 
 export default defineConfig({
   plugins: [
@@ -12,11 +13,11 @@ export default defineConfig({
     vanillaExtractPlugin(),
   ],
   server: {
-    port: 3001,
+    port: 4420,
     open: true,
   },
   preview: {
-    port: 3001,
+    port: 4421,
     open: true,
   },
   test: {
@@ -29,4 +30,4 @@ export default defineConfig({
       "@": "/src",
     },
   },
-})
+} satisfies UserConfig)
