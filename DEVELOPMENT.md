@@ -4,9 +4,17 @@ Quick reference for working on Sonic Thames. For architecture and patterns, see 
 
 ## Setup
 
+This project uses [`proto`](https://moonrepo.dev/docs/proto) to manage tool versions (Node.js, pnpm, Lefthook).
+
 ```bash
+# Install pinned toolchain
+proto install
+
 # Install dependencies
 pnpm install
+
+# Set up Git hooks (skip in CI environments)
+lefthook install
 
 # Set up environment (required for Mapbox)
 cp .env.template .env
