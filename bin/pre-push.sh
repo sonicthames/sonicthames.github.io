@@ -11,7 +11,7 @@ run_check() {
 
 run_check pnpm lint
 run_check pnpm typecheck
-run_check pnpm test -- --run
+run_check pnpm test
 run_check pnpm build
 
 echo "All pre-push checks passed."

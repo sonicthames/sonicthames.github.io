@@ -139,6 +139,29 @@ pnpm generate-icons
 pnpm deploy
 ```
 
+## Analytics
+
+Event capture is handled through PostHog Cloud—no local services required.
+
+1. Copy `.env.template` to `.env` and add your values:
+   - `VITE_MAPBOX_TOKEN` – public Mapbox token for map tiles
+   - `VITE_POSTHOG_KEY` – PostHog project API key (write-only)
+   - `VITE_POSTHOG_HOST` – defaults to `https://eu.posthog.com`; adjust if your project uses another region
+2. Restart `pnpm dev` so the environment variables are picked up.
+3. Trigger interactions (e.g., hover/click the tracked CTA on the About page) and confirm events appear in PostHog → Live events.
+
+Analytics helpers:
+
+- Use `TrackedCta` for buttons/links you want to monitor.
+- The `useHoverAnalytics` hook records `cta_hover` events with dwell time.
+- `trackCtaClick` and `trackCtaHover` in `src/lib/analytics.ts` are available if you need manual instrumentation elsewhere.
+
+Smoke test checklist:
+
+- `pnpm dev`
+- Visit the About page, hover the “Explore the map” CTA for ~1s, then click it.
+- In PostHog, filter by `event = cta_click` or `cta_hover` to verify ingestion.
+
 ## Project Structure
 
 ```

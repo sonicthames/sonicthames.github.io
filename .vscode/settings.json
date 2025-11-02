@@ -1,11 +1,16 @@
 {
   "cSpell.words": [
+    "affordances",
+    "behaviour",
+    "Behavioural",
     "fontstack",
     "geolocated",
     "mapbox",
     "mapboxgl",
     "maxzoom",
     "minzoom",
-    "sonicthames"
+    "POSTHOG",
+    "sonicthames",
+    "VITE"
   ]
 }

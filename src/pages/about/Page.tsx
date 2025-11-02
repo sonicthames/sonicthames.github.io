@@ -1,3 +1,5 @@
+import { useNavigate } from "react-router-dom"
+import { TrackedCta } from "@/components/TrackedCta"
 import { Link } from "@/components/ui"
 import { useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
@@ -8,6 +10,12 @@ import { makeCommonStyles } from "../styles"
 export const AboutPage = () => {
   const deviceType = useDeviceType()
   const commonStyles = makeCommonStyles(deviceType)
+  const navigate = useNavigate()
+
+  const handleExploreClick = () => {
+    navigate("/")
+  }
+
   return (
     <div className={commonStyles.page}>
       <PageHeader />
@@ -84,6 +92,17 @@ export const AboutPage = () => {
             purchase will be suggested. The use of the phone holder reduces the
             risk of injuries derived by cycling with one hand on the handlebar.
           </p>
+          <div className="pt-6">
+            <TrackedCta
+              ctaId="about_explore_map"
+              label="Explore the Sonic Thames map"
+              location="about_page"
+              variant="primary"
+              onClick={handleExploreClick}
+            >
+              Explore the map
+            </TrackedCta>
+          </div>
         </div>
       </main>
     </div>

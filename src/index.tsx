@@ -2,6 +2,7 @@ import React from "react"
 import { createRoot } from "react-dom/client"
 import { BrowserRouter } from "react-router-dom"
 import { App } from "./App"
+import { initAnalytics } from "./lib/analytics"
 import "./index.css"
 import "./styles/tailwind.css"
 import reportWebVitals from "./reportWebVitals"
@@ -9,6 +10,8 @@ import { lightTheme } from "./styles/theme.css"
 
 const rootElement = document.getElementById("root")
 if (!rootElement) throw new Error("Failed to find the root element")
+
+initAnalytics()
 
 const root = createRoot(rootElement)
 root.render(
