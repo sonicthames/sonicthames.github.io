@@ -73,6 +73,7 @@ Before marking a task complete:
 - ✅ Behavioural expectations hold (map interactions, playback, accessibility affordances).
 - ✅ Documentation, comments, and code stay in sync.
 - ✅ Any skipped verification is clearly recorded for follow-up.
+- ✅ When working on a web app and the work targets a specific use case, functional element, or visual change, exercise it via the Playwright MCP to confirm the behaviour in a real browser context.
 
 ---
 
