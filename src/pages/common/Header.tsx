@@ -1,39 +1,61 @@
 import { Link } from "@/components/ui"
-import { cn } from "@/lib/utils"
+import {
+  brand,
+  headerInner,
+  headerRoot,
+  nav,
+  navLink,
+  pageHeader,
+} from "@/ui/primitives/header.css"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { appRoute } from "../location"
 
 export const Header = () => {
   const deviceType = useDeviceType()
   return (
-    <header
-      className="sticky top-0 z-10 text-white font-bold text-lg uppercase pointer-events-none"
-      style={{
-        backgroundImage:
-          "linear-gradient(90deg, rgba(0, 0, 0, 0.0), rgba(0, 0, 0, 0.0) 500px, rgba(0, 0, 0, 0.6))",
-      }}
-    >
+    <header className={headerRoot}>
       <div
-        className={cn(
-          "flex justify-end gap-4 pb-4 pt-4",
-          deviceType === "desktop" ? "mx-auto" : "px-4",
-        )}
-        style={deviceType === "desktop" ? { maxWidth: maxPageWidth } : {}}
+        className={headerInner}
+        style={
+          deviceType === "desktop"
+            ? { maxWidth: maxPageWidth, margin: "0 auto" }
+            : undefined
+        }
       >
-        <nav className="flex gap-4 pointer-events-auto [&_a]:text-white [&_a:visited]:text-white [&_a:hover]:opacity-80 [&_a]:transition-opacity">
-          <Link variant="inherit" to={appRoute("listen").to({}).path}>
+        <nav className={nav}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("listen").to({}).path}
+          >
             Listen
           </Link>
-          <Link variant="inherit" to={appRoute("see").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("see").to({}).path}
+          >
             See
           </Link>
-          <Link variant="inherit" to={appRoute("feel").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("feel").to({}).path}
+          >
             Feel
           </Link>
-          <Link variant="inherit" to={appRoute("about").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("about").to({}).path}
+          >
             About
           </Link>
-          <Link variant="inherit" to={appRoute("contact").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("contact").to({}).path}
+          >
             Contact
           </Link>
         </nav>
@@ -45,32 +67,57 @@ export const Header = () => {
 export const PageHeader = () => {
   const deviceType = useDeviceType()
   return (
-    <header className="sticky top-0 z-10 bg-primary-dark text-white font-bold text-lg uppercase pointer-events-auto">
+    <header className={pageHeader}>
       <div
-        className={cn(
-          "flex justify-end gap-4 pb-4 pt-4",
-          deviceType === "desktop" ? "mx-auto" : "px-4",
-        )}
-        style={deviceType === "desktop" ? { maxWidth: maxPageWidth } : {}}
+        className={headerInner}
+        style={
+          deviceType === "desktop"
+            ? { maxWidth: maxPageWidth, margin: "0 auto" }
+            : undefined
+        }
       >
-        <strong className="flex-1">Sonicthames</strong>
-        <nav className="flex gap-4 [&_a]:text-white [&_a:visited]:text-white [&_a:hover]:opacity-80 [&_a]:transition-opacity">
-          <Link variant="inherit" to={appRoute("main").to({}).path}>
+        <strong className={brand}>Sonicthames</strong>
+        <nav className={nav}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("main").to({}).path}
+          >
             Map
           </Link>
-          <Link variant="inherit" to={appRoute("listen").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("listen").to({}).path}
+          >
             Listen
           </Link>
-          <Link variant="inherit" to={appRoute("see").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("see").to({}).path}
+          >
             See
           </Link>
-          <Link variant="inherit" to={appRoute("feel").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("feel").to({}).path}
+          >
             Feel
           </Link>
-          <Link variant="inherit" to={appRoute("about").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("about").to({}).path}
+          >
             About
           </Link>
-          <Link variant="inherit" to={appRoute("contact").to({}).path}>
+          <Link
+            className={navLink}
+            variant="inherit"
+            to={appRoute("contact").to({}).path}
+          >
             Contact
           </Link>
         </nav>

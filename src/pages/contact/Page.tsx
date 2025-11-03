@@ -1,26 +1,34 @@
 import { useId } from "react"
 import { Button } from "@/components/ui"
-import { cn } from "@/lib/utils"
-import { useDeviceType } from "../../theme/media"
+import {
+  contactLayout,
+  contactLayoutVariants,
+  form,
+  formInput,
+  formLabel,
+  formTitle,
+} from "@/ui/components/contact.css"
+import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
-import { makeCommonStyles } from "../styles"
 
 export const ContactPage = () => {
   const deviceType = useDeviceType()
-  const commonStyles = makeCommonStyles(deviceType)
   const uid = useId()
   return (
-    <div className={commonStyles.page}>
+    <div className={pageRoot}>
       <PageHeader />
-      <main className={commonStyles.main} style={commonStyles.mainStyle}>
+      <main
+        className={`${pageMain} ${pageMainVariants[deviceType]}`}
+        style={
+          deviceType === "desktop" ? { maxWidth: maxPageWidth } : undefined
+        }
+      >
         <div
-          className={cn(
-            "flex mt-12 gap-6",
-            deviceType === "mobile" ? "flex-col" : "flex-row [&>*]:flex-[50%]",
-          )}
+          className={`${contactLayout} ${contactLayoutVariants[deviceType]}`}
         >
           <div>
-            <h1 className="text-2xl font-bold mb-4">Send us a message</h1>
+            <h1 className={formTitle}>Send us a message</h1>
             <div>
               Get in touch with us by sending us a message here. Let us know
               your opinion about the Sonic Thames Project. We value your
@@ -28,42 +36,42 @@ export const ContactPage = () => {
             </div>
           </div>
           <form
-            className="flex flex-col gap-4"
+            className={form}
             action="mailto:sonicthames@gmail.com"
             encType="multipart/form-data"
           >
             <input type="hidden" name="subject" value="Send us your thoughts" />
             <div>
-              <label htmlFor="name" className="block text-sm font-medium mb-1">
+              <label htmlFor="name" className={formLabel}>
                 Name
               </label>
               <input
                 id={`name-${uid}`}
                 type="text"
                 name="name"
-                className="w-full px-3 py-2 border border-border rounded-md bg-bg text-fg focus:outline-none focus:ring-2 focus:ring-accent"
+                className={formInput}
               />
             </div>
             <div>
-              <label htmlFor="email" className="block text-sm font-medium mb-1">
+              <label htmlFor="email" className={formLabel}>
                 Email
               </label>
               <input
                 id={`email-${uid}`}
                 type="email"
                 name="email"
-                className="w-full px-3 py-2 border border-border rounded-md bg-bg text-fg focus:outline-none focus:ring-2 focus:ring-accent"
+                className={formInput}
               />
             </div>
             <div>
-              <label htmlFor="body" className="block text-sm font-medium mb-1">
+              <label htmlFor="body" className={formLabel}>
                 Message
               </label>
               <textarea
                 id={`body-${uid}`}
                 name="body"
                 rows={3}
-                className="w-full px-3 py-2 border border-border rounded-md bg-bg text-fg focus:outline-none focus:ring-2 focus:ring-accent"
+                className={formInput}
               />
             </div>
             <div>

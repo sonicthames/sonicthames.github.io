@@ -1,13 +1,10 @@
-import { useDeviceType } from "../../theme/media"
-import { makeCommonStyles } from "../styles"
+import { pageRoot } from "@/ui/components/page.css"
 
 /**
  */
 export const MainPage = () => {
-  const deviceType = useDeviceType()
-  const commonStyles = makeCommonStyles(deviceType)
   return (
-    <div className={commonStyles.page}>
+    <div className={pageRoot}>
       <main />
     </div>
   )

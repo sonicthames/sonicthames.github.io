@@ -28,6 +28,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": "/src",
+      "@theme": "/src/theme",
+      "@ui": "/src/ui",
     },
   },
 } satisfies UserConfig)

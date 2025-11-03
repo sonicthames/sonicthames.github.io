@@ -1,9 +1,14 @@
+import {
+  iconButton,
+  playlist,
+  playlistItem,
+  playlistName,
+} from "@ui/components/playlist.css"
 import * as d3 from "d3-ease"
 import { constFalse, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import type { Subject } from "rxjs"
-import { cn } from "@/lib/utils"
 import type { Sound } from "../../domain/base"
 import { Icon } from "../../icon"
 import type { Coordinate, GoTo } from "../../lib/map"
@@ -24,21 +29,16 @@ export const PlaylistItem = ({
   focused = false,
 }: PlaylistItemProps) => {
   return (
-    <li
-      className={cn(
-        "flex items-center justify-between gap-4",
-        focused && "bg-black/[0.08]",
-      )}
-    >
+    <li className={playlistItem({ focused })}>
       <button
         type="button"
         onClick={() => play$.next(name)}
-        className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+        className={iconButton}
         title="play"
       >
         <Icon name="Play" />
       </button>
-      <span className="flex-1">{name}</span>
+      <span className={playlistName}>{name}</span>
       <button
         type="button"
         onClick={() =>
@@ -49,7 +49,7 @@ export const PlaylistItem = ({
             transitionEasing: d3.easeCubic,
           })
         }
-        className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+        className={iconButton}
         aria-label="find in map"
       >
         <svg
@@ -78,7 +78,7 @@ interface PlaylistProps {
 export const Playlist = ({ goTo$, play$, soundO, sounds }: PlaylistProps) => {
   return (
     <div>
-      <ul className="list-none p-0 gap-3 flex flex-col">
+      <ul className={playlist}>
         {pipe(
           sounds,
           RA.map(({ title, coordinates }) => (

@@ -5,9 +5,26 @@ import * as RA from "fp-ts/ReadonlyArray"
 import * as D from "io-ts/Decoder"
 import mapboxgl, { LngLat } from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
+import {
+  filterButton,
+  filtersGroup,
+  hoverFloating,
+  logoPosition,
+  markerBadge,
+  markerButton,
+  markerWrapper,
+  selectedSound,
+  closeButton as sidebarCloseButton,
+  sidebarHeader,
+  sidebar as sidebarStyle,
+  srOnly,
+  videoFrame,
+  youtubeLink,
+} from "@ui/components/map.css"
 import { useEffect, useRef, useState } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap, Marker } from "react-map-gl/mapbox"
+import { useLocation } from "react-router-dom"
 import { BehaviorSubject, Subject } from "rxjs"
 import { H2, H3 } from "../../components/Typography"
 import type { Category, Sound } from "../../domain/base"
@@ -96,17 +113,12 @@ const Sidebar = ({
   }, [filters$])
 
   return (
-    <aside
-      className={`fixed top-0 bottom-0 left-0 z-[2000] w-[500px] bg-primary-light p-4 overflow-auto cursor-default pointer-events-auto transition-transform duration-150 ease-in-out shadow-[2px_0_24px_rgba(0,0,0,0.2)] ${
-        expand ? "translate-x-0" : "-translate-x-full"
-      }`}
-      style={{ backgroundColor: "rgba(250, 242, 244, 0.96)" }}
-    >
-      <header className="flex items-center justify-between mb-4">
+    <aside className={sidebarStyle({ expanded: expand })}>
+      <header className={sidebarHeader}>
         <H2>Sonic Thames</H2>
-        <div className="flex gap-4">
-          <fieldset className="flex gap-1 border-none p-0 m-0">
-            <legend className="sr-only">Filters</legend>
+        <div>
+          <fieldset className={filtersGroup}>
+            <legend className={srOnly}>Filters</legend>
             <button
               type="button"
               onClick={() => {
@@ -116,11 +128,11 @@ const Sidebar = ({
                 filters$.next(newFilters as readonly Category[])
               }}
               title="toggle listen"
-              className={`p-2 border-none rounded cursor-pointer transition-colors ${
+              className={
                 filters.includes("Listen")
-                  ? "bg-action text-white"
-                  : "bg-transparent text-primary hover:bg-primary/10"
-              }`}
+                  ? filterButton.active
+                  : filterButton.inactive
+              }
             >
               <Icon
                 name="Listen"
@@ -137,11 +149,11 @@ const Sidebar = ({
                 filters$.next(newFilters as readonly Category[])
               }}
               title="toggle see"
-              className={`p-2 border-none rounded cursor-pointer transition-colors ${
+              className={
                 filters.includes("See")
-                  ? "bg-action text-white"
-                  : "bg-transparent text-primary hover:bg-primary/10"
-              }`}
+                  ? filterButton.active
+                  : filterButton.inactive
+              }
             >
               <Icon name="See" width={headerIconSize} height={headerIconSize} />
             </button>
@@ -154,11 +166,11 @@ const Sidebar = ({
                 filters$.next(newFilters as readonly Category[])
               }}
               title="toggle feel"
-              className={`p-2 border-none rounded cursor-pointer transition-colors ${
+              className={
                 filters.includes("Feel")
-                  ? "bg-action text-white"
-                  : "bg-transparent text-primary hover:bg-primary/10"
-              }`}
+                  ? filterButton.active
+                  : filterButton.inactive
+              }
             >
               <Icon
                 name="Feel"
@@ -172,7 +184,7 @@ const Sidebar = ({
           type="button"
           onClick={() => setExpand(false)}
           title="close"
-          className="p-2 border-none rounded cursor-pointer bg-transparent hover:bg-primary/10 transition-colors"
+          className={sidebarCloseButton}
         >
           <Icon name="Close" width="1.5rem" height="1.5rem" />
         </button>
@@ -180,19 +192,19 @@ const Sidebar = ({
       {pipe(
         soundO,
         O.fold(constNull, (sound) => (
-          <div className="[&>*]:mb-4">
+          <div className={selectedSound}>
             <iframe
               title={sound.title}
               width="320"
               height="240"
-              className="w-full border-none box-border"
+              className={videoFrame}
               src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
             />
-            <div className="flex items-center justify-between">
+            <div>
               <H3>{sound.title}</H3>
               <div>
                 <a
-                  className="no-underline border border-[#21283B] px-3 py-1 rounded-md text-[#21283B] hover:bg-primary/5 transition-colors"
+                  className={youtubeLink}
                   href={`https://www.youtube.com/v/${sound.videoSrc}`}
                 >
                   view on youtube
@@ -247,6 +259,7 @@ interface Props {
 }
 
 export const MainMap = ({ sounds }: Props) => {
+  const location = useLocation()
   const mapRef = useRef<MapRef | null>(null)
   const [goTo$] = useState(() => new Subject<GoTo>())
   useEffect(
@@ -295,6 +308,13 @@ export const MainMap = ({ sounds }: Props) => {
   const [expand$] = useState(
     () => new BehaviorSubject<boolean>(O.isSome(soundO)),
   )
+
+  // Auto-close playlist when navigating to a different page
+  useEffect(() => {
+    if (location.pathname !== "/main") {
+      expand$.next(false)
+    }
+  }, [location.pathname, expand$])
 
   const [play$] = useState(() => new Subject<string>())
   useEffect(() => {
@@ -375,10 +395,7 @@ export const MainMap = ({ sounds }: Props) => {
         ],
       }}
     >
-      <div className="absolute right-[50px] top-[50px]">
-        {/* <NavigationControl onViewportChange={this.updateViewport} /> */}
-      </div>
-      <div className="absolute pointer-events-none bottom-[-85px] right-[-40px] w-80 opacity-100">
+      <div className={logoPosition}>
         <img src="/logo-05.svg" alt="logo" />
       </div>
       {pipe(
@@ -391,11 +408,11 @@ export const MainMap = ({ sounds }: Props) => {
                 key={sId}
                 latitude={s.coordinates.lat}
                 longitude={s.coordinates.lng}
-                className="flex flex-col items-center justify-center cursor-pointer [&_svg]:cursor-pointer hover:z-[1000]"
+                className={markerWrapper}
               >
                 <button
                   type="button"
-                  className="flex flex-col items-center bg-transparent border-none p-0 cursor-pointer -translate-x-1/2 -translate-y-full"
+                  className={markerButton}
                   onClick={() => {
                     setHoverSoundO(O.some(s))
                     // TODO: trigger navigation to `/sound/${sId}`
@@ -410,12 +427,11 @@ export const MainMap = ({ sounds }: Props) => {
                   {foldSumType({
                     renderListen: () => (
                       <div
-                        className="flex items-center rounded-full p-1 border border-white"
+                        className={markerBadge}
                         style={{ backgroundColor: brandColors.icons.listen }}
                       >
                         <Icon
                           name="Listen"
-                          className="text-white"
                           width={markerIconSize}
                           height={markerIconSize}
                         />
@@ -423,12 +439,11 @@ export const MainMap = ({ sounds }: Props) => {
                     ),
                     renderSee: () => (
                       <div
-                        className="flex items-center rounded-full p-1 border border-white"
+                        className={markerBadge}
                         style={{ backgroundColor: brandColors.icons.see }}
                       >
                         <Icon
                           name="See"
-                          className="text-white"
                           width={markerIconSize}
                           height={markerIconSize}
                         />
@@ -436,12 +451,11 @@ export const MainMap = ({ sounds }: Props) => {
                     ),
                     renderFeel: () => (
                       <div
-                        className="flex items-center rounded-full p-1 border border-white"
+                        className={markerBadge}
                         style={{ backgroundColor: brandColors.icons.feel }}
                       >
                         <Icon
                           name="Feel"
-                          className="text-white"
                           width={markerIconSize}
                           height={markerIconSize}
                         />
@@ -458,7 +472,7 @@ export const MainMap = ({ sounds }: Props) => {
         hoverSoundO,
         O.fold(constNull, (sound) => (
           <Hover
-            className="bg-primary-light fixed z-[2000] bottom-[60px] right-[25px] w-[300px]"
+            className={hoverFloating}
             close$={hoverClose$}
             play$={play$}
             sound={sound}

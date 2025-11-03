@@ -1,29 +1,30 @@
+import { vars } from "@theme/vars.css"
 import { recipe } from "@vanilla-extract/recipes"
-import { vars } from "./theme.css"
 
 export const panel = recipe({
   base: {
-    background: `rgb(${vars.color.bg})`,
-    color: `rgb(${vars.color.fg})`,
+    background: vars.color.surface,
+    color: vars.color.text,
+    border: `1px solid ${vars.color.surfaceAlt}`,
     borderRadius: vars.radius.xl,
-    boxShadow: vars.shadow.card,
-    padding: "16px",
+    boxShadow: vars.shadow.lg,
+    padding: vars.space.xl,
   },
   variants: {
     elevated: {
       true: {
-        boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
+        boxShadow: vars.shadow.glowSoft,
       },
     },
     size: {
       sm: {
-        padding: "8px",
+        padding: vars.space.md,
       },
       md: {
-        padding: "16px",
+        padding: vars.space.lg,
       },
       lg: {
-        padding: "24px",
+        padding: vars.space["2xl"],
       },
     },
   },
@@ -35,14 +36,14 @@ export const panel = recipe({
 
 export const link = recipe({
   base: {
-    color: `rgb(${vars.color.action})`,
+    color: vars.color.brand.accent,
     textDecoration: "none",
-    transition: "opacity 150ms",
+    transition: `opacity ${vars.motion.fast}`,
     ":hover": {
       opacity: 0.8,
     },
     ":visited": {
-      color: `rgb(${vars.color.action})`,
+      color: vars.color.brand.accent,
     },
   },
   variants: {

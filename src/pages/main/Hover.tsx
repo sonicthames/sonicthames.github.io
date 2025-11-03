@@ -1,3 +1,14 @@
+import {
+  bodyContainer,
+  hoverCard,
+  closeButton as hoverCloseButton,
+  description as hoverDescription,
+  hoverHeader,
+  title as hoverTitle,
+  media,
+  meta as metaSection,
+  playButton,
+} from "@ui/components/hover.css"
 import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
@@ -19,14 +30,12 @@ interface Props {
 
 export const Hover = ({ sound, close$, play$, className }: Props) => {
   return (
-    <div
-      className={cn("shadow-md cursor-default pointer-events-auto", className)}
-    >
-      <header className="absolute top-0 right-0 left-0 p-2 flex items-center justify-end">
+    <div className={cn(hoverCard, className)}>
+      <header className={hoverHeader}>
         <button
           type="button"
           onClick={() => close$.next()}
-          className="p-2 hover:bg-gray-100 rounded-md transition-colors"
+          className={hoverCloseButton}
           aria-label="close"
         >
           <Icon name="Close" width={controlIconSize} height={controlIconSize} />
@@ -35,18 +44,19 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
       <img
         alt={`${sound.title} thumbnail`}
         title={sound.title}
-        className="w-full h-[140px] border-none box-border"
+        className={media}
         src="/thumbnails/placeholder.jpeg"
       />
-      <div className="flex flex-col gap-2 p-4">
+      <div className={bodyContainer}>
         <header>
           <Button
-            variant="link"
+            tone="link"
             size="sm"
-            className="w-full justify-start p-0 h-auto text-left"
+            fullWidth
+            className={playButton}
             onClick={() => play$.next(sound.title)}
           >
-            <H3 className="mr-2">{sound.title}</H3>
+            <H3 className={hoverTitle}>{sound.title}</H3>
             <Icon
               name="Play"
               width={controlIconSize}
@@ -54,7 +64,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
             />
           </Button>
         </header>
-        <div>
+        <div className={hoverDescription}>
           {pipe(
             sound.description,
             RA.map((x) => <div key={x}>{x}</div>),
@@ -64,7 +74,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
           ? pipe(
               sound.interval,
               O.fold(constNull, (x) => (
-                <div>
+                <div className={metaSection}>
                   <strong>Interval: </strong>
                   <span>{showInterval(x)}</span>
                 </div>
@@ -73,7 +83,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
           : pipe(
               sound.dateTime,
               O.fold(constNull, (x) => (
-                <div>
+                <div className={metaSection}>
                   <strong>Recorded date: </strong>
                   <span>{showDateTime(x)}</span>
                 </div>
@@ -82,7 +92,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
         {pipe(
           sound.location,
           O.fold(constNull, (location) => (
-            <div>
+            <div className={metaSection}>
               <strong>Place: </strong>
               <span>{location}</span>
             </div>

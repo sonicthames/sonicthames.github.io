@@ -1,10 +1,9 @@
 import type { ClassValue } from "clsx"
 import { clsx } from "clsx"
-import { twMerge } from "tailwind-merge"
 
 /**
- * Utility for combining class names with Tailwind merge support
+ * Utility for combining class names
  */
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return clsx(inputs)
 }

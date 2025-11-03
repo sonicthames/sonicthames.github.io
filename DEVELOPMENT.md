@@ -123,6 +123,26 @@ pnpm clean && pnpm build
 rm -rf node_modules && pnpm install
 ```
 
+## Signed commits
+
+This project relies on SSH-based commit signing (`gpg.format=ssh` in `~/.gitconfig`). If `git commit` fails with:
+
+```
+error: Couldn't find key in agent?
+fatal: failed to write commit object
+```
+
+load the private key referenced by `user.signingkey` (typically `~/.ssh/id_ed25519_signing`) into your SSH agent:
+
+```bash
+eval "$(ssh-agent -s)"              # start an agent if needed
+ssh-add ~/.ssh/id_ed25519_signing  # load the signing key
+ssh-add -l                         # verify the key is available
+```
+
+Use `git commit --no-gpg-sign` to bypass signing for a single commit when troubleshooting.
+
+
 ## Tech Stack Reference
 
 - **React 17** - UI framework

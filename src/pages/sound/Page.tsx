@@ -1,12 +1,27 @@
 import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
+import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
+import {
+  artworkArea,
+  descriptionArea,
+  soundArticle,
+  soundHeader,
+  soundHeading3,
+  soundTitle,
+  technicalDefinition,
+  technicalList,
+  technicalListItem,
+  technicalSheetArea,
+  technicalTerm,
+  videoArea,
+  videoIframe,
+} from "@/ui/components/sound-page.css"
 import type { Sound } from "../../domain/base"
 import { showInterval } from "../../domain/base"
 import { useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import { constNA } from "../common/message"
-import { makeCommonStyles } from "../styles"
 
 interface Props {
   readonly sound: Sound
@@ -17,18 +32,17 @@ interface Props {
  */
 export const SoundPage = ({ sound }: Props) => {
   const deviceType = useDeviceType()
-  const commonStyles = makeCommonStyles(deviceType)
 
   return (
-    <div className={commonStyles.page}>
+    <div className={pageRoot}>
       <PageHeader />
-      <main className={commonStyles.main}>
-        <header className="mb-4">
-          <h1>{sound.title}</h1>
+      <main className={`${pageMain} ${pageMainVariants[deviceType]}`}>
+        <header className={soundHeader}>
+          <h1 className={soundTitle}>{sound.title}</h1>
         </header>
-        <article className="grid grid-cols-[repeat(5,1fr)] grid-rows-[auto_auto] gap-8 [grid-template-areas:'a_a_b_b_b'_'d_d_c_c_c'] [&_h2]:text-[rgb(90,112,6)] [&_h3]:text-[rgb(90,112,6)] [&_h1]:box-border [&_h1]:text-[rgb(90,112,6)] [&_h1]:font-[Helvetica_Neue,Helvetica,Roboto,Arial,sans-serif] [&_h1]:text-4xl [&_h1]:font-normal [&_dt]:font-bold [&_dt]:col-start-1 [&_dd]:m-0 [&_button]:inline-flex [&_button]:bg-[rgb(86,80,23)] [&_button]:text-white [&_button]:p-3 [&_button]:cursor-pointer [&_button]:uppercase">
-          {/* TOOD Make artwork smaller */}
-          <div className="[grid-area:a]">
+        <article className={soundArticle}>
+          {/* TODO Make artwork smaller */}
+          <div className={artworkArea}>
             <img
               src="/thumbnails/placeholder.jpeg"
               // src={sound.thumbnailSrc}
@@ -37,21 +51,21 @@ export const SoundPage = ({ sound }: Props) => {
               alt="artwork"
             />
           </div>
-          <div className="[grid-area:b]">
+          <div className={descriptionArea}>
             {pipe(
               sound.description,
               RA.map((x) => <p key={x}>{x}</p>),
             )}
           </div>
-          <div className="[grid-area:c] border border-gray-600 p-4">
-            <h3>Recording technical sheet</h3>
-            <dl className="list-none m-0 mb-4 p-0 grid gap-3 grid-flow-row auto-rows-fr grid-cols-2 [&>div]:flex [&>div>:first-child]:mr-4 [&>div>:first-child]:basis-[25%] [&>div>:last-child]:mr-4 [&>div>:last-child]:basis-[70%]">
+          <div className={technicalSheetArea}>
+            <h3 className={soundHeading3}>Recording technical sheet</h3>
+            <dl className={technicalList}>
               {pipe(
                 "dateTime" in sound ? (
                   <>
-                    <div>
-                      <dt>Date:</dt>
-                      <dd>
+                    <div className={technicalListItem}>
+                      <dt className={technicalTerm}>Date:</dt>
+                      <dd className={technicalDefinition}>
                         {pipe(
                           sound.dateTime,
                           O.fold(constNA, (d) => d.toFormat("dd MMMM yyyy")),
@@ -59,9 +73,9 @@ export const SoundPage = ({ sound }: Props) => {
                       </dd>
                     </div>
 
-                    <div>
-                      <dt>Time:</dt>
-                      <dd>
+                    <div className={technicalListItem}>
+                      <dt className={technicalTerm}>Time:</dt>
+                      <dd className={technicalDefinition}>
                         {pipe(
                           sound.dateTime,
                           O.fold(constNA, (d) => d.toFormat("HH:mm")),
@@ -70,21 +84,26 @@ export const SoundPage = ({ sound }: Props) => {
                     </div>
                   </>
                 ) : (
-                  <div>
-                    <dt>Interval:</dt>
-                    <dd>
+                  <div className={technicalListItem}>
+                    <dt className={technicalTerm}>Interval:</dt>
+                    <dd className={technicalDefinition}>
                       {pipe(sound.interval, O.fold(constNA, showInterval))}
                     </dd>
                   </div>
                 ),
               )}
-              <div>
-                <dt>Place:</dt>
-                <dd>{pipe(sound.location, O.getOrElse(constNA))}</dd>
+              <div className={technicalListItem}>
+                <dt className={technicalTerm}>Place:</dt>
+                <dd className={technicalDefinition}>
+                  {pipe(sound.location, O.getOrElse(constNA))}
+                </dd>
               </div>
-              <div title={`${sound.coordinates.lat},${sound.coordinates.lng}`}>
-                <dt>Map Location:</dt>
-                <dd>
+              <div
+                className={technicalListItem}
+                title={`${sound.coordinates.lat},${sound.coordinates.lng}`}
+              >
+                <dt className={technicalTerm}>Map Location:</dt>
+                <dd className={technicalDefinition}>
                   {pipe(
                     `${sound.coordinates.lat.toFixed(3)}, ${sound.coordinates.lng.toFixed(3)}`,
                     (message) =>
@@ -104,31 +123,31 @@ export const SoundPage = ({ sound }: Props) => {
                   )}
                 </dd>
               </div>
-              <div>
-                <dt>Access:</dt>
-                <dd>{pipe(sound.access, O.getOrElse(constNA))}</dd>
+              <div className={technicalListItem}>
+                <dt className={technicalTerm}>Access:</dt>
+                <dd className={technicalDefinition}>
+                  {pipe(sound.access, O.getOrElse(constNA))}
+                </dd>
               </div>
-              <div>
-                <dt>Piece duration:</dt>
-                <dd>{sound.duration.toFormat("h:mm:ss")}</dd>
+              <div className={technicalListItem}>
+                <dt className={technicalTerm}>Piece duration:</dt>
+                <dd className={technicalDefinition}>
+                  {sound.duration.toFormat("h:mm:ss")}
+                </dd>
               </div>
-              <div>
-                <dt>Weather:</dt>
-                <dd>PLACEHOLDER</dd>
+              <div className={technicalListItem}>
+                <dt className={technicalTerm}>Weather:</dt>
+                <dd className={technicalDefinition}>PLACEHOLDER</dd>
               </div>
             </dl>
           </div>
-          <div className="[grid-area:d]">
+          <div className={videoArea}>
             {/* 426x240 */}
             <iframe
               title={sound.title}
               width="320"
               height="240"
-              style={{
-                width: "100%",
-                border: "none",
-                boxSizing: "border-box",
-              }}
+              className={videoIframe}
               src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
             />
           </div>

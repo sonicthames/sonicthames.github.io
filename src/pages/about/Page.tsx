@@ -1,15 +1,21 @@
 import { useNavigate } from "react-router-dom"
 import { TrackedCta } from "@/components/TrackedCta"
 import { Link } from "@/components/ui"
-import { useDeviceType } from "../../theme/media"
+import { ctaContainer, inlineLink } from "@/ui/components/about.css"
+import {
+  contentContainer,
+  pageMain,
+  pageMainVariants,
+  pageRoot,
+  textAction,
+} from "@/ui/components/page.css"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
-import { makeCommonStyles } from "../styles"
 
 /**
  */
 export const AboutPage = () => {
   const deviceType = useDeviceType()
-  const commonStyles = makeCommonStyles(deviceType)
   const navigate = useNavigate()
 
   const handleExploreClick = () => {
@@ -17,10 +23,15 @@ export const AboutPage = () => {
   }
 
   return (
-    <div className={commonStyles.page}>
+    <div className={pageRoot}>
       <PageHeader />
-      <main className={commonStyles.main} style={commonStyles.mainStyle}>
-        <div className="mt-12 gap-6 flex flex-col">
+      <main
+        className={`${pageMain} ${pageMainVariants[deviceType]}`}
+        style={
+          deviceType === "desktop" ? { maxWidth: maxPageWidth } : undefined
+        }
+      >
+        <div className={contentContainer}>
           <h1>About</h1>
           <p>
             Sonic Thames has been Inspired by exploring the river upstream at
@@ -68,13 +79,13 @@ export const AboutPage = () => {
           </p>
           <p>
             {"All work produced is being placed online at "}
-            <Link to="/" className="inline">
+            <Link to="/" className={inlineLink}>
               sonicthames.org.uk
             </Link>
             {" and our "}
             <a
               href="https://www.youtube.com/channel/UCqkDGMVIu4slWH1z90XIdyQ"
-              className="text-action hover:opacity-80"
+              className={textAction}
             >
               YouTube channel
             </a>
@@ -92,7 +103,7 @@ export const AboutPage = () => {
             purchase will be suggested. The use of the phone holder reduces the
             risk of injuries derived by cycling with one hand on the handlebar.
           </p>
-          <div className="pt-6">
+          <div className={ctaContainer}>
             <TrackedCta
               ctaId="about_explore_map"
               label="Explore the Sonic Thames map"

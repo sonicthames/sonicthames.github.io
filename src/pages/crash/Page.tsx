@@ -1,5 +1,10 @@
-import { useDeviceType } from "../../theme/media"
-import { makeCommonStyles } from "../styles"
+import {
+  errorContainer,
+  errorMessage,
+  errorTitle,
+} from "@/ui/components/error.css"
+import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
 
 interface Props {
   readonly error: Error
@@ -7,13 +12,17 @@ interface Props {
 
 export const CrashPage = ({ error }: Props) => {
   const deviceType = useDeviceType()
-  const commonStyles = makeCommonStyles(deviceType)
   return (
-    <div className={commonStyles.page}>
-      <main className={commonStyles.main} style={commonStyles.mainStyle}>
-        <div className="mt-12">
-          <h1 className="text-2xl font-bold">Opps! Something happened...</h1>
-          <div className="mt-4">{error.message}</div>
+    <div className={pageRoot}>
+      <main
+        className={`${pageMain} ${pageMainVariants[deviceType]}`}
+        style={
+          deviceType === "desktop" ? { maxWidth: maxPageWidth } : undefined
+        }
+      >
+        <div className={errorContainer}>
+          <h1 className={errorTitle}>Opps! Something happened...</h1>
+          <div className={errorMessage}>{error.message}</div>
         </div>
       </main>
     </div>

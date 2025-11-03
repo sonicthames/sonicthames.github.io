@@ -1,3 +1,9 @@
+import {
+  drawer,
+  drawerBackdrop,
+  drawerPanel,
+  sidePanel,
+} from "@ui/components/map.css"
 import * as E from "fp-ts/Either"
 import { identity, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
@@ -12,7 +18,12 @@ import {
   useLocation,
   useParams,
 } from "react-router-dom"
-import { cn } from "@/lib/utils"
+import {
+  appContainer,
+  appHeaderLayer,
+  appMapLayer,
+  pageRoot,
+} from "@/ui/components/page.css"
 import { D_Data } from "./data.io"
 import rawData from "./data.json"
 import type { Sound } from "./domain/base"
@@ -26,8 +37,6 @@ import { MainMap } from "./pages/main/Map"
 import { NotFoundPage } from "./pages/not-found/Page"
 import { SoundPage } from "./pages/sound/Page"
 import { SoundsPage } from "./pages/sounds/Page"
-import { makeCommonStyles } from "./pages/styles"
-import { useDeviceType } from "./theme/media"
 
 const shouldShowDrawer = (pathname: string) => {
   return !matchPath({ path: appRoute("main").path, end: true }, pathname)
@@ -48,18 +57,14 @@ export const App = () => {
 const AppContent = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
   const location = useLocation()
   const showDrawer = shouldShowDrawer(location.pathname)
-  const deviceType = useDeviceType()
-  const commonStyles = makeCommonStyles(deviceType)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0)
   }, [location.pathname])
 
-  const pageClass = commonStyles.page
-
   const wrapWithPage = (node: ReactElement) => (
-    <div className={pageClass}>{node}</div>
+    <div className={pageRoot}>{node}</div>
   )
 
   const renderRoutes = (wrapper: (node: ReactElement) => ReactElement) => (
@@ -117,32 +122,21 @@ const AppContent = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
 
   return (
     <ErrorBoundary fallback={(error) => <CrashPage error={error} />}>
-      <div className="relative h-screen w-screen overflow-hidden">
-        <div className="absolute inset-0">
+      <div className={appContainer}>
+        <div className={appMapLayer}>
           <MainMap sounds={sounds} />
         </div>
-        <div className="absolute inset-x-0 top-0 z-[600]">
+        <div className={appHeaderLayer}>
           <Header />
         </div>
-        <div
-          className={cn(
-            "absolute z-[700] flex transition-transform duration-200 ease-out",
-            showDrawer
-              ? "pointer-events-auto inset-0 justify-center px-4 py-6 sm:px-8"
-              : "pointer-events-none inset-y-0 right-0 translate-x-full",
-          )}
-        >
+        <div className={drawer({ open: showDrawer })}>
           {showDrawer ? (
             <>
-              <div className="pointer-events-none absolute inset-0 bg-primary-dark/45 backdrop-blur-md" />
-              <div className="pointer-events-auto relative z-10 flex h-full w-full max-w-full flex-col overflow-hidden rounded-xl border border-border bg-primary-light/98 shadow-[0_12px_48px_rgba(0,0,0,0.35)]">
-                {renderRoutes(wrapWithPage)}
-              </div>
+              <div className={drawerBackdrop} />
+              <div className={drawerPanel}>{renderRoutes(wrapWithPage)}</div>
             </>
           ) : (
-            <div className="pointer-events-auto flex h-full w-full max-w-full flex-col border-l border-border bg-primary-light/96 backdrop-blur-md shadow-[0_0_32px_rgba(0,0,0,0.25)] md:w-[440px] lg:w-[500px]">
-              {renderRoutes(wrapWithPage)}
-            </div>
+            <div className={sidePanel}>{renderRoutes(wrapWithPage)}</div>
           )}
         </div>
       </div>
