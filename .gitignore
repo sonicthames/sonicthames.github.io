@@ -128,3 +128,6 @@ dist
 
 # Playwright MCP
 .playwright-mcp/
+
+# Local development data
+/local
