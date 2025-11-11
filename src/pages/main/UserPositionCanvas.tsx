@@ -105,12 +105,12 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
           const color = (r << 16) | (g << 8) | b
 
           // Draw outer glow
-          dot.circle(point.x, point.y, 10)
-          dot.fill({ color, alpha: 0.3 })
+          dot.circle(point.x, point.y, 8)
+          dot.fill({ color, alpha: 0.5 })
 
           // Draw inner core
           dot.circle(point.x, point.y, 6)
-          dot.fill({ color, alpha: 0.9 })
+          dot.fill({ color, alpha: 1 })
         })
       } catch (err) {
         console.error("Failed to initialize Pixi application:", err)

@@ -54,8 +54,8 @@ const env = pipe(
 
 const MAPBOX_TOKEN = env.VITE_MAPBOX_TOKEN
 
-const LNG_BOUND_OFFSET = 0.13
-const LAT_BOUND_OFFSET = 0.08
+const LNG_BOUND_OFFSET = 0.3
+const LAT_BOUND_OFFSET = 0.2
 const center = new LngLat(-0.001, 51.501)
 
 const lngLatBounds = new mapboxgl.LngLatBounds(
@@ -81,6 +81,7 @@ const MAX_ZOOM = 16
 
 const headerIconSize = "2rem"
 
+/** @deprecated The old map sidebar/dialog is being retired in favor of a more minimal UI. */
 const Sidebar = ({
   expand$,
   filters$,
@@ -309,9 +310,7 @@ export const MainMap = ({ sounds }: Props) => {
     ),
   )
 
-  const [expand$] = useState(
-    () => new BehaviorSubject<boolean>(O.isSome(soundO)),
-  )
+  const [expand$] = useState(() => new BehaviorSubject<boolean>(false))
 
   // Auto-close playlist when navigating to a different page
   useEffect(() => {
@@ -328,10 +327,9 @@ export const MainMap = ({ sounds }: Props) => {
         RA.findFirst((x) => x.title === sound),
         setSoundO,
       )
-      expand$.next(true)
     })
     return () => subscription.unsubscribe()
-  }, [expand$, play$, sounds])
+  }, [play$, sounds])
 
   const [filters$] = useState(
     () => new BehaviorSubject<readonly Category[]>(["Feel", "Listen", "See"]),

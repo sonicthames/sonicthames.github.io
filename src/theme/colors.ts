@@ -19,20 +19,21 @@ export const brandColors = {
   },
   neutral: {
     white: "#FFF",
-    black: "#000",
+    // black: "#000",
+    black: "#100A14",
     main: "#21283B",
     s25: "#595D6A",
     s75: "#C7C9CD",
     s95: "#F3F4F4",
   },
   icons: {
-    listen: "#7BE495", // Pastel vibrant green
-    see: "#67C3F3", // Pastel vibrant blue
-    feel: "#FF6B9D", // Pastel vibrant pink
+    listen: "#00C853",
+    see: "#FFD600",
+    feel: "#FF2965",
   },
   map: {
-    water: [124, 187, 192],
-    land: [72, 60, 51],
+    water: [0x28, 0xf0, 0xff],
+    land: [0x00, 0x00, 0x00],
   },
 } as const
 

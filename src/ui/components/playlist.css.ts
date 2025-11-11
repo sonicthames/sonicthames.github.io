@@ -1,4 +1,4 @@
-import { body } from "@theme/recipes/text.css"
+import { text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 import { recipe } from "@vanilla-extract/recipes"
@@ -34,7 +34,7 @@ export const playlistItem = recipe({
 })
 
 export const playlistName = style([
-  body.default,
+  text.body,
   {
     flex: "1 1 auto",
   },

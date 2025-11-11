@@ -1,47 +1,32 @@
 import { tokens } from "@theme/tokens.css"
 import { style, styleVariants } from "@vanilla-extract/css"
 
-export const baseText = style({
+const baseText = style({
   color: tokens.color.text,
   margin: 0,
   fontFamily: tokens.font.family,
 })
 
+const baseHeading = style([
+  baseText,
+  {
+    fontWeight: tokens.font.weight.semibold,
+    lineHeight: tokens.font.lineHeight.tight,
+  },
+])
+
 export const heading = styleVariants({
-  h1: [
-    baseText,
-    {
-      fontSize: tokens.font.size["2xl"],
-      fontWeight: tokens.font.weight.bold,
-      lineHeight: tokens.font.lineHeight.tight,
-      letterSpacing: "-0.015em",
-    },
-  ],
-  h2: [
-    baseText,
-    {
-      fontSize: tokens.font.size.xl,
-      fontWeight: tokens.font.weight.semibold,
-      lineHeight: tokens.font.lineHeight.tight,
-      letterSpacing: "-0.01em",
-    },
-  ],
-  h3: [
-    baseText,
-    {
-      fontSize: tokens.font.size.lg,
-      fontWeight: tokens.font.weight.semibold,
-      lineHeight: tokens.font.lineHeight.normal,
-    },
-  ],
+  h1: [baseHeading, { fontSize: tokens.font.size["2xl"] }],
+  h2: [baseHeading, { fontSize: tokens.font.size.xl }],
+  h3: [baseHeading, { fontSize: tokens.font.size.lg }],
 })
 
-export const body = styleVariants({
-  default: [
+export const text = styleVariants({
+  body: [
     baseText,
     {
       fontSize: tokens.font.size.md,
-      lineHeight: tokens.font.lineHeight.relaxed,
+      lineHeight: tokens.font.lineHeight.normal,
     },
   ],
   muted: [

@@ -1,14 +1,8 @@
 import { tokens } from "@theme/tokens.css"
 import { style, styleVariants } from "@vanilla-extract/css"
 
-/**
- * Contact page form styles
- */
-
 export const contactLayout = style({
-  display: "flex",
   marginTop: tokens.space["2xl"],
-  gap: tokens.space.lg,
 })
 
 export const contactLayoutVariants = styleVariants({
@@ -23,19 +17,12 @@ export const contactLayoutVariants = styleVariants({
   },
 })
 
-// Apply to direct children of contactLayout when in desktop mode
 export const contactLayoutItem = style({
   selectors: {
     [`${contactLayout}.${contactLayoutVariants.desktop} > &`]: {
       flex: "1 1 50%",
     },
   },
-})
-
-export const formTitle = style({
-  fontSize: tokens.font.size["2xl"],
-  fontWeight: tokens.font.weight.bold,
-  marginBottom: tokens.space.lg,
 })
 
 export const form = style({
@@ -49,18 +36,18 @@ export const formLabel = style({
   fontSize: tokens.font.size.sm,
   fontWeight: tokens.font.weight.medium,
   marginBottom: tokens.space.xs,
+  color: tokens.color.text,
 })
 
 export const formInput = style({
   width: "100%",
-  paddingLeft: tokens.space.md,
-  paddingRight: tokens.space.md,
-  paddingTop: tokens.space.sm,
-  paddingBottom: tokens.space.sm,
+  padding: tokens.space.md,
   border: `1px solid ${tokens.color.border}`,
   borderRadius: tokens.radius.md,
   background: tokens.color.bg,
-  color: tokens.color.fg,
+  color: tokens.color.text,
+  fontSize: tokens.font.size.md,
+  fontFamily: tokens.font.family,
   transition: `box-shadow ${tokens.motion.fast}`,
   selectors: {
     "&:focus": {

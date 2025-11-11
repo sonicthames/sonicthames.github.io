@@ -1,4 +1,6 @@
+import { text } from "@theme/recipes/text.css"
 import { useId } from "react"
+import { H1 } from "@/components/Typography"
 import { Button } from "@/components/ui"
 import {
   contactLayout,
@@ -6,7 +8,6 @@ import {
   form,
   formInput,
   formLabel,
-  formTitle,
 } from "@/ui/components/contact.css"
 import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
@@ -28,12 +29,12 @@ export const ContactPage = () => {
           className={`${contactLayout} ${contactLayoutVariants[deviceType]}`}
         >
           <div>
-            <h1 className={formTitle}>Send us a message</h1>
-            <div>
+            <H1>Send us a message</H1>
+            <p className={text.body}>
               Get in touch with us by sending us a message here. Let us know
               your opinion about the Sonic Thames Project. We value your
               feedback, input, suggestions and of course you positive feedback.
-            </div>
+            </p>
           </div>
           <form
             className={form}

@@ -1,5 +1,5 @@
 import { buttonRecipe } from "@theme/recipes/button.css"
-import { body, heading } from "@theme/recipes/text.css"
+import { heading, text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 
@@ -53,7 +53,7 @@ export const bodyContainer = style({
 export const title = style([heading.h3])
 
 export const description = style([
-  body.muted,
+  text.muted,
   {
     display: "flex",
     flexDirection: "column",
@@ -62,7 +62,7 @@ export const description = style([
 ])
 
 export const meta = style([
-  body.small,
+  text.small,
   {
     display: "flex",
     flexDirection: "column",

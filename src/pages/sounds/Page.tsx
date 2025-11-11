@@ -1,4 +1,4 @@
-import { body, heading } from "@theme/recipes/text.css"
+import { heading, text } from "@theme/recipes/text.css"
 import {
   card,
   cardBody,
@@ -40,7 +40,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
         }
       >
         <h1 className={heading.h1}>{category}</h1>
-        <p className={body.muted}>
+        <p className={text.muted}>
           <em>{R_CategoryFlavor[category]}</em>
         </p>
         <div>

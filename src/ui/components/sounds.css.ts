@@ -1,4 +1,4 @@
-import { body, heading } from "@theme/recipes/text.css"
+import { heading, text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 
@@ -58,7 +58,7 @@ export const cardTitle = style([
 ])
 
 export const cardDescription = style([
-  body.default,
+  text.body,
   {
     fontStyle: "italic",
     color: tokens.color.primary,

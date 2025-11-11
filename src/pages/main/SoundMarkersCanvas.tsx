@@ -1,6 +1,7 @@
 import { Application, Graphics } from "pixi.js"
 import { useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import { brandColors } from "@/theme/colors"
 import type { Category, Sound } from "../../domain/base"
 
 interface Props {
@@ -23,10 +24,12 @@ interface Ripple {
 }
 
 const CATEGORY_COLORS = {
-  Listen: 0x7be495, // Pastel vibrant green
-  See: 0x67c3f3, // Pastel vibrant blue
-  Feel: 0xff6b9d, // Pastel vibrant pink
+  Listen: brandColors.icons.listen,
+  See: brandColors.icons.see,
+  Feel: brandColors.icons.feel,
 } as const
+
+const BASE_SOUND_RADIUS = 8
 
 /**
  * Sound markers rendered on a Pixi.js canvas overlay with ripple effects.
@@ -179,7 +182,7 @@ export const SoundMarkersCanvas = ({
               }
 
               const progress = ripple.age / ripple.maxAge
-              const radius = 12 + progress * 24
+              const radius = 12 + progress * 18
               const alpha = Math.max(0, 1 - progress) * 0.6
 
               ripple.graphics.circle(point.x, point.y, radius)
@@ -192,7 +195,7 @@ export const SoundMarkersCanvas = ({
 
             // Draw center dot
             marker.dot.clear()
-            marker.dot.circle(point.x, point.y, 10)
+            marker.dot.circle(point.x, point.y, BASE_SOUND_RADIUS)
             marker.dot.fill({ color, alpha: 0.9 })
           }
         })

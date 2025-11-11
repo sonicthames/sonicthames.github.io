@@ -29,6 +29,7 @@ export const pageMainVariants = styleVariants({
   mobile: mobilePadding,
   portrait: mobilePadding,
   desktop: {
+    ...mobilePadding,
     marginLeft: "auto",
     marginRight: "auto",
     width: "100%",
@@ -39,7 +40,6 @@ export const pageMainVariants = styleVariants({
  * Common content container styles
  */
 export const contentContainer = style({
-  marginTop: tokens.space["2xl"],
   display: "flex",
   flexDirection: "column",
   gap: tokens.space.lg,
