@@ -26,9 +26,9 @@ export const brandColors = {
     s95: "#F3F4F4",
   },
   icons: {
-    listen: "#006837",
-    see: "#296bd2",
-    feel: "#d7331e",
+    listen: "#7BE495", // Pastel vibrant green
+    see: "#67C3F3", // Pastel vibrant blue
+    feel: "#FF6B9D", // Pastel vibrant pink
   },
   map: {
     water: [124, 187, 192],

@@ -6,6 +6,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@pixi/react": "^8.0.3",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@radix-ui/react-slot": "^1.2.3",
@@ -24,6 +25,7 @@
     "io-ts": "^2.2.22",
     "luxon": "^3.7.2",
     "mapbox-gl": "3.16.0",
+    "pixi.js": "^8.14.1",
     "posthog-js": "^1.283.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

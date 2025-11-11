@@ -10,9 +10,6 @@ import {
   filtersGroup,
   hoverFloating,
   logoPosition,
-  markerBadge,
-  markerButton,
-  markerWrapper,
   selectedSound,
   closeButton as sidebarCloseButton,
   sidebarHeader,
@@ -23,7 +20,7 @@ import {
 } from "@ui/components/map.css"
 import { useEffect, useRef, useState } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
-import { Map as MapboxMap, Marker } from "react-map-gl/mapbox"
+import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { useLocation } from "react-router-dom"
 import { BehaviorSubject, Subject } from "rxjs"
 import { H2, H3 } from "../../components/Typography"
@@ -32,11 +29,11 @@ import { showDateTime, showInterval } from "../../domain/base"
 import { Icon } from "../../icon"
 import type { GoTo } from "../../lib/map"
 import { lazyUnsubscribe } from "../../lib/rxjs"
-import { foldSumType } from "../../lib/typescript/foldSumType"
-import { soundId } from "../../pages/location"
 import { brandColors, colorToCssHex } from "../../theme/colors"
 import { Hover } from "./Hover"
 import { Playlist } from "./Playlist"
+import { SoundMarkersCanvas } from "./SoundMarkersCanvas"
+import { UserPositionCanvas } from "./UserPositionCanvas"
 
 const EnvDecoder = D.struct({
   VITE_MAPBOX_TOKEN: pipe(
@@ -82,7 +79,6 @@ const initialViewState = {
 const MIN_ZOOM = 10
 const MAX_ZOOM = 16
 
-const markerIconSize = "1.25rem"
 const headerIconSize = "2rem"
 
 const Sidebar = ({
@@ -261,6 +257,14 @@ interface Props {
 export const MainMap = ({ sounds }: Props) => {
   const location = useLocation()
   const mapRef = useRef<MapRef | null>(null)
+
+  // Parse user position from query params (?lat=51.5&lng=-0.1) or use map center
+  const searchParams = new URLSearchParams(location.search)
+  const userPosition = {
+    lat: Number.parseFloat(searchParams.get("lat") || "") || center.lat,
+    lng: Number.parseFloat(searchParams.get("lng") || "") || center.lng,
+  }
+
   const [goTo$] = useState(() => new Subject<GoTo>())
   useEffect(
     () =>
@@ -398,76 +402,14 @@ export const MainMap = ({ sounds }: Props) => {
       <div className={logoPosition}>
         <img src="/logo-05.svg" alt="logo" />
       </div>
-      {pipe(
-        sounds,
-        RA.mapWithIndex((_k, s) => {
-          const sId = soundId(s)
-          return (
-            filters.includes(s.category) && (
-              <Marker
-                key={sId}
-                latitude={s.coordinates.lat}
-                longitude={s.coordinates.lng}
-                className={markerWrapper}
-              >
-                <button
-                  type="button"
-                  className={markerButton}
-                  onClick={() => {
-                    setHoverSoundO(O.some(s))
-                    // TODO: trigger navigation to `/sound/${sId}`
-                  }}
-                >
-                  {/* <img
-              alt={`${s.title} thumbnail`}
-              width={30}
-              height={30}
-            /> */}
-                  {/* <div className={styles.markerNote}>{s.marker}</div> */}
-                  {foldSumType({
-                    renderListen: () => (
-                      <div
-                        className={markerBadge}
-                        style={{ backgroundColor: brandColors.icons.listen }}
-                      >
-                        <Icon
-                          name="Listen"
-                          width={markerIconSize}
-                          height={markerIconSize}
-                        />
-                      </div>
-                    ),
-                    renderSee: () => (
-                      <div
-                        className={markerBadge}
-                        style={{ backgroundColor: brandColors.icons.see }}
-                      >
-                        <Icon
-                          name="See"
-                          width={markerIconSize}
-                          height={markerIconSize}
-                        />
-                      </div>
-                    ),
-                    renderFeel: () => (
-                      <div
-                        className={markerBadge}
-                        style={{ backgroundColor: brandColors.icons.feel }}
-                      >
-                        <Icon
-                          name="Feel"
-                          width={markerIconSize}
-                          height={markerIconSize}
-                        />
-                      </div>
-                    ),
-                  })(`render${s.category}`)}
-                </button>
-              </Marker>
-            )
-          )
-        }),
-      )}
+      <SoundMarkersCanvas
+        mapRef={mapRef}
+        sounds={sounds}
+        filters={filters}
+        onSoundClick={(sound) => {
+          setHoverSoundO(O.some(sound))
+        }}
+      />
       {pipe(
         hoverSoundO,
         O.fold(constNull, (sound) => (
@@ -479,6 +421,11 @@ export const MainMap = ({ sounds }: Props) => {
           />
         )),
       )}
+      <UserPositionCanvas
+        mapRef={mapRef}
+        latitude={userPosition.lat}
+        longitude={userPosition.lng}
+      />
       <Sidebar
         expand$={expand$}
         goTo$={goTo$}
