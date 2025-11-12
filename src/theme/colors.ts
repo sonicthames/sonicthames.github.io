@@ -20,7 +20,7 @@ export const brandColors = {
   neutral: {
     white: "#FFF",
     // black: "#000",
-    black: "#100A14",
+    black: "#141018",
     main: "#21283B",
     s25: "#595D6A",
     s75: "#C7C9CD",

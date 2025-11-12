@@ -56,12 +56,14 @@ export const SoundMarkersCanvas = ({
       try {
         // Create Pixi application
         app = new Application()
+        const mapContainer = map.getContainer()
         await app.init({
           backgroundAlpha: 0,
           antialias: true,
-          resolution: window.devicePixelRatio || 1,
-          width: map.getCanvas().width,
-          height: map.getCanvas().height,
+          resolution: 1,
+          autoDensity: false,
+          width: mapContainer.clientWidth,
+          height: mapContainer.clientHeight,
         })
 
         if (!mounted || !app.canvas) {
@@ -142,12 +144,14 @@ export const SoundMarkersCanvas = ({
           if (!map || !mounted || !app) return
 
           // Update canvas size if map resized
-          const mapCanvas = map.getCanvas()
+          const mapContainer = map.getContainer()
+          const cssWidth = mapContainer.clientWidth
+          const cssHeight = mapContainer.clientHeight
           if (
-            app.canvas.width !== mapCanvas.width ||
-            app.canvas.height !== mapCanvas.height
+            app.screen.width !== cssWidth ||
+            app.screen.height !== cssHeight
           ) {
-            app.renderer.resize(mapCanvas.width, mapCanvas.height)
+            app.renderer.resize(cssWidth, cssHeight)
           }
 
           // Update each marker

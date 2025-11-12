@@ -8,6 +8,8 @@ interface Props {
   readonly longitude: number
 }
 
+const AVATAR_RADIUS = 8
+
 /**
  * User position indicator rendered on a Pixi.js canvas overlay.
  * Shows a pulsating brightness effect.
@@ -29,12 +31,14 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
       try {
         // Create Pixi application
         app = new Application()
+        const mapContainer = map.getContainer()
         await app.init({
           backgroundAlpha: 0,
           antialias: true,
-          resolution: window.devicePixelRatio || 1,
-          width: map.getCanvas().width,
-          height: map.getCanvas().height,
+          resolution: 1,
+          autoDensity: false,
+          width: mapContainer.clientWidth,
+          height: mapContainer.clientHeight,
         })
 
         if (!mounted || !app.canvas) {
@@ -62,12 +66,14 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
           if (!map || !mounted || !app) return
 
           // Update canvas size if map resized
-          const mapCanvas = map.getCanvas()
+          const mapContainer = map.getContainer()
+          const cssWidth = mapContainer.clientWidth
+          const cssHeight = mapContainer.clientHeight
           if (
-            app.canvas.width !== mapCanvas.width ||
-            app.canvas.height !== mapCanvas.height
+            app.screen.width !== cssWidth ||
+            app.screen.height !== cssHeight
           ) {
-            app.renderer.resize(mapCanvas.width, mapCanvas.height)
+            app.renderer.resize(cssWidth, cssHeight)
           }
 
           // Get pixel coordinates for user position
@@ -105,11 +111,11 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
           const color = (r << 16) | (g << 8) | b
 
           // Draw outer glow
-          dot.circle(point.x, point.y, 8)
+          dot.circle(point.x, point.y, AVATAR_RADIUS + 2)
           dot.fill({ color, alpha: 0.5 })
 
           // Draw inner core
-          dot.circle(point.x, point.y, 6)
+          dot.circle(point.x, point.y, AVATAR_RADIUS)
           dot.fill({ color, alpha: 1 })
         })
       } catch (err) {

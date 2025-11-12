@@ -200,6 +200,7 @@ export const logoPosition = style({
   inset: "auto -40px -85px auto",
   width: "20rem",
   pointerEvents: "none",
+  zIndex: tokens.z.overlay,
 })
 
 export const mapFogOverlay = style({

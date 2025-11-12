@@ -31,6 +31,8 @@ import type { GoTo } from "../../lib/map"
 import { lazyUnsubscribe } from "../../lib/rxjs"
 import { brandColors, colorToCssHex } from "../../theme/colors"
 import { Hover } from "./Hover"
+import type { MapFogOverlayHandle } from "./MapFogOverlay"
+import { MapFogOverlay } from "./MapFogOverlay"
 import { Playlist } from "./Playlist"
 import { SoundMarkersCanvas } from "./SoundMarkersCanvas"
 import { UserPositionCanvas } from "./UserPositionCanvas"
@@ -54,8 +56,8 @@ const env = pipe(
 
 const MAPBOX_TOKEN = env.VITE_MAPBOX_TOKEN
 
-const LNG_BOUND_OFFSET = 0.3
-const LAT_BOUND_OFFSET = 0.2
+const LNG_BOUND_OFFSET = 0.325
+const LAT_BOUND_OFFSET = 0.125
 const center = new LngLat(-0.001, 51.501)
 
 const lngLatBounds = new mapboxgl.LngLatBounds(
@@ -72,12 +74,12 @@ const lngLatBounds = new mapboxgl.LngLatBounds(
 const initialViewState = {
   latitude: center.lat,
   longitude: center.lng,
-  zoom: 11,
+  zoom: 13,
   bearing: 0,
   pitch: 0,
 } as const
 const MIN_ZOOM = 10
-const MAX_ZOOM = 16
+const MAX_ZOOM = 18
 
 const headerIconSize = "2rem"
 
@@ -258,6 +260,7 @@ interface Props {
 export const MainMap = ({ sounds }: Props) => {
   const location = useLocation()
   const mapRef = useRef<MapRef | null>(null)
+  const fogOverlayRef = useRef<MapFogOverlayHandle | null>(null)
 
   // Parse user position from query params (?lat=51.5&lng=-0.1) or use map center
   const searchParams = new URLSearchParams(location.search)
@@ -424,6 +427,37 @@ export const MainMap = ({ sounds }: Props) => {
         latitude={userPosition.lat}
         longitude={userPosition.lng}
       />
+      <MapFogOverlay
+        ref={fogOverlayRef}
+        mapRef={mapRef}
+        intensity={1.0}
+        enabled
+        userPosition={userPosition}
+        sounds={sounds}
+        filters={filters}
+      />
+      {import.meta.env.DEV && (
+        <button
+          type="button"
+          onClick={() => fogOverlayRef.current?.restoreFog()}
+          style={{
+            position: "absolute",
+            bottom: "20px",
+            left: "20px",
+            padding: "8px 16px",
+            backgroundColor: "rgba(0, 0, 0, 0.7)",
+            color: "white",
+            border: "1px solid rgba(255, 255, 255, 0.3)",
+            borderRadius: "4px",
+            cursor: "pointer",
+            fontSize: "14px",
+            fontFamily: "monospace",
+            zIndex: 1000,
+          }}
+        >
+          Restore Fog
+        </button>
+      )}
       <Sidebar
         expand$={expand$}
         goTo$={goTo$}
