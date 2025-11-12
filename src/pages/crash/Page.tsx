@@ -1,10 +1,6 @@
-import {
-  errorContainer,
-  errorMessage,
-  errorTitle,
-} from "@/ui/components/error.css"
-import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
+import { errorContainer, errorMessage, errorTitle } from "../common/error.css"
+import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
 
 interface Props {
   readonly error: Error

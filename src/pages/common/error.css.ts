@@ -1,9 +1,8 @@
+/**
+ * Shared error page styles (NotFound, Crash)
+ */
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
-
-/**
- * Error page styles (NotFound, Crash)
- */
 
 export const errorContainer = style({
   marginTop: tokens.space["2xl"],

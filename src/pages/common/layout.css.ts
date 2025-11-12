@@ -1,10 +1,9 @@
-import { tokens } from "@theme/tokens.css"
-import { style, styleVariants } from "@vanilla-extract/css"
-
 /**
- * Base page layout styles
+ * Shared page and app layout styles
  * Replaces Tailwind classes from pages/styles.ts
  */
+import { tokens } from "@theme/tokens.css"
+import { style, styleVariants } from "@vanilla-extract/css"
 
 export const pageRoot = style({
   display: "flex",

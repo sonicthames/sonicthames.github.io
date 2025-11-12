@@ -23,7 +23,7 @@ import {
   appHeaderLayer,
   appMapLayer,
   pageRoot,
-} from "@/ui/components/page.css"
+} from "@/pages/common/layout.css"
 import { D_Data } from "./data.io"
 import rawData from "./data.json"
 import type { Sound } from "./domain/base"

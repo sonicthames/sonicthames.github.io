@@ -1,3 +1,6 @@
+/**
+ * Sounds page styles - co-located with Page.tsx
+ */
 import { heading, text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"

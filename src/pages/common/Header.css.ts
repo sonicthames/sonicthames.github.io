@@ -1,3 +1,6 @@
+/**
+ * Header component styles - co-located with Header.tsx
+ */
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 

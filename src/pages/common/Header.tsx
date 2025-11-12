@@ -1,4 +1,6 @@
 import { Link } from "@/components/ui"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
+import { appRoute } from "../location"
 import {
   brand,
   headerInner,
@@ -6,9 +8,7 @@ import {
   nav,
   navLink,
   pageHeader,
-} from "@/ui/primitives/header.css"
-import { maxPageWidth, useDeviceType } from "../../theme/media"
-import { appRoute } from "../location"
+} from "./Header.css"
 
 export const Header = () => {
   const deviceType = useDeviceType()

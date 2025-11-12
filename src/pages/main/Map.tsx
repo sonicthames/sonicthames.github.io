@@ -5,19 +5,6 @@ import * as RA from "fp-ts/ReadonlyArray"
 import * as D from "io-ts/Decoder"
 import mapboxgl, { LngLat } from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
-import {
-  filterButton,
-  filtersGroup,
-  hoverFloating,
-  logoPosition,
-  selectedSound,
-  closeButton as sidebarCloseButton,
-  sidebarHeader,
-  sidebar as sidebarStyle,
-  srOnly,
-  videoFrame,
-  youtubeLink,
-} from "@ui/components/map.css"
 import { useEffect, useRef, useState } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
@@ -31,6 +18,20 @@ import type { GoTo } from "../../lib/map"
 import { lazyUnsubscribe } from "../../lib/rxjs"
 import { brandColors, colorToCssHex } from "../../theme/colors"
 import { Hover } from "./Hover"
+import {
+  filterButton,
+  filtersGroup,
+  hoverFloating,
+  logoPosition,
+  restoreFogButton,
+  selectedSound,
+  closeButton as sidebarCloseButton,
+  sidebarHeader,
+  sidebar as sidebarStyle,
+  srOnly,
+  videoFrame,
+  youtubeLink,
+} from "./Map.css"
 import type { MapFogOverlayHandle } from "./MapFogOverlay"
 import { MapFogOverlay } from "./MapFogOverlay"
 import { Playlist } from "./Playlist"
@@ -440,20 +441,7 @@ export const MainMap = ({ sounds }: Props) => {
         <button
           type="button"
           onClick={() => fogOverlayRef.current?.restoreFog()}
-          style={{
-            position: "absolute",
-            bottom: "20px",
-            left: "20px",
-            padding: "8px 16px",
-            backgroundColor: "rgba(0, 0, 0, 0.7)",
-            color: "white",
-            border: "1px solid rgba(255, 255, 255, 0.3)",
-            borderRadius: "4px",
-            cursor: "pointer",
-            fontSize: "14px",
-            fontFamily: "monospace",
-            zIndex: 1000,
-          }}
+          className={restoreFogButton}
         >
           Restore Fog
         </button>

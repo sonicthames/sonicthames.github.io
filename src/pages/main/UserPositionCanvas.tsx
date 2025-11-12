@@ -1,6 +1,7 @@
 import { Application, Graphics } from "pixi.js"
 import { useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
@@ -48,12 +49,8 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
 
         appRef.current = app
 
-        // Style canvas to overlay the map
-        app.canvas.style.position = "absolute"
-        app.canvas.style.top = "0"
-        app.canvas.style.left = "0"
-        app.canvas.style.pointerEvents = "none"
-        app.canvas.style.zIndex = "1"
+        // Apply CSS class to canvas for styling
+        app.canvas.className = pixiCanvas
 
         container.appendChild(app.canvas)
 
@@ -136,17 +133,5 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
     }
   }, [mapRef, latitude, longitude])
 
-  return (
-    <div
-      ref={containerRef}
-      style={{
-        position: "absolute",
-        top: 0,
-        left: 0,
-        width: "100%",
-        height: "100%",
-        pointerEvents: "none",
-      }}
-    />
-  )
+  return <div ref={containerRef} className={canvasContainer} />
 }

@@ -1,10 +1,9 @@
-import { tokens } from "@theme/tokens.css"
-import { style } from "@vanilla-extract/css"
-
 /**
- * Sound page (technical sheet) styles
+ * Sound page (technical sheet) styles - co-located with Page.tsx
  * Replaces complex Tailwind grid layout with vanilla-extract
  */
+import { tokens } from "@theme/tokens.css"
+import { style } from "@vanilla-extract/css"
 
 export const soundHeader = style({
   marginBottom: tokens.space.lg,

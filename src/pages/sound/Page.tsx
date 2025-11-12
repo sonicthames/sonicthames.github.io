@@ -1,7 +1,12 @@
 import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
-import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
+import type { Sound } from "../../domain/base"
+import { showInterval } from "../../domain/base"
+import { useDeviceType } from "../../theme/media"
+import { PageHeader } from "../common/Header"
+import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
+import { constNA } from "../common/message"
 import {
   artworkArea,
   descriptionArea,
@@ -16,12 +21,7 @@ import {
   technicalTerm,
   videoArea,
   videoIframe,
-} from "@/ui/components/sound-page.css"
-import type { Sound } from "../../domain/base"
-import { showInterval } from "../../domain/base"
-import { useDeviceType } from "../../theme/media"
-import { PageHeader } from "../common/Header"
-import { constNA } from "../common/message"
+} from "./Page.css"
 
 interface Props {
   readonly sound: Sound

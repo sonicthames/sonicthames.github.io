@@ -1,9 +1,3 @@
-import {
-  iconButton,
-  playlist,
-  playlistItem,
-  playlistName,
-} from "@ui/components/playlist.css"
 import * as d3 from "d3-ease"
 import { constFalse, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
@@ -12,6 +6,12 @@ import type { Subject } from "rxjs"
 import type { Sound } from "../../domain/base"
 import { Icon } from "../../icon"
 import type { Coordinate, GoTo } from "../../lib/map"
+import {
+  iconButton,
+  playlist,
+  playlistItem,
+  playlistName,
+} from "./Playlist.css"
 
 interface PlaylistItemProps {
   readonly name: string

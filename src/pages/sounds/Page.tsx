@@ -1,4 +1,14 @@
 import { heading, text } from "@theme/recipes/text.css"
+import { constNull, pipe } from "fp-ts/function"
+import * as O from "fp-ts/Option"
+import * as RA from "fp-ts/ReadonlyArray"
+import { Link } from "@/components/ui"
+import type { Category, Sound } from "../../domain/base"
+import { R_CategoryFlavor } from "../../domain/base"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
+import { PageHeader } from "../common/Header"
+import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
+import { soundId } from "../location"
 import {
   card,
   cardBody,
@@ -8,17 +18,7 @@ import {
   grid,
   iframe,
   media,
-} from "@ui/components/sounds.css"
-import { constNull, pipe } from "fp-ts/function"
-import * as O from "fp-ts/Option"
-import * as RA from "fp-ts/ReadonlyArray"
-import { Link } from "@/components/ui"
-import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
-import type { Category, Sound } from "../../domain/base"
-import { R_CategoryFlavor } from "../../domain/base"
-import { maxPageWidth, useDeviceType } from "../../theme/media"
-import { PageHeader } from "../common/Header"
-import { soundId } from "../location"
+} from "./Page.css"
 
 interface Props {
   readonly category: Category

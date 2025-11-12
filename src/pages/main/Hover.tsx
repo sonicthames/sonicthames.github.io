@@ -1,14 +1,3 @@
-import {
-  bodyContainer,
-  hoverCard,
-  closeButton as hoverCloseButton,
-  description as hoverDescription,
-  hoverHeader,
-  title as hoverTitle,
-  media,
-  meta as metaSection,
-  playButton,
-} from "@ui/components/hover.css"
 import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
@@ -20,6 +9,17 @@ import type { Sound } from "../../domain/base"
 import { showDateTime, showInterval } from "../../domain/base"
 import { Icon } from "../../icon"
 import { controlIconSize } from "../../theme/spacing"
+import {
+  bodyContainer,
+  hoverCard,
+  closeButton as hoverCloseButton,
+  description as hoverDescription,
+  hoverHeader,
+  title as hoverTitle,
+  media,
+  meta as metaSection,
+  playButton,
+} from "./Hover.css"
 
 interface Props {
   readonly sound: Sound

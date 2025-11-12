@@ -1,3 +1,6 @@
+/**
+ * Playlist component styles - co-located with Playlist.tsx
+ */
 import { text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"

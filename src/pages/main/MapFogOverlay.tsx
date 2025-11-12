@@ -8,6 +8,7 @@ import {
 } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "../../domain/base"
+import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -377,20 +378,29 @@ export const MapFogOverlay = forwardRef<
 
           // STEP 4: Draw all stored reveal circles (from past exploration)
           // Using geographic coordinates so they stay in place during pan/zoom
-          for (const reveal of revealsRef.current) {
-            // Project geographic coordinates to screen pixels
-            const screen = map.project([reveal.lng, reveal.lat])
+          const reveals = revealsRef.current
+          if (reveals.length > 0) {
+            // Pre-calculate zoom-dependent conversion factor (optimization)
+            const currentZoom = map.getZoom()
+            const zoomFactor = 2 ** currentZoom
 
-            // Calculate pixel radius from meters based on current zoom
-            const metersPerPixel =
-              (156543.03392 * Math.cos((reveal.lat * Math.PI) / 180)) /
-              2 ** map.getZoom()
-            const radiusPixels = Math.max(
-              20,
-              reveal.radiusMeters / metersPerPixel,
-            )
+            for (let i = 0; i < reveals.length; i++) {
+              const reveal = reveals[i]
+              // Project geographic coordinates to screen pixels
+              const screen = map.project([reveal.lng, reveal.lat])
 
-            drawRevealCircle(ctx, screen.x, screen.y, radiusPixels)
+              // Calculate pixel radius from meters based on current zoom
+              // Using pre-calculated zoom factor to avoid repeated exponentiation
+              const metersPerPixel =
+                (156543.03392 * Math.cos((reveal.lat * Math.PI) / 180)) /
+                zoomFactor
+              const radiusPixels = Math.max(
+                20,
+                reveal.radiusMeters / metersPerPixel,
+              )
+
+              drawRevealCircle(ctx, screen.x, screen.y, radiusPixels)
+            }
           }
 
           // Reset composite mode (markers are rendered separately by SoundMarkersCanvas)
@@ -429,16 +439,8 @@ export const MapFogOverlay = forwardRef<
     if (!enabled) return null
 
     return (
-      <div
-        ref={containerRef}
-        style={{
-          position: "absolute",
-          inset: 0,
-          pointerEvents: "none", // Allow clicks to pass through to map/markers
-          zIndex: 1, // Above map, below UI overlays
-        }}
-      >
-        <canvas ref={canvasRef} />
+      <div ref={containerRef} className={fogOverlayContainer}>
+        <canvas ref={canvasRef} className={fogCanvas} />
       </div>
     )
   },

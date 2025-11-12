@@ -1,16 +1,16 @@
 import { useNavigate } from "react-router-dom"
 import { TrackedCta } from "@/components/TrackedCta"
 import { Link } from "@/components/ui"
-import { ctaContainer, inlineLink } from "@/ui/components/about.css"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
+import { PageHeader } from "../common/Header"
 import {
   contentContainer,
   pageMain,
   pageMainVariants,
   pageRoot,
   textAction,
-} from "@/ui/components/page.css"
-import { maxPageWidth, useDeviceType } from "../../theme/media"
-import { PageHeader } from "../common/Header"
+} from "../common/layout.css"
+import { ctaContainer, inlineLink } from "./Page.css"
 
 /**
  */

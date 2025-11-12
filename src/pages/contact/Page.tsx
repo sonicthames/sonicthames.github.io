@@ -2,16 +2,16 @@ import { text } from "@theme/recipes/text.css"
 import { useId } from "react"
 import { H1 } from "@/components/Typography"
 import { Button } from "@/components/ui"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
+import { PageHeader } from "../common/Header"
+import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
 import {
   contactLayout,
   contactLayoutVariants,
   form,
   formInput,
   formLabel,
-} from "@/ui/components/contact.css"
-import { pageMain, pageMainVariants, pageRoot } from "@/ui/components/page.css"
-import { maxPageWidth, useDeviceType } from "../../theme/media"
-import { PageHeader } from "../common/Header"
+} from "./Page.css"
 
 export const ContactPage = () => {
   const deviceType = useDeviceType()

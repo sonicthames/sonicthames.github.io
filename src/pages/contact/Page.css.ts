@@ -1,3 +1,6 @@
+/**
+ * Contact page styles - co-located with Page.tsx
+ */
 import { tokens } from "@theme/tokens.css"
 import { style, styleVariants } from "@vanilla-extract/css"
 

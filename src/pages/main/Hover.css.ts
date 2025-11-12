@@ -1,3 +1,6 @@
+/**
+ * Hover component styles - co-located with Hover.tsx
+ */
 import { buttonRecipe } from "@theme/recipes/button.css"
 import { heading, text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
