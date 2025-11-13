@@ -37,6 +37,7 @@ import { MapFogOverlay } from "./MapFogOverlay"
 import { Playlist } from "./Playlist"
 import { SoundMarkersCanvas } from "./SoundMarkersCanvas"
 import { UserPositionCanvas } from "./UserPositionCanvas"
+import { ZOOM_MIN_LEVEL } from "./zoomScale"
 
 const EnvDecoder = D.struct({
   VITE_MAPBOX_TOKEN: pipe(
@@ -79,7 +80,7 @@ const initialViewState = {
   bearing: 0,
   pitch: 0,
 } as const
-const MIN_ZOOM = 10
+const MIN_ZOOM = ZOOM_MIN_LEVEL
 const MAX_ZOOM = 18
 
 const headerIconSize = "2rem"

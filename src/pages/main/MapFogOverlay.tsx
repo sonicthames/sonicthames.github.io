@@ -55,6 +55,7 @@ type RevealPoint = {
 const STORAGE_KEY = "sonic-thames-map-fog-reveals"
 const BASE_CYCLE_MS = 2000 // Base animation cycle duration in milliseconds
 const RIPPLE_FREQUENCY_DIVISOR = 4 // Ripple cycle is 1/4 frequency (4x slower)
+const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, independent of zoom
 
 export const MapFogOverlay = forwardRef<
   MapFogOverlayHandle,
@@ -224,16 +225,11 @@ export const MapFogOverlay = forwardRef<
         }
       }
 
-      // Calculate radius in meters for marker reveal
-      const metersPerPixel =
-        (156543.03392 * Math.cos((userPosition.lat * Math.PI) / 180)) /
-        2 ** map.getZoom()
-      const radiusMeters = revealSize * metersPerPixel
-
+      // Use fixed radius in meters, independent of zoom level
       const newReveal: RevealPoint = {
         lng: userPosition.lng,
         lat: userPosition.lat,
-        radiusMeters,
+        radiusMeters: FIXED_REVEAL_RADIUS_METERS,
       }
 
       // Add to reveals array and update tracking
@@ -262,9 +258,24 @@ export const MapFogOverlay = forwardRef<
           if (typeof window !== "undefined") {
             window.localStorage.removeItem(STORAGE_KEY)
           }
+
+          // Create initial reveal at user's current position after reset
+          if (userPosition) {
+            const newReveal: RevealPoint = {
+              lng: userPosition.lng,
+              lat: userPosition.lat,
+              radiusMeters: FIXED_REVEAL_RADIUS_METERS,
+            }
+            revealsRef.current = [newReveal]
+            lastRevealRef.current = newReveal
+            lastMarkerPosRef.current = {
+              lat: userPosition.lat,
+              lng: userPosition.lng,
+            }
+          }
         },
       }),
-      [],
+      [userPosition],
     )
 
     // === EFFECT: MAP CHANGE TRACKING ===

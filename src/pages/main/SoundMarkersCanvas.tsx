@@ -4,6 +4,7 @@ import type { MapRef } from "react-map-gl/mapbox"
 import { brandColors } from "@/theme/colors"
 import type { Category, Sound } from "../../domain/base"
 import { canvasContainer, pixiCanvas } from "./SoundMarkersCanvas.css"
+import { computeZoomScale } from "./zoomScale"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
@@ -31,6 +32,11 @@ const CATEGORY_COLORS = {
 } as const
 
 const BASE_SOUND_RADIUS = 8
+const MIN_MARKER_RADIUS = 4
+const MAX_MARKER_RADIUS = 16
+
+const clampRadius = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(value, max))
 
 /**
  * Sound markers rendered on a Pixi.js canvas overlay with ripple effects.
@@ -81,7 +87,8 @@ export const SoundMarkersCanvas = ({
 
         // Add click handler for markers
         app.canvas.addEventListener("click", (e) => {
-          if (!map || !app) return
+          const currentMap = mapRef.current?.getMap()
+          if (!currentMap || !app) return
 
           const rect = app.canvas.getBoundingClientRect()
           const x = e.clientX - rect.left
@@ -91,7 +98,7 @@ export const SoundMarkersCanvas = ({
           for (const marker of markers) {
             if (!filters.includes(marker.sound.category)) continue
 
-            const point = map.project([
+            const point = currentMap.project([
               marker.sound.coordinates.lng,
               marker.sound.coordinates.lat,
             ])
@@ -138,10 +145,11 @@ export const SoundMarkersCanvas = ({
 
         // Animation loop
         app.ticker.add((ticker) => {
-          if (!map || !mounted || !app) return
+          const currentMap = mapRef.current?.getMap()
+          if (!currentMap || !mounted || !app) return
 
           // Update canvas size if map resized
-          const mapContainer = map.getContainer()
+          const mapContainer = currentMap.getContainer()
           const cssWidth = mapContainer.clientWidth
           const cssHeight = mapContainer.clientHeight
           if (
@@ -153,6 +161,8 @@ export const SoundMarkersCanvas = ({
 
           // Update each marker
           const deltaTime = ticker.deltaTime / 60
+          const currentZoom = currentMap.getZoom()
+          const zoomScale = computeZoomScale(currentZoom)
 
           for (const marker of markers) {
             // Skip if filtered out
@@ -166,7 +176,7 @@ export const SoundMarkersCanvas = ({
             }
 
             // Get pixel coordinates
-            const point = map.project([
+            const point = currentMap.project([
               marker.sound.coordinates.lng,
               marker.sound.coordinates.lat,
             ])
@@ -183,7 +193,8 @@ export const SoundMarkersCanvas = ({
               }
 
               const progress = ripple.age / ripple.maxAge
-              const radius = 12 + progress * 18
+              const baseRippleRadius = 12 + progress * 18
+              const radius = baseRippleRadius * zoomScale
               const alpha = Math.max(0, 1 - progress) * 0.6
 
               ripple.graphics.circle(point.x, point.y, radius)
@@ -194,9 +205,14 @@ export const SoundMarkersCanvas = ({
               })
             }
 
-            // Draw center dot
+            // Draw center dot with zoom-based scaling
             marker.dot.clear()
-            marker.dot.circle(point.x, point.y, BASE_SOUND_RADIUS)
+            const scaledRadius = clampRadius(
+              BASE_SOUND_RADIUS * zoomScale,
+              MIN_MARKER_RADIUS,
+              MAX_MARKER_RADIUS,
+            )
+            marker.dot.circle(point.x, point.y, scaledRadius)
             marker.dot.fill({ color, alpha: 0.9 })
           }
         })

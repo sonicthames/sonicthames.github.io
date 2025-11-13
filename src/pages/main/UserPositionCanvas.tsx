@@ -2,6 +2,7 @@ import { Application, Graphics } from "pixi.js"
 import { useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
+import { computeZoomScale } from "./zoomScale"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
@@ -9,7 +10,12 @@ interface Props {
   readonly longitude: number
 }
 
-const AVATAR_RADIUS = 8
+const BASE_USER_RADIUS = 8
+const MIN_USER_RADIUS = 4
+const MAX_USER_RADIUS = 16
+
+const clampRadius = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(value, max))
 
 /**
  * User position indicator rendered on a Pixi.js canvas overlay.
@@ -60,10 +66,11 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
 
         // Animation loop
         app.ticker.add((ticker) => {
-          if (!map || !mounted || !app) return
+          const currentMap = mapRef.current?.getMap()
+          if (!currentMap || !mounted || !app) return
 
           // Update canvas size if map resized
-          const mapContainer = map.getContainer()
+          const mapContainer = currentMap.getContainer()
           const cssWidth = mapContainer.clientWidth
           const cssHeight = mapContainer.clientHeight
           if (
@@ -74,7 +81,7 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
           }
 
           // Get pixel coordinates for user position
-          const point = map.project([longitude, latitude])
+          const point = currentMap.project([longitude, latitude])
 
           // Clear graphics
           dot.clear()
@@ -107,12 +114,21 @@ export const UserPositionCanvas = ({ mapRef, latitude, longitude }: Props) => {
           )
           const color = (r << 16) | (g << 8) | b
 
+          const currentZoom = currentMap.getZoom()
+          const zoomScale = computeZoomScale(currentZoom)
+          const scaledRadius = clampRadius(
+            BASE_USER_RADIUS * zoomScale,
+            MIN_USER_RADIUS,
+            MAX_USER_RADIUS,
+          )
+          const glowThickness = 2 * zoomScale
+
           // Draw outer glow
-          dot.circle(point.x, point.y, AVATAR_RADIUS + 2)
+          dot.circle(point.x, point.y, scaledRadius + glowThickness)
           dot.fill({ color, alpha: 0.5 })
 
           // Draw inner core
-          dot.circle(point.x, point.y, AVATAR_RADIUS)
+          dot.circle(point.x, point.y, scaledRadius)
           dot.fill({ color, alpha: 1 })
         })
       } catch (err) {
