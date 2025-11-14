@@ -63,6 +63,14 @@ They may swap roles mid-task; whichever agent finishes must confirm quality gate
 
 ---
 
+## Process cleanup
+
+- Stop background services, dev servers, watchers, or other processes that agents start for development or verification once the task is complete. Use helpers like `KillShell` for `pnpm dev`, `pnpm dev:test`, or `pnpm exec vitest --watch` so ports and CPU time are freed.
+- Only leave a process running when the maintainer or user explicitly asks for it; note the reason for the follow-up.
+- The user can rerun manual tests, so avoid leaving your own test servers or scripts running beyond the hand-off.
+
+---
+
 ## Quality Checks (Definition of Done)
 
 Before marking a task complete:
