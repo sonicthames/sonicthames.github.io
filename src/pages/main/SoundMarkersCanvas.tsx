@@ -4,7 +4,7 @@ import type { MapRef } from "react-map-gl/mapbox"
 import { brandColors } from "@/theme/colors"
 import type { Category, Sound } from "../../domain/base"
 import { canvasContainer, pixiCanvas } from "./SoundMarkersCanvas.css"
-import { computeZoomScale, ZOOM_MIN_LEVEL } from "./zoomScale"
+import { computeZoomProgress, computeZoomScale } from "./zoomScale"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
@@ -44,10 +44,9 @@ const MAX_MARKER_RADIUS = 16
 const clampRadius = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(value, max))
 
-// Linear zoom influence for ripples: tweak this to taste.
-// At zoom 10: rippleScale = 1
-// At zoom 18: rippleScale = 1 + (18 - 10) * 0.3 = 3.4
-const RIPPLE_ZOOM_SLOPE = 0.3
+const RIPPLE_MIN_SCALE = 1
+const RIPPLE_MAX_SCALE = 4
+const RIPPLE_ANIMATION_RANGE_FACTOR = 3
 
 /**
  * Sound markers rendered on a Pixi.js canvas overlay with ripple effects.
@@ -161,13 +160,14 @@ export const SoundMarkersCanvas = ({
 
           const deltaTime = ticker.deltaTime / 60
           const currentZoom = currentMap.getZoom()
+          const zoomProgress = computeZoomProgress(currentZoom)
 
           // Non-linear scale for dots/avatar
           const zoomScale = computeZoomScale(currentZoom)
 
-          // Linear scale for ripples
           const rippleZoomScaleBase =
-            1 + (currentZoom - ZOOM_MIN_LEVEL) * RIPPLE_ZOOM_SLOPE
+            RIPPLE_MIN_SCALE +
+            zoomProgress * (RIPPLE_MAX_SCALE - RIPPLE_MIN_SCALE)
 
           for (const marker of markersRef.current) {
             if (!filters.includes(marker.sound.category)) {
@@ -184,6 +184,18 @@ export const SoundMarkersCanvas = ({
             ])
             const color = CATEGORY_COLORS[marker.sound.category]
 
+            const categoryRadiusScale =
+              CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
+            const scaledRadius = clampRadius(
+              BASE_SOUND_RADIUS * zoomScale * categoryRadiusScale,
+              MIN_MARKER_RADIUS,
+              MAX_MARKER_RADIUS,
+            )
+
+            const rippleMinRadius = scaledRadius * 2
+            const rippleAnimationDelta =
+              scaledRadius * RIPPLE_ANIMATION_RANGE_FACTOR
+
             // RIPPLE DRAWING (linear zoom effect)
             for (const ripple of marker.ripples) {
               ripple.graphics.clear()
@@ -194,9 +206,14 @@ export const SoundMarkersCanvas = ({
               }
 
               const progress = ripple.age / ripple.maxAge
-              const baseRippleRadius = 12 + progress * 18
 
+              const baseRippleRadius =
+                rippleMinRadius + progress * rippleAnimationDelta
               const rippleZoomScale = rippleZoomScaleBase
+
+              // Future: const reachFactor = marker.sound.reach ?? 1
+              // const radius =
+              //   baseRippleRadius * rippleZoomScaleBase * reachFactor
               const radius = baseRippleRadius * rippleZoomScale
               const alpha = Math.max(0, 1 - progress) * 0.6
 
@@ -210,15 +227,6 @@ export const SoundMarkersCanvas = ({
 
             // DOT DRAWING (non-linear zoom effect)
             marker.dot.clear()
-            const categoryRadiusScale =
-              CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
-
-            const scaledRadius = clampRadius(
-              BASE_SOUND_RADIUS * zoomScale * categoryRadiusScale,
-              MIN_MARKER_RADIUS,
-              MAX_MARKER_RADIUS,
-            )
-
             marker.dot.circle(point.x, point.y, scaledRadius)
             marker.dot.fill({ color, alpha: 0.9 })
           }

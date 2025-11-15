@@ -172,3 +172,23 @@ export const restoreFogButton = style({
     },
   },
 })
+
+export const revealFogButton = style({
+  position: "absolute",
+  bottom: "20px",
+  left: "150px",
+  padding: "8px 16px",
+  backgroundColor: "rgba(255, 255, 255, 0.2)",
+  color: "white",
+  border: "1px solid rgba(255, 255, 255, 0.3)",
+  borderRadius: "4px",
+  cursor: "pointer",
+  fontSize: "14px",
+  fontFamily: "monospace",
+  zIndex: 1000,
+  selectors: {
+    "&:hover": {
+      backgroundColor: "rgba(255, 255, 255, 0.35)",
+    },
+  },
+})

@@ -1,3 +1,4 @@
+import type { LngLat, LngLatBounds } from "mapbox-gl"
 import {
   forwardRef,
   useCallback,
@@ -9,6 +10,7 @@ import {
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "../../domain/base"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
+import { computeZoomProgress } from "./zoomScale"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -29,16 +31,18 @@ import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
 
 interface MapFogOverlayProps {
   readonly mapRef: React.RefObject<MapRef | null>
+  readonly movementBounds?: LngLatBounds
   readonly intensity?: number // 0-1, controls fog opacity (1.0 = fully opaque)
   readonly revealSize?: number // Pixel radius of reveal circles
   readonly enabled?: boolean
-  readonly userPosition?: { lat: number; lng: number } // Initial reveal at user position
   readonly sounds?: ReadonlyArray<Sound> // Sound markers to show as hints through fog
   readonly filters?: readonly Category[] // Active category filters
 }
 
 export interface MapFogOverlayHandle {
   restoreFog: () => void
+  revealMap: () => void
+  trackUserPosition: (position: { lat: number; lng: number }) => void
 }
 
 /**
@@ -51,11 +55,44 @@ type RevealPoint = {
   readonly lat: number // Latitude (geographic coordinate)
   readonly radiusMeters: number // Radius in meters (geographic distance)
 }
-
 const STORAGE_KEY = "sonic-thames-map-fog-reveals"
 const BASE_CYCLE_MS = 2000 // Base animation cycle duration in milliseconds
 const RIPPLE_FREQUENCY_DIVISOR = 4 // Ripple cycle is 1/4 frequency (4x slower)
 const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, independent of zoom
+const FOG_RIPPLE_MIN_SCALE = 1
+const FOG_RIPPLE_MAX_SCALE = 4
+const FOG_BASE_RIPPLE_RADIUS = 20
+
+const toRadians = (value: number) => (value * Math.PI) / 180
+
+const haversineDistanceMeters = (from: LngLat, to: LngLat) => {
+  const R = 6371000 // Earth radius in meters
+  const dLat = toRadians(to.lat - from.lat)
+  const dLon = toRadians(to.lng - from.lng)
+  const lat1 = toRadians(from.lat)
+  const lat2 = toRadians(to.lat)
+
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+
+  return R * c
+}
+
+const computeBoundsRevealRadius = (bounds: LngLatBounds, center: LngLat) => {
+  const corners = [
+    bounds.getNorthEast(),
+    bounds.getNorthWest(),
+    bounds.getSouthEast(),
+    bounds.getSouthWest(),
+  ]
+
+  return corners.reduce((maxRadius, corner) => {
+    const distance = haversineDistanceMeters(center, corner)
+    return Math.max(maxRadius, distance)
+  }, 0)
+}
 
 export const MapFogOverlay = forwardRef<
   MapFogOverlayHandle,
@@ -64,10 +101,10 @@ export const MapFogOverlay = forwardRef<
   (
     {
       mapRef,
+      movementBounds,
       intensity = 0.85,
       revealSize = 200,
       enabled = true,
-      userPosition,
       sounds = [],
       filters = [],
     },
@@ -110,9 +147,6 @@ export const MapFogOverlay = forwardRef<
     const persistTimeoutRef = useRef<number | null>(null)
     // Last reveal point for distance-based deduplication (prevents spam)
     const lastRevealRef = useRef<RevealPoint | null>(null)
-    // Track if initial user position reveal has been created
-    const initialRevealCreatedRef = useRef(false)
-
     /**
      * Debounced localStorage write.
      * Uses requestAnimationFrame instead of setTimeout for better frame-aligned writes.
@@ -196,51 +230,42 @@ export const MapFogOverlay = forwardRef<
       }
     }, [])
 
-    // === EFFECT: MARKER POSITION REVEAL ===
-    /**
-     * Reveal areas as the purple marker (userPosition) moves.
-     * Creates a trail of revealed areas along the marker's path.
-     * Each time the marker moves to a new position, add a reveal point.
-     */
-    useEffect(() => {
-      if (!userPosition) return
-      const map = getMap()
-      if (!map) return
+    const revealAtPosition = useCallback(
+      (position: { lat: number; lng: number }) => {
+        const map = getMap()
+        if (!map) return
 
-      const last = lastMarkerPosRef.current
+        const last = lastMarkerPosRef.current
+        if (last) {
+          const lastScreen = map.project([last.lng, last.lat])
+          const currentScreen = map.project([position.lng, position.lat])
+          const distance = Math.hypot(
+            currentScreen.x - lastScreen.x,
+            currentScreen.y - lastScreen.y,
+          )
 
-      // Check if marker has moved significantly (or is initial position)
-      if (last) {
-        const lastScreen = map.project([last.lng, last.lat])
-        const currentScreen = map.project([userPosition.lng, userPosition.lat])
-        const distance = Math.hypot(
-          currentScreen.x - lastScreen.x,
-          currentScreen.y - lastScreen.y,
-        )
-
-        // Only add reveal if moved more than 35% of reveal radius
-        const threshold = revealSize * 0.35
-        if (distance < threshold) {
-          return
+          const threshold = revealSize * 0.35
+          if (distance < threshold) {
+            return
+          }
         }
-      }
 
-      // Use fixed radius in meters, independent of zoom level
-      const newReveal: RevealPoint = {
-        lng: userPosition.lng,
-        lat: userPosition.lat,
-        radiusMeters: FIXED_REVEAL_RADIUS_METERS,
-      }
+        const newReveal: RevealPoint = {
+          lng: position.lng,
+          lat: position.lat,
+          radiusMeters: FIXED_REVEAL_RADIUS_METERS,
+        }
 
-      // Add to reveals array and update tracking
-      revealsRef.current = [...revealsRef.current, newReveal].slice(-200)
-      lastRevealRef.current = newReveal
-      lastMarkerPosRef.current = {
-        lat: userPosition.lat,
-        lng: userPosition.lng,
-      }
-      persistReveals()
-    }, [userPosition, revealSize, getMap, persistReveals])
+        revealsRef.current = [...revealsRef.current, newReveal].slice(-200)
+        lastRevealRef.current = newReveal
+        lastMarkerPosRef.current = {
+          lat: position.lat,
+          lng: position.lng,
+        }
+        persistReveals()
+      },
+      [getMap, persistReveals, revealSize],
+    )
 
     // === IMPERATIVE HANDLE: EXPOSE RESTORE FOG FUNCTION ===
     /**
@@ -254,28 +279,40 @@ export const MapFogOverlay = forwardRef<
           revealsRef.current = []
           lastRevealRef.current = null
           lastMarkerPosRef.current = null
-          initialRevealCreatedRef.current = false
           if (typeof window !== "undefined") {
             window.localStorage.removeItem(STORAGE_KEY)
           }
+        },
+        revealMap: () => {
+          const map = getMap()
 
-          // Create initial reveal at user's current position after reset
-          if (userPosition) {
-            const newReveal: RevealPoint = {
-              lng: userPosition.lng,
-              lat: userPosition.lat,
-              radiusMeters: FIXED_REVEAL_RADIUS_METERS,
-            }
-            revealsRef.current = [newReveal]
-            lastRevealRef.current = newReveal
-            lastMarkerPosRef.current = {
-              lat: userPosition.lat,
-              lng: userPosition.lng,
-            }
+          const bounds = movementBounds ?? map?.getBounds()
+          if (!bounds) return
+          const center = bounds.getCenter()
+          const coverageRadius = Math.max(
+            FIXED_REVEAL_RADIUS_METERS,
+            computeBoundsRevealRadius(bounds, center),
+          )
+
+          const reveal: RevealPoint = {
+            lng: center.lng,
+            lat: center.lat,
+            radiusMeters: coverageRadius,
           }
+
+          revealsRef.current = [reveal]
+          lastRevealRef.current = reveal
+          lastMarkerPosRef.current = {
+            lat: center.lat,
+            lng: center.lng,
+          }
+          persistReveals()
+        },
+        trackUserPosition: (position: { lat: number; lng: number }) => {
+          revealAtPosition(position)
         },
       }),
-      [userPosition],
+      [getMap, movementBounds, persistReveals, revealAtPosition],
     )
 
     // === EFFECT: MAP CHANGE TRACKING ===
@@ -349,7 +386,12 @@ export const MapFogOverlay = forwardRef<
           // Ripple animation parameters
           const time = performance.now()
           const rippleCycle = BASE_CYCLE_MS * RIPPLE_FREQUENCY_DIVISOR // 8 second cycle (1/4 frequency = 4x slower)
-          const maxRippleRadius = 20 // Maximum ripple radius in pixels
+          const currentZoom = map.getZoom()
+          const zoomProgress = computeZoomProgress(currentZoom)
+          const rippleZoomScaleBase =
+            FOG_RIPPLE_MIN_SCALE +
+            zoomProgress * (FOG_RIPPLE_MAX_SCALE - FOG_RIPPLE_MIN_SCALE)
+          const maxRippleRadius = FOG_BASE_RIPPLE_RADIUS // Maximum ripple radius at base zoom
 
           for (const sound of sounds) {
             // Skip filtered-out markers
@@ -368,7 +410,7 @@ export const MapFogOverlay = forwardRef<
               const progress = (time / rippleCycle + phaseOffset) % 1.0 // 0 to 1
 
               // Radius grows from 0 to max
-              const radius = progress * maxRippleRadius
+              const radius = progress * maxRippleRadius * rippleZoomScaleBase
 
               // Opacity fades out as ripple expands (starts at 0.5, ends at 0)
               const opacity = (1 - progress) * 0.5

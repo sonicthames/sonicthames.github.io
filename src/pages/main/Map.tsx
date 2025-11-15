@@ -5,7 +5,8 @@ import * as RA from "fp-ts/ReadonlyArray"
 import * as D from "io-ts/Decoder"
 import mapboxgl, { LngLat } from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
-import { useEffect, useRef, useState } from "react"
+import type { LineString } from "geojson"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { useLocation } from "react-router-dom"
@@ -24,6 +25,7 @@ import {
   hoverFloating,
   logoPosition,
   restoreFogButton,
+  revealFogButton,
   selectedSound,
   closeButton as sidebarCloseButton,
   sidebarHeader,
@@ -83,7 +85,106 @@ const initialViewState = {
 const MIN_ZOOM = ZOOM_MIN_LEVEL
 const MAX_ZOOM = 18
 
+const MAPBOX_MAP_STYLE = {
+  width: "100%",
+  height: "100%",
+} as const
+
+const MAP_STYLE: mapboxgl.Style = {
+  version: 8,
+  name: "Test",
+  sources: {
+    mapbox: {
+      url: "mapbox://mapbox.mapbox-streets-v8",
+      type: "vector",
+      minzoom: 7,
+      maxzoom: 12,
+    },
+  },
+  sprite: "mapbox://sprites/mapbox/basic-v8",
+  glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  layers: [
+    {
+      id: "background",
+      type: "background",
+      paint: {
+        "background-color": colorToCssHex(brandColors.map.land),
+      },
+    },
+    {
+      id: "road",
+      source: "mapbox",
+      "source-layer": "road",
+      type: "line",
+      paint: {
+        "line-color": brandColors.neutral.black,
+      },
+    },
+    {
+      id: "waterway",
+      source: "mapbox",
+      "source-layer": "water",
+      type: "fill",
+      paint: {
+        "fill-color": colorToCssHex(brandColors.map.water),
+      },
+    },
+  ],
+}
+
 const headerIconSize = "2rem"
+const AVATAR_SPEED_MPS = 400
+
+const CoordinatesTupleDecoder = D.tuple(D.number, D.number)
+const LineStringGeometryDecoder = D.struct({
+  type: D.literal("LineString"),
+  coordinates: D.array(CoordinatesTupleDecoder),
+})
+const DirectionsRouteDecoder = D.struct({
+  geometry: LineStringGeometryDecoder,
+  distance: D.number,
+  duration: D.number,
+})
+const DirectionsResponseDecoder = D.struct({
+  code: D.string,
+  routes: D.array(DirectionsRouteDecoder),
+})
+
+interface RouteSegment {
+  readonly from: LngLat
+  readonly to: LngLat
+  readonly distance: number
+}
+
+interface RouteState {
+  readonly segments: RouteSegment[]
+  currentSegmentIndex: number
+  distanceAlongSegment: number
+}
+
+const buildRouteSegments = (
+  coordinates: LineString["coordinates"],
+): RouteSegment[] => {
+  const segments: RouteSegment[] = []
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const [fromLng, fromLat] = coordinates[i] as unknown as readonly [
+      number,
+      number,
+    ]
+    const [toLng, toLat] = coordinates[i + 1] as unknown as readonly [
+      number,
+      number,
+    ]
+    const from = new LngLat(fromLng, fromLat)
+    const to = new LngLat(toLng, toLat)
+    segments.push({
+      from,
+      to,
+      distance: from.distanceTo(to),
+    })
+  }
+  return segments
+}
 
 /** @deprecated The old map sidebar/dialog is being retired in favor of a more minimal UI. */
 const Sidebar = ({
@@ -265,11 +366,222 @@ export const MainMap = ({ sounds }: Props) => {
   const fogOverlayRef = useRef<MapFogOverlayHandle | null>(null)
 
   // Parse user position from query params (?lat=51.5&lng=-0.1) or use map center
-  const searchParams = new URLSearchParams(location.search)
-  const userPosition = {
-    lat: Number.parseFloat(searchParams.get("lat") || "") || center.lat,
-    lng: Number.parseFloat(searchParams.get("lng") || "") || center.lng,
-  }
+  const initialUserPosition = useMemo(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const lat = Number.parseFloat(searchParams.get("lat") || "")
+    const lng = Number.parseFloat(searchParams.get("lng") || "")
+    return {
+      lat: Number.isFinite(lat) ? lat : center.lat,
+      lng: Number.isFinite(lng) ? lng : center.lng,
+    }
+  }, [location.search])
+
+  const userPositionRef = useRef(initialUserPosition)
+
+  const routeStateRef = useRef<RouteState | null>(null)
+  const routeAnimationFrameRef = useRef<number | null>(null)
+  const lastFrameTimeRef = useRef<number | null>(null)
+  const directionsAbortControllerRef = useRef<AbortController | null>(null)
+
+  const cancelRouteAnimation = useCallback(() => {
+    if (routeAnimationFrameRef.current !== null) {
+      cancelAnimationFrame(routeAnimationFrameRef.current)
+      routeAnimationFrameRef.current = null
+    }
+    lastFrameTimeRef.current = null
+    routeStateRef.current = null
+  }, [])
+
+  const updateTrackedUserPosition = useCallback(
+    (position: { lat: number; lng: number }) => {
+      userPositionRef.current = position
+      fogOverlayRef.current?.trackUserPosition(position)
+    },
+    [],
+  )
+
+  const animateRoute = useCallback(
+    (timestamp: number) => {
+      const routeState = routeStateRef.current
+      if (!routeState) {
+        routeAnimationFrameRef.current = null
+        lastFrameTimeRef.current = null
+        return
+      }
+
+      const lastFrame =
+        lastFrameTimeRef.current === null ? timestamp : lastFrameTimeRef.current
+      const deltaSeconds = Math.max(0, (timestamp - lastFrame) / 1000)
+      lastFrameTimeRef.current = timestamp
+
+      let distanceToTravel = AVATAR_SPEED_MPS * deltaSeconds
+
+      while (
+        routeState.currentSegmentIndex < routeState.segments.length &&
+        distanceToTravel > 0
+      ) {
+        const segment = routeState.segments[routeState.currentSegmentIndex]
+        if (!segment) {
+          break
+        }
+
+        if (segment.distance === 0) {
+          routeState.currentSegmentIndex += 1
+          routeState.distanceAlongSegment = 0
+          continue
+        }
+
+        const remainingInSegment =
+          segment.distance - routeState.distanceAlongSegment
+
+        if (distanceToTravel < remainingInSegment) {
+          routeState.distanceAlongSegment += distanceToTravel
+          const t = routeState.distanceAlongSegment / segment.distance
+          const lat = segment.from.lat + (segment.to.lat - segment.from.lat) * t
+          const lng = segment.from.lng + (segment.to.lng - segment.from.lng) * t
+          updateTrackedUserPosition({ lat, lng })
+          distanceToTravel = 0
+        } else {
+          distanceToTravel -= remainingInSegment
+          routeState.currentSegmentIndex += 1
+          routeState.distanceAlongSegment = 0
+          updateTrackedUserPosition({
+            lat: segment.to.lat,
+            lng: segment.to.lng,
+          })
+        }
+      }
+
+      if (routeState.currentSegmentIndex >= routeState.segments.length) {
+        routeStateRef.current = null
+        routeAnimationFrameRef.current = null
+        lastFrameTimeRef.current = null
+        return
+      }
+
+      routeAnimationFrameRef.current = requestAnimationFrame(animateRoute)
+    },
+    [updateTrackedUserPosition],
+  )
+
+  const startRouteAnimation = useCallback(
+    (geometry: LineString) => {
+      const segments = buildRouteSegments(geometry.coordinates)
+      if (segments.length === 0) {
+        const finalCoordinate =
+          geometry.coordinates[geometry.coordinates.length - 1]
+        if (finalCoordinate) {
+          updateTrackedUserPosition({
+            lat: finalCoordinate[1],
+            lng: finalCoordinate[0],
+          })
+        }
+        return
+      }
+
+      routeStateRef.current = {
+        segments,
+        currentSegmentIndex: 0,
+        distanceAlongSegment: 0,
+      }
+      lastFrameTimeRef.current = null
+      routeAnimationFrameRef.current = requestAnimationFrame(animateRoute)
+    },
+    [animateRoute, updateTrackedUserPosition],
+  )
+
+  const requestDirections = useCallback(
+    async (destination: mapboxgl.LngLat) => {
+      const origin = userPositionRef.current
+      if (
+        !origin ||
+        (Math.abs(origin.lat - destination.lat) < 1e-6 &&
+          Math.abs(origin.lng - destination.lng) < 1e-6)
+      ) {
+        return
+      }
+
+      directionsAbortControllerRef.current?.abort()
+      const controller = new AbortController()
+      directionsAbortControllerRef.current = controller
+      cancelRouteAnimation()
+
+      try {
+        const url = new URL(
+          `https://api.mapbox.com/directions/v5/mapbox/walking/${origin.lng},${origin.lat};${destination.lng},${destination.lat}`,
+        )
+        url.searchParams.set("alternatives", "false")
+        url.searchParams.set("geometries", "geojson")
+        url.searchParams.set("overview", "full")
+        url.searchParams.set("steps", "false")
+        url.searchParams.set("access_token", MAPBOX_TOKEN)
+
+        const response = await fetch(url.toString(), {
+          signal: controller.signal,
+        })
+
+        if (!response.ok) {
+          throw new Error(`Directions request failed: ${response.status}`)
+        }
+
+        const raw = (await response.json()) as unknown
+        const decoded = pipe(
+          DirectionsResponseDecoder.decode(raw),
+          E.getOrElseW((errors) => {
+            throw new Error(D.draw(errors))
+          }),
+        )
+
+        if (decoded.code !== "Ok" || decoded.routes.length === 0) {
+          console.warn("No walking route found for destination.", decoded.code)
+          return
+        }
+
+        const [route] = decoded.routes
+        const normalizedCoordinates = route.geometry.coordinates.map(
+          ([lng, lat]) => [lng, lat] as [number, number],
+        )
+        const geometry: LineString = {
+          type: "LineString",
+          coordinates: normalizedCoordinates,
+        }
+
+        startRouteAnimation(geometry)
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return
+        }
+        console.error("Failed to fetch walking directions", error)
+      } finally {
+        if (directionsAbortControllerRef.current === controller) {
+          directionsAbortControllerRef.current = null
+        }
+      }
+    },
+    [cancelRouteAnimation, startRouteAnimation],
+  )
+
+  const handleMapClick = useCallback(
+    (event: mapboxgl.MapLayerMouseEvent) => {
+      if (event.originalEvent.defaultPrevented) {
+        return
+      }
+      void requestDirections(event.lngLat)
+    },
+    [requestDirections],
+  )
+
+  useEffect(() => {
+    updateTrackedUserPosition(initialUserPosition)
+    cancelRouteAnimation()
+  }, [initialUserPosition, cancelRouteAnimation, updateTrackedUserPosition])
+
+  useEffect(() => {
+    return () => {
+      cancelRouteAnimation()
+      directionsAbortControllerRef.current?.abort()
+    }
+  }, [cancelRouteAnimation])
 
   const [goTo$] = useState(() => new Subject<GoTo>())
   useEffect(
@@ -354,53 +666,10 @@ export const MainMap = ({ sounds }: Props) => {
       minZoom={MIN_ZOOM}
       maxZoom={MAX_ZOOM}
       maxBounds={lngLatBounds}
+      onClick={handleMapClick}
       mapboxAccessToken={MAPBOX_TOKEN}
-      style={{ width: "100%", height: "100%" }}
-      mapStyle={{
-        version: 8,
-        name: "Test",
-        sources: {
-          mapbox: {
-            url: "mapbox://mapbox.mapbox-streets-v8",
-            type: "vector",
-            minzoom: 7,
-            maxzoom: 12,
-          },
-        },
-        sprite: "mapbox://sprites/mapbox/basic-v8",
-        glyphs: "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
-        layers: [
-          {
-            id: "background",
-            type: "background",
-            paint: {
-              "background-color": colorToCssHex(brandColors.map.land),
-            },
-          },
-          {
-            id: "road",
-            source: "mapbox",
-            "source-layer": "road",
-            type: "line",
-            paint: {
-              "line-color": brandColors.neutral.black,
-            },
-          },
-          {
-            id: "waterway",
-            source: "mapbox",
-            "source-layer": "water",
-            type: "fill",
-            //   features: {
-            //   simplification: 6,
-            // },
-            paint: {
-              "fill-color": colorToCssHex(brandColors.map.water),
-            },
-            // maxzoom: 8,
-          },
-        ],
-      }}
+      style={MAPBOX_MAP_STYLE}
+      mapStyle={MAP_STYLE}
     >
       <div className={logoPosition}>
         <img src="/logo-05.svg" alt="logo" />
@@ -424,28 +693,36 @@ export const MainMap = ({ sounds }: Props) => {
           />
         )),
       )}
-      <UserPositionCanvas
-        mapRef={mapRef}
-        latitude={userPosition.lat}
-        longitude={userPosition.lng}
-      />
+      <UserPositionCanvas mapRef={mapRef} positionRef={userPositionRef} />
       <MapFogOverlay
         ref={fogOverlayRef}
         mapRef={mapRef}
+        movementBounds={lngLatBounds}
         intensity={1.0}
         enabled
-        userPosition={userPosition}
         sounds={sounds}
         filters={filters}
       />
       {import.meta.env.DEV && (
-        <button
-          type="button"
-          onClick={() => fogOverlayRef.current?.restoreFog()}
-          className={restoreFogButton}
-        >
-          Restore Fog
-        </button>
+        <>
+          <button
+            type="button"
+            onClick={() => {
+              fogOverlayRef.current?.restoreFog()
+              fogOverlayRef.current?.trackUserPosition(userPositionRef.current)
+            }}
+            className={restoreFogButton}
+          >
+            Restore Fog
+          </button>
+          <button
+            type="button"
+            onClick={() => fogOverlayRef.current?.revealMap()}
+            className={revealFogButton}
+          >
+            Reveal Map
+          </button>
+        </>
       )}
       <Sidebar
         expand$={expand$}
