@@ -56,6 +56,7 @@ export interface SoundBase {
   readonly description: readonly string[]
   readonly marker: string
   readonly category: Category
+  readonly playOnProximity: boolean
   readonly duration: Duration
   readonly location: O.Option<string>
   readonly access: O.Option<string>

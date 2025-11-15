@@ -11,6 +11,7 @@ interface Props {
   readonly sounds: ReadonlyArray<Sound>
   readonly filters: readonly Category[]
   readonly onSoundClick: (sound: Sound) => void
+  readonly playingSound: Sound | null
 }
 
 interface SoundMarker {
@@ -56,10 +57,17 @@ export const SoundMarkersCanvas = ({
   sounds,
   filters,
   onSoundClick,
+  playingSound,
 }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
   const appRef = useRef<Application | null>(null)
   const markersRef = useRef<SoundMarker[]>([])
+  const hoveredSoundRef = useRef<Sound | null>(null)
+  const playingSoundRef = useRef<Sound | null>(playingSound)
+
+  useEffect(() => {
+    playingSoundRef.current = playingSound
+  }, [playingSound])
 
   useEffect(() => {
     const map = mapRef.current?.getMap()
@@ -68,6 +76,63 @@ export const SoundMarkersCanvas = ({
 
     let mounted = true
     let app: Application | null = null
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const appInstance = appRef.current
+      const currentMap = mapRef.current?.getMap()
+      if (!currentMap || !appInstance?.canvas) {
+        hoveredSoundRef.current = null
+        return
+      }
+
+      const rect = appInstance.canvas.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
+      let nearest: Sound | null = null
+      for (const marker of markersRef.current) {
+        if (!filters.includes(marker.sound.category)) continue
+        const point = currentMap.project([
+          marker.sound.coordinates.lng,
+          marker.sound.coordinates.lat,
+        ])
+        const distance = Math.hypot(x - point.x, y - point.y)
+        if (distance <= 36) {
+          nearest = marker.sound
+          break
+        }
+      }
+      hoveredSoundRef.current = nearest
+    }
+
+    const handlePointerLeave = () => {
+      hoveredSoundRef.current = null
+    }
+
+    const handleClick = (event: MouseEvent) => {
+      const appInstance = appRef.current
+      const currentMap = mapRef.current?.getMap()
+      if (!currentMap || !appInstance?.canvas) return
+
+      const rect = appInstance.canvas.getBoundingClientRect()
+      const x = event.clientX - rect.left
+      const y = event.clientY - rect.top
+
+      for (const marker of markersRef.current) {
+        if (!filters.includes(marker.sound.category)) continue
+
+        const point = currentMap.project([
+          marker.sound.coordinates.lng,
+          marker.sound.coordinates.lat,
+        ])
+
+        const distance = Math.hypot(x - point.x, y - point.y)
+
+        if (distance <= 36) {
+          onSoundClick(marker.sound)
+          return
+        }
+      }
+    }
 
     const initPixi = async () => {
       try {
@@ -92,30 +157,9 @@ export const SoundMarkersCanvas = ({
         container.appendChild(app.canvas)
 
         // Click handler
-        app.canvas.addEventListener("click", (e) => {
-          const currentMap = mapRef.current?.getMap()
-          if (!currentMap || !app) return
-
-          const rect = app.canvas.getBoundingClientRect()
-          const x = e.clientX - rect.left
-          const y = e.clientY - rect.top
-
-          for (const marker of markersRef.current) {
-            if (!filters.includes(marker.sound.category)) continue
-
-            const point = currentMap.project([
-              marker.sound.coordinates.lng,
-              marker.sound.coordinates.lat,
-            ])
-
-            const distance = Math.hypot(x - point.x, y - point.y)
-
-            if (distance <= 36) {
-              onSoundClick(marker.sound)
-              return
-            }
-          }
-        })
+        app.canvas.addEventListener("click", handleClick)
+        app.canvas.addEventListener("pointermove", handlePointerMove)
+        app.canvas.addEventListener("pointerleave", handlePointerLeave)
 
         // Create markers for each sound
         const markers: SoundMarker[] = []
@@ -186,8 +230,20 @@ export const SoundMarkersCanvas = ({
 
             const categoryRadiusScale =
               CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
+            const isHovered =
+              hoveredSoundRef.current?.title === marker.sound.title
+            const isPlaying =
+              playingSoundRef.current?.title === marker.sound.title
+            const hoverScale = isHovered ? 1.25 : 1
+            const playingScale = isPlaying
+              ? 1 + Math.sin(performance.now() / 300) * 0.15
+              : 1
             const scaledRadius = clampRadius(
-              BASE_SOUND_RADIUS * zoomScale * categoryRadiusScale,
+              BASE_SOUND_RADIUS *
+                zoomScale *
+                categoryRadiusScale *
+                hoverScale *
+                playingScale,
               MIN_MARKER_RADIUS,
               MAX_MARKER_RADIUS,
             )
@@ -242,6 +298,15 @@ export const SoundMarkersCanvas = ({
       mounted = false
 
       if (appRef.current) {
+        appRef.current.canvas?.removeEventListener("click", handleClick)
+        appRef.current.canvas?.removeEventListener(
+          "pointermove",
+          handlePointerMove,
+        )
+        appRef.current.canvas?.removeEventListener(
+          "pointerleave",
+          handlePointerLeave,
+        )
         appRef.current.destroy(true, { children: true })
         appRef.current = null
       }

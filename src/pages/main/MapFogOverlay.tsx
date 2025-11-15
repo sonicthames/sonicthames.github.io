@@ -8,6 +8,7 @@ import {
   useState,
 } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import { haversineDistanceMeters } from "@/lib/geo"
 import type { Category, Sound } from "../../domain/base"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
 import { computeZoomProgress } from "./zoomScale"
@@ -62,23 +63,6 @@ const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, indepe
 const FOG_RIPPLE_MIN_SCALE = 1
 const FOG_RIPPLE_MAX_SCALE = 4
 const FOG_BASE_RIPPLE_RADIUS = 20
-
-const toRadians = (value: number) => (value * Math.PI) / 180
-
-const haversineDistanceMeters = (from: LngLat, to: LngLat) => {
-  const R = 6371000 // Earth radius in meters
-  const dLat = toRadians(to.lat - from.lat)
-  const dLon = toRadians(to.lng - from.lng)
-  const lat1 = toRadians(from.lat)
-  const lat2 = toRadians(to.lat)
-
-  const a =
-    Math.sin(dLat / 2) ** 2 +
-    Math.cos(lat1) * Math.cos(lat2) * Math.sin(dLon / 2) ** 2
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-  return R * c
-}
 
 const computeBoundsRevealRadius = (bounds: LngLatBounds, center: LngLat) => {
   const corners = [
