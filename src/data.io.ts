@@ -85,6 +85,7 @@ const D_SoundBase: D.Decoder<unknown, SoundBase> = readonlyStruct(
     description: readonlyArray(D.string),
     marker: D.string,
     category: D_Category,
+    playOnProximity: D.boolean,
     duration: decodeIso("Duration.fromISO", Duration.fromISO),
     location: optional(D.string),
     access: optional(D.string),

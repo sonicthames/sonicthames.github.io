@@ -11,6 +11,7 @@ import type { MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { useLocation } from "react-router-dom"
 import { BehaviorSubject, Subject } from "rxjs"
+import { haversineDistanceMeters } from "@/lib/geo"
 import { H2, H3 } from "../../components/Typography"
 import type { Category, Sound } from "../../domain/base"
 import { showDateTime, showInterval } from "../../domain/base"
@@ -20,6 +21,7 @@ import { lazyUnsubscribe } from "../../lib/rxjs"
 import { brandColors, colorToCssHex } from "../../theme/colors"
 import { Hover } from "./Hover"
 import {
+  debugControls,
   filterButton,
   filtersGroup,
   hoverFloating,
@@ -37,7 +39,9 @@ import {
 import type { MapFogOverlayHandle } from "./MapFogOverlay"
 import { MapFogOverlay } from "./MapFogOverlay"
 import { Playlist } from "./Playlist"
+import { ProximityVideo } from "./ProximityVideo"
 import { SoundMarkersCanvas } from "./SoundMarkersCanvas"
+import type { UserPositionHandle } from "./UserPositionCanvas"
 import { UserPositionCanvas } from "./UserPositionCanvas"
 import { ZOOM_MIN_LEVEL } from "./zoomScale"
 
@@ -90,6 +94,54 @@ const MAPBOX_MAP_STYLE = {
   height: "100%",
 } as const
 
+const LAST_USER_POSITION_KEY = "sonic-thames:last-user-position"
+
+const readLastUserPosition = () => {
+  if (typeof window === "undefined") {
+    return null
+  }
+
+  try {
+    const raw = window.localStorage.getItem(LAST_USER_POSITION_KEY)
+    if (!raw) {
+      return null
+    }
+    const parsed = JSON.parse(raw)
+    if (
+      typeof parsed === "object" &&
+      parsed !== null &&
+      typeof parsed.lat === "number" &&
+      Number.isFinite(parsed.lat) &&
+      typeof parsed.lng === "number" &&
+      Number.isFinite(parsed.lng)
+    ) {
+      return {
+        lat: parsed.lat,
+        lng: parsed.lng,
+      }
+    }
+  } catch {
+    // swallow serialization/localStorage errors
+  }
+
+  return null
+}
+
+const persistLastUserPosition = (position: { lat: number; lng: number }) => {
+  if (typeof window === "undefined") {
+    return
+  }
+
+  try {
+    window.localStorage.setItem(
+      LAST_USER_POSITION_KEY,
+      JSON.stringify(position),
+    )
+  } catch {
+    // ignore when storage is unavailable
+  }
+}
+
 const MAP_STYLE: mapboxgl.Style = {
   version: 8,
   name: "Test",
@@ -134,6 +186,7 @@ const MAP_STYLE: mapboxgl.Style = {
 
 const headerIconSize = "2rem"
 const AVATAR_SPEED_MPS = 400
+const PROXIMITY_THRESHOLD_METERS = 120
 
 const CoordinatesTupleDecoder = D.tuple(D.number, D.number)
 const LineStringGeometryDecoder = D.struct({
@@ -370,13 +423,25 @@ export const MainMap = ({ sounds }: Props) => {
     const searchParams = new URLSearchParams(location.search)
     const lat = Number.parseFloat(searchParams.get("lat") || "")
     const lng = Number.parseFloat(searchParams.get("lng") || "")
+    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+      return {
+        lat,
+        lng,
+      }
+    }
+    const storedPosition = readLastUserPosition()
+    if (storedPosition) {
+      return storedPosition
+    }
     return {
-      lat: Number.isFinite(lat) ? lat : center.lat,
-      lng: Number.isFinite(lng) ? lng : center.lng,
+      lat: center.lat,
+      lng: center.lng,
     }
   }, [location.search])
 
   const userPositionRef = useRef(initialUserPosition)
+  const userPositionHandleRef = useRef<UserPositionHandle | null>(null)
+  const [proximitySound, setProximitySound] = useState<Sound | null>(null)
 
   const routeStateRef = useRef<RouteState | null>(null)
   const routeAnimationFrameRef = useRef<number | null>(null)
@@ -390,15 +455,50 @@ export const MainMap = ({ sounds }: Props) => {
     }
     lastFrameTimeRef.current = null
     routeStateRef.current = null
+    userPositionHandleRef.current?.fadeIn()
   }, [])
+
+  const evaluateProximity = useCallback(
+    (position: { lat: number; lng: number }) => {
+      let nearest: { sound: Sound; distance: number } | null = null
+
+      for (const sound of sounds) {
+        if (!sound.playOnProximity) {
+          continue
+        }
+
+        const distance = haversineDistanceMeters(position, sound.coordinates)
+
+        if (nearest === null || distance < nearest.distance) {
+          nearest = { sound, distance }
+        }
+      }
+
+      if (nearest && nearest.distance <= PROXIMITY_THRESHOLD_METERS) {
+        setProximitySound((prev) =>
+          prev?.title === nearest?.sound.title ? prev : nearest.sound,
+        )
+        return
+      }
+
+      setProximitySound(null)
+    },
+    [sounds],
+  )
 
   const updateTrackedUserPosition = useCallback(
     (position: { lat: number; lng: number }) => {
       userPositionRef.current = position
       fogOverlayRef.current?.trackUserPosition(position)
+      evaluateProximity(position)
+      persistLastUserPosition(position)
     },
-    [],
+    [evaluateProximity],
   )
+
+  useEffect(() => {
+    evaluateProximity(userPositionRef.current)
+  }, [evaluateProximity])
 
   const animateRoute = useCallback(
     (timestamp: number) => {
@@ -456,6 +556,7 @@ export const MainMap = ({ sounds }: Props) => {
         routeStateRef.current = null
         routeAnimationFrameRef.current = null
         lastFrameTimeRef.current = null
+        userPositionHandleRef.current?.fadeIn()
         return
       }
 
@@ -476,6 +577,7 @@ export const MainMap = ({ sounds }: Props) => {
             lng: finalCoordinate[0],
           })
         }
+        userPositionHandleRef.current?.fadeIn()
         return
       }
 
@@ -693,7 +795,11 @@ export const MainMap = ({ sounds }: Props) => {
           />
         )),
       )}
-      <UserPositionCanvas mapRef={mapRef} positionRef={userPositionRef} />
+      <UserPositionCanvas
+        ref={userPositionHandleRef}
+        mapRef={mapRef}
+        positionRef={userPositionRef}
+      />
       <MapFogOverlay
         ref={fogOverlayRef}
         mapRef={mapRef}
@@ -703,8 +809,9 @@ export const MainMap = ({ sounds }: Props) => {
         sounds={sounds}
         filters={filters}
       />
+      <ProximityVideo sound={proximitySound} mapRef={mapRef} />
       {import.meta.env.DEV && (
-        <>
+        <div className={debugControls}>
           <button
             type="button"
             onClick={() => {
@@ -722,7 +829,7 @@ export const MainMap = ({ sounds }: Props) => {
           >
             Reveal Map
           </button>
-        </>
+        </div>
       )}
       <Sidebar
         expand$={expand$}

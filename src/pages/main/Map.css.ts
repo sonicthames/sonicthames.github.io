@@ -153,10 +153,18 @@ export const logoPosition = style({
   zIndex: tokens.z.overlay,
 })
 
-export const restoreFogButton = style({
+export const debugControls = style({
   position: "absolute",
-  bottom: "20px",
-  left: "20px",
+  top: tokens.space.md,
+  left: tokens.space.md,
+  display: "flex",
+  flexDirection: "column",
+  gap: tokens.space.xs,
+  zIndex: tokens.z.overlay,
+})
+
+export const restoreFogButton = style({
+  // Legacy positioning removed; uses shared debug container
   padding: "8px 16px",
   backgroundColor: "rgba(0, 0, 0, 0.7)",
   color: "white",
@@ -165,7 +173,7 @@ export const restoreFogButton = style({
   cursor: "pointer",
   fontSize: "14px",
   fontFamily: "monospace",
-  zIndex: 1000,
+  zIndex: tokens.z.overlay,
   selectors: {
     "&:hover": {
       backgroundColor: "rgba(0, 0, 0, 0.85)",
@@ -174,9 +182,7 @@ export const restoreFogButton = style({
 })
 
 export const revealFogButton = style({
-  position: "absolute",
-  bottom: "20px",
-  left: "150px",
+  // Legacy positioning removed; uses shared debug container
   padding: "8px 16px",
   backgroundColor: "rgba(255, 255, 255, 0.2)",
   color: "white",
@@ -185,7 +191,7 @@ export const revealFogButton = style({
   cursor: "pointer",
   fontSize: "14px",
   fontFamily: "monospace",
-  zIndex: 1000,
+  zIndex: tokens.z.overlay,
   selectors: {
     "&:hover": {
       backgroundColor: "rgba(255, 255, 255, 0.35)",
