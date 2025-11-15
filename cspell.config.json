@@ -1,0 +1,68 @@
+{
+  "version": "0.2",
+  "language": "en-GB",
+  "import": ["@cspell/dict-en-gb/cspell-ext.json"],
+  "useGitignore": true,
+  "ignorePaths": [
+    ".svelte-kit",
+    ".playwright-mcp",
+    ".vscode",
+    "bin",
+    "build",
+    "coverage",
+    "dist",
+    "manual-tests",
+    "node_modules",
+    "out",
+    "public",
+    "scripts",
+    "static",
+    "pnpm-lock.yaml",
+    "tsconfig.tsbuildinfo"
+  ],
+  "allowCompoundWords": false,
+  "enableFiletypes": [
+    "cjs",
+    "css",
+    "html",
+    "json",
+    "jsonc",
+    "md",
+    "mjs",
+    "tsx",
+    "ts",
+    "jsx",
+    "js",
+    "yaml"
+  ],
+  "languageSettings": [
+    {
+      "languageId": "markdown",
+      "dictionaries": ["en-gb"],
+      "caseSensitive": false
+    },
+    {
+      "languageId": [
+        "typescript",
+        "typescriptreact",
+        "javascript",
+        "javascriptreact"
+      ],
+      "dictionaries": ["en-gb"]
+    }
+  ],
+  "words": [
+    "Behavioural",
+    "POSTHOG",
+    "VITE",
+    "affordances",
+    "behaviour",
+    "fontstack",
+    "geolocated",
+    "mapbox",
+    "mapboxgl",
+    "maxzoom",
+    "minzoom",
+    "sonicthames"
+  ]
+}
