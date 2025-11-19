@@ -11,7 +11,8 @@ import type { MapRef } from "react-map-gl/mapbox"
 import { haversineDistanceMeters } from "@/lib/geo"
 import type { Category, Sound } from "../../domain/base"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
-import { computeZoomProgress } from "./zoomScale"
+import { metersToPixels, projectToScreen, syncCanvasSize } from "./mapCanvas"
+import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "./ripple"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -57,12 +58,8 @@ type RevealPoint = {
   readonly radiusMeters: number // Radius in meters (geographic distance)
 }
 const STORAGE_KEY = "sonic-thames-map-fog-reveals"
-const BASE_CYCLE_MS = 2000 // Base animation cycle duration in milliseconds
-const RIPPLE_FREQUENCY_DIVISOR = 4 // Ripple cycle is 1/4 frequency (4x slower)
+const RIPPLE_CYCLE_MS = 8000 // 8-second cycle (4x slower than base 2s)
 const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, independent of zoom
-const FOG_RIPPLE_MIN_SCALE = 1
-const FOG_RIPPLE_MAX_SCALE = 4
-const FOG_BASE_RIPPLE_RADIUS = 20
 
 const computeBoundsRevealRadius = (bounds: LngLatBounds, center: LngLat) => {
   const corners = [
@@ -221,8 +218,8 @@ export const MapFogOverlay = forwardRef<
 
         const last = lastMarkerPosRef.current
         if (last) {
-          const lastScreen = map.project([last.lng, last.lat])
-          const currentScreen = map.project([position.lng, position.lat])
+          const lastScreen = projectToScreen(map, last.lng, last.lat)
+          const currentScreen = projectToScreen(map, position.lng, position.lat)
           const distance = Math.hypot(
             currentScreen.x - lastScreen.x,
             currentScreen.y - lastScreen.y,
@@ -347,12 +344,7 @@ export const MapFogOverlay = forwardRef<
         const { width, height } = size
 
         // Handle retina displays - scale internal canvas resolution
-        const dpr = window.devicePixelRatio || 1
-        canvas.width = width * dpr
-        canvas.height = height * dpr
-        canvas.style.width = `${width}px`
-        canvas.style.height = `${height}px`
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        syncCanvasSize(canvas, ctx, width, height)
         ctx.clearRect(0, 0, width, height)
 
         // STEP 1: Fill entire canvas with opaque fog
@@ -367,15 +359,8 @@ export const MapFogOverlay = forwardRef<
           // Ripple effect animation to guide users to sound locations
           ctx.globalCompositeOperation = "source-over"
 
-          // Ripple animation parameters
           const time = performance.now()
-          const rippleCycle = BASE_CYCLE_MS * RIPPLE_FREQUENCY_DIVISOR // 8 second cycle (1/4 frequency = 4x slower)
           const currentZoom = map.getZoom()
-          const zoomProgress = computeZoomProgress(currentZoom)
-          const rippleZoomScaleBase =
-            FOG_RIPPLE_MIN_SCALE +
-            zoomProgress * (FOG_RIPPLE_MAX_SCALE - FOG_RIPPLE_MIN_SCALE)
-          const maxRippleRadius = FOG_BASE_RIPPLE_RADIUS // Maximum ripple radius at base zoom
 
           for (const sound of sounds) {
             // Skip filtered-out markers
@@ -383,30 +368,24 @@ export const MapFogOverlay = forwardRef<
               continue
             }
 
-            const screen = map.project([
+            const screen = projectToScreen(
+              map,
               sound.coordinates.lng,
               sound.coordinates.lat,
-            ])
+            )
 
             // Draw 2 ripples with offset phases for continuous effect
             for (let rippleIndex = 0; rippleIndex < 2; rippleIndex++) {
-              const phaseOffset = rippleIndex * 0.5 // 50% phase offset
-              const progress = (time / rippleCycle + phaseOffset) % 1.0 // 0 to 1
-
-              // Radius grows from 0 to max
-              const radius = progress * maxRippleRadius * rippleZoomScaleBase
-
-              // Opacity fades out as ripple expands (starts at 0.5, ends at 0)
-              const opacity = (1 - progress) * 0.5
-
-              if (opacity > 0.05) {
-                // Only draw if visible
-                ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`
-                ctx.lineWidth = 2
-                ctx.beginPath()
-                ctx.arc(screen.x, screen.y, radius, 0, Math.PI * 2)
-                ctx.stroke()
-              }
+              drawCanvasRipple(
+                ctx,
+                screen.x,
+                screen.y,
+                time,
+                rippleIndex,
+                RIPPLE_CYCLE_MS,
+                currentZoom,
+                FOG_RIPPLE_CONFIG,
+              )
             }
           }
 
@@ -417,23 +396,15 @@ export const MapFogOverlay = forwardRef<
           // Using geographic coordinates so they stay in place during pan/zoom
           const reveals = revealsRef.current
           if (reveals.length > 0) {
-            // Pre-calculate zoom-dependent conversion factor (optimization)
-            const currentZoom = map.getZoom()
-            const zoomFactor = 2 ** currentZoom
-
             for (let i = 0; i < reveals.length; i++) {
               const reveal = reveals[i]
               // Project geographic coordinates to screen pixels
-              const screen = map.project([reveal.lng, reveal.lat])
+              const screen = projectToScreen(map, reveal.lng, reveal.lat)
 
               // Calculate pixel radius from meters based on current zoom
-              // Using pre-calculated zoom factor to avoid repeated exponentiation
-              const metersPerPixel =
-                (156543.03392 * Math.cos((reveal.lat * Math.PI) / 180)) /
-                zoomFactor
               const radiusPixels = Math.max(
                 20,
-                reveal.radiusMeters / metersPerPixel,
+                metersToPixels(reveal.radiusMeters, reveal.lat, currentZoom),
               )
 
               drawRevealCircle(ctx, screen.x, screen.y, radiusPixels)

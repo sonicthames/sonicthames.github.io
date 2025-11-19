@@ -2,8 +2,9 @@ import type { Map as MapboxMapInstance } from "mapbox-gl"
 import { Application, Container, Graphics } from "pixi.js"
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import { projectToScreen, syncPixiRendererSize } from "./mapCanvas"
 import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
-import { computeZoomScale } from "./zoomScale"
+import { computeZoomScale, scaleAndClampRadius } from "./zoomScale"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
@@ -18,9 +19,6 @@ const AFTERIMAGE_INTERVAL_MS = 800
 const AFTERIMAGE_LIFETIME_MS = 1100
 const MAX_AFTERIMAGES = 6
 const AVATAR_FADE_DURATION_MS = 150
-
-const clampRadius = (value: number, min: number, max: number) =>
-  Math.max(min, Math.min(value, max))
 
 type Afterimage = {
   sprite: Graphics
@@ -128,21 +126,19 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
               return
             }
 
-            const mapContainer = currentMap.getContainer()
-            const cssWidth = mapContainer.clientWidth
-            const cssHeight = mapContainer.clientHeight
-            if (
-              app.screen.width !== cssWidth ||
-              app.screen.height !== cssHeight
-            ) {
-              app.renderer.resize(cssWidth, cssHeight)
-            }
+            syncPixiRendererSize(app, currentMap)
 
             const { lat: currentLat, lng: currentLng } = positionRef.current
-            const screenPoint = currentMap.project([currentLng, currentLat])
+            const screenPoint = projectToScreen(
+              currentMap,
+              currentLng,
+              currentLat,
+            )
             const zoomScale = computeZoomScale(currentMap.getZoom())
-            const scaledRadius = clampRadius(
-              BASE_USER_RADIUS * zoomScale,
+            const scaledRadius = scaleAndClampRadius(
+              BASE_USER_RADIUS,
+              zoomScale,
+              1,
               MIN_USER_RADIUS,
               MAX_USER_RADIUS,
             )
@@ -203,7 +199,11 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
                 }
                 continue
               }
-              const ghostPoint = currentMap.project([ghost.lng, ghost.lat])
+              const ghostPoint = projectToScreen(
+                currentMap,
+                ghost.lng,
+                ghost.lat,
+              )
               ghost.sprite.position.set(ghostPoint.x, ghostPoint.y)
               ghost.sprite.scale.set(scaledRadius)
               const lifeProgress =
