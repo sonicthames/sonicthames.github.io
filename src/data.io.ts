@@ -3,6 +3,7 @@ import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as D from "io-ts/Decoder"
 import { DateTime, Duration, Interval } from "luxon"
+import { LngLat } from "mapbox-gl"
 import type {
   HasDateTimeOption,
   HasIntervalOption,
@@ -72,11 +73,17 @@ export const D_Category = D.union(
   D.literal("Feel"),
 )
 
-const D_Coordinates = readonlyStruct(
+const D_Coordinates: D.Decoder<unknown, LngLat> = pipe(
   D.struct({
     lat: D.number,
     lng: D.number,
   }),
+  D.parse(({ lat, lng }) =>
+    E.tryCatch(
+      () => LngLat.convert([lng, lat]),
+      () => D.error({ lat, lng }, "Invalid coordinates"),
+    ),
+  ),
 )
 
 const D_SoundBase: D.Decoder<unknown, SoundBase> = readonlyStruct(

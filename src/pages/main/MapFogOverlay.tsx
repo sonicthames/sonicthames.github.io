@@ -44,7 +44,7 @@ interface MapFogOverlayProps {
 export interface MapFogOverlayHandle {
   restoreFog: () => void
   revealMap: () => void
-  trackUserPosition: (position: { lat: number; lng: number }) => void
+  trackUserPosition: (position: LngLat) => void
 }
 
 /**
@@ -60,6 +60,7 @@ type RevealPoint = {
 const STORAGE_KEY = "sonic-thames-map-fog-reveals"
 const RIPPLE_CYCLE_MS = 8000 // 8-second cycle (4x slower than base 2s)
 const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, independent of zoom
+const PERSIST_DEBOUNCE_MS = 400
 
 const computeBoundsRevealRadius = (bounds: LngLatBounds, center: LngLat) => {
   const corners = [
@@ -99,7 +100,7 @@ export const MapFogOverlay = forwardRef<
 
     // === MARKER POSITION TRACKING ===
     // Track the last marker position to detect movement
-    const lastMarkerPosRef = useRef<{ lat: number; lng: number } | null>(null)
+    const lastMarkerPosRef = useRef<LngLat | null>(null)
 
     // === VIEWPORT SIZE ===
     // Store as state so canvas can resize when viewport changes
@@ -130,16 +131,16 @@ export const MapFogOverlay = forwardRef<
     const lastRevealRef = useRef<RevealPoint | null>(null)
     /**
      * Debounced localStorage write.
-     * Uses requestAnimationFrame instead of setTimeout for better frame-aligned writes.
+     * Uses a short timeout to batch writes and avoid main-thread stalls during animations.
      * Only keeps most recent 200 reveals to prevent localStorage bloat.
      */
     const persistReveals = useCallback(() => {
       if (typeof window === "undefined") return
       if (persistTimeoutRef.current) {
-        cancelAnimationFrame(persistTimeoutRef.current)
+        window.clearTimeout(persistTimeoutRef.current)
       }
 
-      persistTimeoutRef.current = requestAnimationFrame(() => {
+      persistTimeoutRef.current = window.setTimeout(() => {
         try {
           const payload = JSON.stringify(revealsRef.current.slice(-200))
           window.localStorage.setItem(STORAGE_KEY, payload)
@@ -147,7 +148,7 @@ export const MapFogOverlay = forwardRef<
           // Silently fail on quota exceeded or privacy mode
         }
         persistTimeoutRef.current = null
-      })
+      }, PERSIST_DEBOUNCE_MS)
     }, [])
     // Memoized Mapbox map accessor
     const getMap = useCallback(() => mapRef.current?.getMap(), [mapRef])
@@ -212,7 +213,7 @@ export const MapFogOverlay = forwardRef<
     }, [])
 
     const revealAtPosition = useCallback(
-      (position: { lat: number; lng: number }) => {
+      (position: LngLat) => {
         const map = getMap()
         if (!map) return
 
@@ -239,10 +240,7 @@ export const MapFogOverlay = forwardRef<
 
         revealsRef.current = [...revealsRef.current, newReveal].slice(-200)
         lastRevealRef.current = newReveal
-        lastMarkerPosRef.current = {
-          lat: position.lat,
-          lng: position.lng,
-        }
+        lastMarkerPosRef.current = position
         persistReveals()
       },
       [getMap, persistReveals, revealSize],
@@ -283,13 +281,10 @@ export const MapFogOverlay = forwardRef<
 
           revealsRef.current = [reveal]
           lastRevealRef.current = reveal
-          lastMarkerPosRef.current = {
-            lat: center.lat,
-            lng: center.lng,
-          }
+          lastMarkerPosRef.current = center
           persistReveals()
         },
-        trackUserPosition: (position: { lat: number; lng: number }) => {
+        trackUserPosition: (position: LngLat) => {
           revealAtPosition(position)
         },
       }),
@@ -345,9 +340,8 @@ export const MapFogOverlay = forwardRef<
 
         // Handle retina displays - scale internal canvas resolution
         syncCanvasSize(canvas, ctx, width, height)
-        ctx.clearRect(0, 0, width, height)
 
-        // STEP 1: Fill entire canvas with opaque fog
+        // STEP 1: Fill entire canvas with opaque fog (no clearRect needed - we fill the entire canvas)
         ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(1, intensity)})`
         ctx.fillRect(0, 0, width, height)
 
@@ -438,7 +432,7 @@ export const MapFogOverlay = forwardRef<
     useEffect(
       () => () => {
         if (persistTimeoutRef.current) {
-          cancelAnimationFrame(persistTimeoutRef.current)
+          window.clearTimeout(persistTimeoutRef.current)
         }
       },
       [],

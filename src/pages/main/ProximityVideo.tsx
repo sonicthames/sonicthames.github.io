@@ -9,7 +9,6 @@ const PLAYER_WIDTH = 320
 const PLAYER_HEIGHT = 180
 const DOCK_MARGIN = 12
 const ORIGIN_PREVIEW_SCALE = 0.01
-const INITIAL_SCALE = 0.1
 const MOBILE_PREVIEW_SCALE = 0.6
 const PORTRAIT_MOBILE_MEDIA_QUERY =
   "(max-width: 768px) and (orientation: portrait)"
@@ -85,8 +84,9 @@ const buildLayouts = (
     sound.coordinates.lat,
   ])
 
-  const originWidth = Math.max(1, PLAYER_WIDTH * ORIGIN_PREVIEW_SCALE)
-  const originHeight = Math.max(1, PLAYER_HEIGHT * ORIGIN_PREVIEW_SCALE)
+  // Use full player dimensions for origin rect - scale will be applied via CSS transform
+  const originWidth = PLAYER_WIDTH
+  const originHeight = PLAYER_HEIGHT
   const originLeftRelative = clamp(
     screenPoint.x - originWidth / 2,
     0,
@@ -334,7 +334,7 @@ export const ProximityVideo = ({ sound, mapRef }: Props) => {
     if (isPortraitMobile) {
       return isDocked ? 1 : MOBILE_PREVIEW_SCALE
     }
-    return isDocked ? 1.12 : INITIAL_SCALE
+    return isDocked ? 1 : ORIGIN_PREVIEW_SCALE
   }, [isDocked, isPortraitMobile])
 
   if (!displayedSound || !layouts) {

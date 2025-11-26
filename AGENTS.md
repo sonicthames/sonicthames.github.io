@@ -125,10 +125,13 @@ For full server options, run `pnpm exec mcp-server-playwright --help`.
 ## Communication Norms
 
 - State assumptions, uncertainties, and risks explicitly.
+- Ask clarifying questions whenever requirements feel fuzzy or multiple architectural routes are plausible.
 - Keep hand-offs concise but complete; highlight what was verified.
 - Suggest concrete next steps, not vague “could look at…” statements.
 - Preserve prior architectural decisions unless instructions override them.
 - Reference files with relative Markdown links; no absolute paths or external URLs.
+- Keep descriptions as terse as possible without losing essential context.
+- When documenting code or decisions, favour terse JSDoc comments and avoid verbose explanations—treat the repository as self-documenting where possible.
 
 Tone: factual, direct, professional. No anthropomorphism, filler, or informal chatter.
 

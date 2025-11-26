@@ -1,14 +1,8 @@
-export interface GeographicCoordinate {
-  readonly lat: number
-  readonly lng: number
-}
+import type { LngLat } from "mapbox-gl"
 
 const toRadians = (value: number) => (value * Math.PI) / 180
 
-export const haversineDistanceMeters = (
-  from: GeographicCoordinate,
-  to: GeographicCoordinate,
-): number => {
+export const haversineDistanceMeters = (from: LngLat, to: LngLat): number => {
   const R = 6371000 // Earth radius in meters
   const dLat = toRadians(to.lat - from.lat)
   const dLon = toRadians(to.lng - from.lng)

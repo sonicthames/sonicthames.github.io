@@ -178,9 +178,12 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
               }
             } else {
               ghostSpawnTimerRef.current = 0
+              // Ensure avatar is always visible when not moving
+              if (targetAvatarAlphaRef.current !== 1) {
+                targetAvatarAlphaRef.current = 1
+              }
               if (isMovingRef.current) {
                 isMovingRef.current = false
-                targetAvatarAlphaRef.current = 1
                 afterimagesRef.current.forEach((ghost) => {
                   if (!ghost.sprite.destroyed) {
                     ghost.sprite.destroy()
@@ -216,7 +219,7 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
 
             const avatarAlpha = avatarAlphaRef.current
             const targetAlpha = targetAvatarAlphaRef.current
-            if (avatarAlpha !== targetAlpha) {
+            if (Math.abs(avatarAlpha - targetAlpha) > 0.001) {
               const direction = targetAlpha > avatarAlpha ? 1 : -1
               const deltaAlpha = (deltaMs / AVATAR_FADE_DURATION_MS) * direction
               let nextAlpha = avatarAlpha + deltaAlpha
@@ -227,9 +230,10 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
                 nextAlpha = targetAlpha
               }
               avatarAlphaRef.current = nextAlpha
-              avatarGraphic.alpha = nextAlpha
+              avatarGraphic.alpha = Math.max(0, Math.min(1, nextAlpha))
             } else {
-              avatarGraphic.alpha = targetAlpha
+              avatarAlphaRef.current = targetAlpha
+              avatarGraphic.alpha = Math.max(0, Math.min(1, targetAlpha))
             }
           })
         } catch (err) {

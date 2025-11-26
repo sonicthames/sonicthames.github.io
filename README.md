@@ -25,6 +25,7 @@ The application features recordings of various Thames locations including wooden
 ## Tech Stack
 
 ### Frontend
+
 - **React 17** - UI framework
 - **TypeScript** - Type safety
 - **Tailwind CSS v3** - Utility-first CSS framework
@@ -35,12 +36,14 @@ The application features recordings of various Thames locations including wooden
 - **Mapbox GL** - Interactive mapping
 
 ### State Management & Utilities
+
 - **RxJS** - Reactive programming
 - **fp-ts** - Functional programming utilities
 - **io-ts** - Runtime type validation
 - **Luxon** - Date/time handling
 
 ### Build & Development
+
 - **Vite** - Build tool and dev server
 - **Biome** - Linting and formatting
 - **Vitest** - Testing framework
@@ -215,10 +218,7 @@ Sound recordings are defined in [src/data.json](src/data.json) with the followin
   duration: string;           // ISO 8601 duration (e.g., "PT01M29S")
   location: string | null;    // Location name
   access: string | null;      // Access instructions
-  coordinates: {
-    lat: number;              // Latitude
-    lng: number;              // Longitude
-  };
+  coordinates: LngLat;
   dateTime?: string;          // ISO timestamp
   interval?: string;          // ISO interval
   videoSrc: string;           // YouTube video ID
@@ -247,6 +247,7 @@ pnpm deploy
 ### Environment Variables for Deployment
 
 The deployment script accepts the following environment variable names (in order of priority):
+
 - `VITE_MAPBOX_TOKEN`
 - `MAPBOX_TOKEN`
 - `MAPBOX_ACCESS_TOKEN`
@@ -265,11 +266,13 @@ The project includes comprehensive accessibility features:
 The application is optimized for modern browsers:
 
 **Production:**
+
 - Browsers with >0.2% market share
 - Excludes dead browsers
 - Excludes Opera Mini
 
 **Development:**
+
 - Latest Chrome
 - Latest Firefox
 - Latest Safari

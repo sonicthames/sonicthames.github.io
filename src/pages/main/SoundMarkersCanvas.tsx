@@ -25,6 +25,7 @@ interface SoundMarker {
   sound: Sound
   ripples: PixiRipple[]
   dot: Graphics
+  screenPosition: { x: number; y: number }
 }
 
 const CATEGORY_COLORS = {
@@ -58,10 +59,20 @@ export const SoundMarkersCanvas = ({
   const markersRef = useRef<SoundMarker[]>([])
   const hoveredSoundRef = useRef<Sound | null>(null)
   const playingSoundRef = useRef<Sound | null>(playingSound)
+  const filtersRef = useRef<readonly Category[]>(filters)
+  const onSoundClickRef = useRef(onSoundClick)
 
   useEffect(() => {
     playingSoundRef.current = playingSound
   }, [playingSound])
+
+  useEffect(() => {
+    filtersRef.current = filters
+  }, [filters])
+
+  useEffect(() => {
+    onSoundClickRef.current = onSoundClick
+  }, [onSoundClick])
 
   useEffect(() => {
     const map = mapRef.current?.getMap()
@@ -73,8 +84,7 @@ export const SoundMarkersCanvas = ({
 
     const handlePointerMove = (event: PointerEvent) => {
       const appInstance = appRef.current
-      const currentMap = mapRef.current?.getMap()
-      if (!currentMap || !appInstance?.canvas) {
+      if (!mapRef.current?.getMap() || !appInstance?.canvas) {
         hoveredSoundRef.current = null
         return
       }
@@ -84,13 +94,9 @@ export const SoundMarkersCanvas = ({
       const y = event.clientY - rect.top
       let nearest: Sound | null = null
       for (const marker of markersRef.current) {
-        if (!filters.includes(marker.sound.category)) continue
-        const point = projectToScreen(
-          currentMap,
-          marker.sound.coordinates.lng,
-          marker.sound.coordinates.lat,
-        )
-        const distance = Math.hypot(x - point.x, y - point.y)
+        if (!filtersRef.current.includes(marker.sound.category)) continue
+        const { x: markerX, y: markerY } = marker.screenPosition
+        const distance = Math.hypot(x - markerX, y - markerY)
         if (distance <= 36) {
           nearest = marker.sound
           break
@@ -105,26 +111,20 @@ export const SoundMarkersCanvas = ({
 
     const handleClick = (event: MouseEvent) => {
       const appInstance = appRef.current
-      const currentMap = mapRef.current?.getMap()
-      if (!currentMap || !appInstance?.canvas) return
+      if (!mapRef.current?.getMap() || !appInstance?.canvas) return
 
       const rect = appInstance.canvas.getBoundingClientRect()
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
 
       for (const marker of markersRef.current) {
-        if (!filters.includes(marker.sound.category)) continue
+        if (!filtersRef.current.includes(marker.sound.category)) continue
 
-        const point = projectToScreen(
-          currentMap,
-          marker.sound.coordinates.lng,
-          marker.sound.coordinates.lat,
-        )
-
-        const distance = Math.hypot(x - point.x, y - point.y)
+        const { x: markerX, y: markerY } = marker.screenPosition
+        const distance = Math.hypot(x - markerX, y - markerY)
 
         if (distance <= 36) {
-          onSoundClick(marker.sound)
+          onSoundClickRef.current(marker.sound)
           return
         }
       }
@@ -171,7 +171,12 @@ export const SoundMarkersCanvas = ({
           const dot = new Graphics()
           app.stage.addChild(dot)
 
-          markers.push({ sound, ripples, dot })
+          markers.push({
+            sound,
+            ripples,
+            dot,
+            screenPosition: { x: 0, y: 0 },
+          })
         }
         markersRef.current = markers
 
@@ -190,7 +195,7 @@ export const SoundMarkersCanvas = ({
           const zoomScale = computeZoomScale(currentZoom)
 
           for (const marker of markersRef.current) {
-            if (!filters.includes(marker.sound.category)) {
+            if (!filtersRef.current.includes(marker.sound.category)) {
               for (const ripple of marker.ripples) {
                 ripple.graphics.clear()
               }
@@ -203,6 +208,7 @@ export const SoundMarkersCanvas = ({
               marker.sound.coordinates.lng,
               marker.sound.coordinates.lat,
             )
+            marker.screenPosition = point
             const color = CATEGORY_COLORS[marker.sound.category]
 
             const categoryRadiusScale =
@@ -274,7 +280,7 @@ export const SoundMarkersCanvas = ({
 
       markersRef.current = []
     }
-  }, [mapRef, sounds, filters, onSoundClick])
+  }, [mapRef, sounds])
 
   return <div ref={containerRef} className={canvasContainer} />
 }

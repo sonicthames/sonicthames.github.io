@@ -115,10 +115,7 @@ const readLastUserPosition = () => {
       typeof parsed.lng === "number" &&
       Number.isFinite(parsed.lng)
     ) {
-      return {
-        lat: parsed.lat,
-        lng: parsed.lng,
-      }
+      return LngLat.convert([parsed.lng, parsed.lat])
     }
   } catch {
     // swallow serialization/localStorage errors
@@ -127,7 +124,7 @@ const readLastUserPosition = () => {
   return null
 }
 
-const persistLastUserPosition = (position: { lat: number; lng: number }) => {
+const persistLastUserPosition = (position: LngLat) => {
   if (typeof window === "undefined") {
     return
   }
@@ -424,19 +421,13 @@ export const MainMap = ({ sounds }: Props) => {
     const lat = Number.parseFloat(searchParams.get("lat") || "")
     const lng = Number.parseFloat(searchParams.get("lng") || "")
     if (Number.isFinite(lat) && Number.isFinite(lng)) {
-      return {
-        lat,
-        lng,
-      }
+      return LngLat.convert([lng, lat])
     }
     const storedPosition = readLastUserPosition()
     if (storedPosition) {
       return storedPosition
     }
-    return {
-      lat: center.lat,
-      lng: center.lng,
-    }
+    return center
   }, [location.search])
 
   const userPositionRef = useRef(initialUserPosition)
@@ -444,9 +435,18 @@ export const MainMap = ({ sounds }: Props) => {
   const [proximitySound, setProximitySound] = useState<Sound | null>(null)
 
   const routeStateRef = useRef<RouteState | null>(null)
+  const routeDestinationRef = useRef<LngLat | null>(null)
   const routeAnimationFrameRef = useRef<number | null>(null)
   const lastFrameTimeRef = useRef<number | null>(null)
   const directionsAbortControllerRef = useRef<AbortController | null>(null)
+  const lastPersistedUserPositionRef = useRef<LngLat | null>(null)
+  const lastPersistTimeRef = useRef<number>(0)
+  const lastProximityCheckRef = useRef<LngLat | null>(null)
+  const proximitySounds = useMemo(
+    // Stable list keeps proximity checks predictable and avoids re-filtering per frame
+    () => sounds.filter((sound) => sound.playOnProximity),
+    [sounds],
+  )
 
   const cancelRouteAnimation = useCallback(() => {
     if (routeAnimationFrameRef.current !== null) {
@@ -455,18 +455,42 @@ export const MainMap = ({ sounds }: Props) => {
     }
     lastFrameTimeRef.current = null
     routeStateRef.current = null
+    routeDestinationRef.current = null
     userPositionHandleRef.current?.fadeIn()
   }, [])
 
   const evaluateProximity = useCallback(
-    (position: { lat: number; lng: number }) => {
+    (position: LngLat) => {
+      const lastChecked = lastProximityCheckRef.current
+      if (
+        lastChecked &&
+        haversineDistanceMeters(lastChecked, position) < 15 // skip tiny movements
+      ) {
+        return
+      }
+      lastProximityCheckRef.current = position
+
+      // If we're currently traveling on a route, don't open videos until we reach the destination
+      const isMoving = routeStateRef.current !== null
+      const destination = routeDestinationRef.current
+
+      if (isMoving && destination) {
+        // Check if we've reached the destination (within 10 meters)
+        const distanceToDestination = haversineDistanceMeters(
+          position,
+          destination,
+        )
+        const hasReachedDestination = distanceToDestination < 10
+
+        // Only evaluate proximity when we've reached the destination
+        if (!hasReachedDestination) {
+          return
+        }
+      }
+
       let nearest: { sound: Sound; distance: number } | null = null
 
-      for (const sound of sounds) {
-        if (!sound.playOnProximity) {
-          continue
-        }
-
+      for (const sound of proximitySounds) {
         const distance = haversineDistanceMeters(position, sound.coordinates)
 
         if (nearest === null || distance < nearest.distance) {
@@ -474,7 +498,11 @@ export const MainMap = ({ sounds }: Props) => {
         }
       }
 
-      if (nearest && nearest.distance <= PROXIMITY_THRESHOLD_METERS) {
+      if (
+        nearest &&
+        Number.isFinite(nearest.distance) &&
+        nearest.distance <= PROXIMITY_THRESHOLD_METERS
+      ) {
         setProximitySound((prev) =>
           prev?.title === nearest?.sound.title ? prev : nearest.sound,
         )
@@ -483,15 +511,27 @@ export const MainMap = ({ sounds }: Props) => {
 
       setProximitySound(null)
     },
-    [sounds],
+    [proximitySounds],
   )
 
   const updateTrackedUserPosition = useCallback(
-    (position: { lat: number; lng: number }) => {
+    (position: LngLat) => {
       userPositionRef.current = position
       fogOverlayRef.current?.trackUserPosition(position)
       evaluateProximity(position)
-      persistLastUserPosition(position)
+      const now =
+        typeof performance !== "undefined" ? performance.now() : Date.now()
+      const lastPersisted = lastPersistedUserPositionRef.current
+      const sinceLastPersist = now - lastPersistTimeRef.current
+      const movedSincePersist = lastPersisted
+        ? haversineDistanceMeters(lastPersisted, position)
+        : Infinity
+
+      if (!lastPersisted || sinceLastPersist > 500 || movedSincePersist > 5) {
+        persistLastUserPosition(position)
+        lastPersistedUserPositionRef.current = position
+        lastPersistTimeRef.current = now
+      }
     },
     [evaluateProximity],
   )
@@ -539,21 +579,19 @@ export const MainMap = ({ sounds }: Props) => {
           const t = routeState.distanceAlongSegment / segment.distance
           const lat = segment.from.lat + (segment.to.lat - segment.from.lat) * t
           const lng = segment.from.lng + (segment.to.lng - segment.from.lng) * t
-          updateTrackedUserPosition({ lat, lng })
+          updateTrackedUserPosition(LngLat.convert([lng, lat]))
           distanceToTravel = 0
         } else {
           distanceToTravel -= remainingInSegment
           routeState.currentSegmentIndex += 1
           routeState.distanceAlongSegment = 0
-          updateTrackedUserPosition({
-            lat: segment.to.lat,
-            lng: segment.to.lng,
-          })
+          updateTrackedUserPosition(segment.to)
         }
       }
 
       if (routeState.currentSegmentIndex >= routeState.segments.length) {
         routeStateRef.current = null
+        routeDestinationRef.current = null
         routeAnimationFrameRef.current = null
         lastFrameTimeRef.current = null
         userPositionHandleRef.current?.fadeIn()
@@ -568,16 +606,25 @@ export const MainMap = ({ sounds }: Props) => {
   const startRouteAnimation = useCallback(
     (geometry: LineString) => {
       const segments = buildRouteSegments(geometry.coordinates)
+      const finalCoordinate =
+        geometry.coordinates[geometry.coordinates.length - 1]
+
+      // Store the destination for proximity evaluation
+      if (finalCoordinate) {
+        routeDestinationRef.current = LngLat.convert([
+          finalCoordinate[0],
+          finalCoordinate[1],
+        ])
+      }
+
       if (segments.length === 0) {
-        const finalCoordinate =
-          geometry.coordinates[geometry.coordinates.length - 1]
         if (finalCoordinate) {
-          updateTrackedUserPosition({
-            lat: finalCoordinate[1],
-            lng: finalCoordinate[0],
-          })
+          updateTrackedUserPosition(
+            LngLat.convert([finalCoordinate[0], finalCoordinate[1]]),
+          )
         }
         userPositionHandleRef.current?.fadeIn()
+        routeDestinationRef.current = null
         return
       }
 
@@ -761,6 +808,11 @@ export const MainMap = ({ sounds }: Props) => {
     return () => subscription.unsubscribe()
   }, [filters$])
 
+  const handleSoundClick = useCallback((sound: Sound) => {
+    // Stable callback prevents SoundMarkersCanvas from reinitializing Pixi on every render
+    setHoverSoundO(O.some(sound))
+  }, [])
+
   return (
     <MapboxMap
       ref={mapRef}
@@ -781,9 +833,7 @@ export const MainMap = ({ sounds }: Props) => {
         sounds={sounds}
         filters={filters}
         playingSound={O.toNullable(soundO)}
-        onSoundClick={(sound) => {
-          setHoverSoundO(O.some(sound))
-        }}
+        onSoundClick={handleSoundClick}
       />
       {pipe(
         hoverSoundO,
