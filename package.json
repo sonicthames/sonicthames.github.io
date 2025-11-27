@@ -75,6 +75,7 @@
     "compiler:verify": "pnpm run build && pnpm run lint:compiler && pnpm run test",
     "deploy": "tsx scripts/deploy.ts",
     "dev": "vite",
+    "dev:test": "vite --host 127.0.0.1 --port 4747",
     "eslint": "eslint .",
     "eslint:compiler": "eslint . --max-warnings=0",
     "format:check": "biome check",

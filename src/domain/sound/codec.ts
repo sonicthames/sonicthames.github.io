@@ -4,11 +4,7 @@ import * as O from "fp-ts/Option"
 import * as D from "io-ts/Decoder"
 import { DateTime, Duration, Interval } from "luxon"
 import { LngLat } from "mapbox-gl"
-import type {
-  HasDateTimeOption,
-  HasIntervalOption,
-  SoundBase,
-} from "./domain/base"
+import type { HasDateTimeOption, HasIntervalOption, SoundBase } from "./types"
 
 type IsoValidatable = {
   readonly invalidReason: string | null

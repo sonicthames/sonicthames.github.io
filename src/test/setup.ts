@@ -10,6 +10,31 @@ class MockLngLat {
     this.lng = lng
     this.lat = lat
   }
+
+  static convert(
+    value:
+      | MockLngLat
+      | readonly [number, number]
+      | { readonly lng: number; readonly lat: number },
+  ): MockLngLat {
+    if (value instanceof MockLngLat) {
+      return value
+    }
+    if (Array.isArray(value)) {
+      const [lng, lat] = value
+      return new MockLngLat(lng, lat)
+    }
+    if (typeof value === "object" && value !== null) {
+      return new MockLngLat(value.lng, value.lat)
+    }
+    throw new Error("Invalid coordinates")
+  }
+
+  distanceTo(other: MockLngLat): number {
+    const dx = other.lng - this.lng
+    const dy = other.lat - this.lat
+    return Math.sqrt(dx * dx + dy * dy) * 111_000
+  }
 }
 
 class MockLngLatBounds {
@@ -47,3 +72,40 @@ vi.mock("react-map-gl/mapbox", () => {
     Marker,
   }
 })
+
+if (typeof window.matchMedia !== "function") {
+  window.matchMedia = (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    addListener: () => {},
+    removeListener: () => {},
+    dispatchEvent: () => false,
+  })
+}
+
+const noop = () => {}
+
+if (typeof window.scrollTo !== "function") {
+  Object.defineProperty(window, "scrollTo", {
+    configurable: true,
+    writable: true,
+    value: noop,
+  })
+}
+
+if (typeof globalThis.scrollTo !== "function") {
+  // @ts-expect-error jsdom global typing
+  globalThis.scrollTo = noop
+}
+
+if (typeof window.ResizeObserver !== "function") {
+  class MockResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  window.ResizeObserver = MockResizeObserver as typeof ResizeObserver
+}

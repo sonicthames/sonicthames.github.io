@@ -11,15 +11,17 @@ import type { MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { useLocation } from "react-router-dom"
 import { BehaviorSubject, Subject } from "rxjs"
+import { H2, H3 } from "@/components/Typography"
+import type { Category, Sound } from "@/domain/sound"
+import { showDateTime, showInterval } from "@/domain/sound"
+import { Icon } from "@/icon"
 import { haversineDistanceMeters } from "@/lib/geo"
-import { H2, H3 } from "../../components/Typography"
-import type { Category, Sound } from "../../domain/base"
-import { showDateTime, showInterval } from "../../domain/base"
-import { Icon } from "../../icon"
-import type { GoTo } from "../../lib/map"
-import { lazyUnsubscribe } from "../../lib/rxjs"
-import { brandColors, colorToCssHex } from "../../theme/colors"
-import { Hover } from "./Hover"
+import type { GoTo } from "@/lib/map"
+import { lazyUnsubscribe } from "@/lib/rxjs"
+import { brandColors, colorToCssHex } from "@/theme/colors"
+import { Hover } from "./components/Hover/Hover"
+import { Playlist } from "./components/Playlist/Playlist"
+import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
   debugControls,
   filterButton,
@@ -35,15 +37,13 @@ import {
   srOnly,
   videoFrame,
   youtubeLink,
-} from "./Map.css"
-import type { MapFogOverlayHandle } from "./MapFogOverlay"
-import { MapFogOverlay } from "./MapFogOverlay"
-import { Playlist } from "./Playlist"
-import { ProximityVideo } from "./ProximityVideo"
-import { SoundMarkersCanvas } from "./SoundMarkersCanvas"
-import type { UserPositionHandle } from "./UserPositionCanvas"
-import { UserPositionCanvas } from "./UserPositionCanvas"
-import { ZOOM_MIN_LEVEL } from "./zoomScale"
+} from "./MainMap.css"
+import type { MapFogOverlayHandle } from "./overlays/Fog/MapFogOverlay"
+import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
+import { SoundMarkersCanvas } from "./overlays/SoundMarkers/SoundMarkersCanvas"
+import type { UserPositionHandle } from "./overlays/UserPosition/UserPositionCanvas"
+import { UserPositionCanvas } from "./overlays/UserPosition/UserPositionCanvas"
+import { ProximityVideo } from "./video/ProximityVideo"
 
 const EnvDecoder = D.struct({
   VITE_MAPBOX_TOKEN: pipe(

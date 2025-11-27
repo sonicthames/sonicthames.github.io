@@ -1,7 +1,7 @@
 import type { CSSProperties } from "react"
 import { useEffect, useMemo, useRef, useState, ViewTransition } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
-import type { Sound } from "../../domain/base"
+import type { Sound } from "@/domain/sound"
 import { proximityVideo, proximityVideoFrame } from "./ProximityVideo.css"
 import { PROXIMITY_VIDEO_TRANSITION_DURATION_MS } from "./proximityVideoConstants"
 

@@ -2,9 +2,9 @@ import type { Map as MapboxMapInstance } from "mapbox-gl"
 import { Application, Container, Graphics } from "pixi.js"
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
-import { projectToScreen, syncPixiRendererSize } from "./mapCanvas"
+import { projectToScreen, syncPixiRendererSize } from "../../lib/mapCanvas"
+import { computeZoomScale, scaleAndClampRadius } from "../../lib/zoomScale"
 import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
-import { computeZoomScale, scaleAndClampRadius } from "./zoomScale"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>

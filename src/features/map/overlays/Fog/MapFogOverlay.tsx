@@ -8,11 +8,15 @@ import {
   useState,
 } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import type { Category, Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
-import type { Category, Sound } from "../../domain/base"
+import {
+  metersToPixels,
+  projectToScreen,
+  syncCanvasSize,
+} from "../../lib/mapCanvas"
+import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "../../lib/ripple"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
-import { metersToPixels, projectToScreen, syncCanvasSize } from "./mapCanvas"
-import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "./ripple"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -441,7 +445,11 @@ export const MapFogOverlay = forwardRef<
     if (!enabled) return null
 
     return (
-      <div ref={containerRef} className={fogOverlayContainer}>
+      <div
+        ref={containerRef}
+        className={fogOverlayContainer}
+        data-testid="map-fog-overlay"
+      >
         <canvas ref={canvasRef} className={fogCanvas} />
       </div>
     )

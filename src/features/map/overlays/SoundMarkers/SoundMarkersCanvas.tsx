@@ -1,17 +1,17 @@
 import { Application, Graphics } from "pixi.js"
 import { useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import type { Category, Sound } from "@/domain/sound"
 import { brandColors } from "@/theme/colors"
-import type { Category, Sound } from "../../domain/base"
-import { projectToScreen, syncPixiRendererSize } from "./mapCanvas"
-import type { PixiRipple } from "./ripple"
+import { projectToScreen, syncPixiRendererSize } from "../../lib/mapCanvas"
+import type { PixiRipple } from "../../lib/ripple"
 import {
   createPixiRipples,
   SOUND_MARKER_RIPPLE_CONFIG,
   updatePixiRipple,
-} from "./ripple"
+} from "../../lib/ripple"
+import { computeZoomScale, scaleAndClampRadius } from "../../lib/zoomScale"
 import { canvasContainer, pixiCanvas } from "./SoundMarkersCanvas.css"
-import { computeZoomScale, scaleAndClampRadius } from "./zoomScale"
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
@@ -282,5 +282,11 @@ export const SoundMarkersCanvas = ({
     }
   }, [mapRef, sounds])
 
-  return <div ref={containerRef} className={canvasContainer} />
+  return (
+    <div
+      ref={containerRef}
+      className={canvasContainer}
+      data-testid="sound-markers-layer"
+    />
+  )
 }

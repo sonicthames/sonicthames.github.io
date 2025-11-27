@@ -29,6 +29,7 @@ pnpm dev  # http://localhost:3001
 ```bash
 # Development
 pnpm dev              # Start dev server with hot reload
+pnpm dev:test         # Start dev server on port 4747 for Playwright
 pnpm build            # Production build
 pnpm preview          # Preview production build
 pnpm clean            # Remove build artifacts
@@ -37,6 +38,7 @@ pnpm clean            # Remove build artifacts
 pnpm typecheck        # TypeScript type checking
 pnpm lint             # Lint with Biome
 pnpm test             # Run tests
+pnpm exec playwright test  # Run Playwright integration tests
 pnpm format           # Auto-fix formatting
 pnpm format:check     # Check formatting
 
@@ -55,13 +57,13 @@ pnpm deploy           # Build and deploy to GitHub Pages (requires VITE_MAPBOX_T
 ```
 src/
 ├── components/ui/    # Reusable UI components (Button, Dialog, Link, etc.)
-├── domain/           # Domain types (Sound, Category, Location)
+├── domain/           # Domain types and codecs (sound model, etc.)
+├── features/map/     # Map experience components, overlays, and lib code
 ├── icon/generated/   # Auto-generated icons (from static/icons/)
 ├── lib/              # Utilities (RxJS operators, routing, helpers)
-├── pages/            # Page components (main, sound, sounds, about, etc.)
+├── pages/            # Page components (sound, sounds, about, etc.)
 ├── styles/           # Design tokens (theme.css.ts) and global styles
 ├── data.json         # Sound recordings content
-├── data.io.ts        # Runtime validation with io-ts
 └── index.tsx         # App entry point
 
 Key files:
@@ -75,25 +77,30 @@ Key files:
 ## Common Tasks
 
 ### Add Sound Recording
+
 1. Edit `src/data.json` and add entry
 2. Run `pnpm typecheck && pnpm test` to validate
 
 ### Add UI Component
+
 1. Create `src/components/ui/ComponentName.tsx`
 2. Export from `src/components/ui/index.ts`
 3. Import via `@/components/ui`
 
 ### Add Icon
+
 1. Add SVG to `static/icons/`
 2. Run `pnpm build-icons`
 3. Import from `@/icon/generated/IconName`
 
 ### Update Design Tokens
+
 Edit `src/styles/theme.css.ts` and update Tailwind config if needed
 
 ### Update Data Schema
+
 1. Edit `src/data.json`
-2. Update codecs in `src/data.io.ts`
+2. Update codecs in `src/domain/sound/codec.ts`
 3. Run `pnpm typecheck && pnpm test`
 
 ## Environment Variables
@@ -108,17 +115,30 @@ VITE_MAPBOX_TOKEN=pk.eyJ1IjoieW91ciIsImEiOiJjbHh4eHh4In0.xxxxx
 ## Debugging
 
 ### Map not loading
+
 Check `.env` has `VITE_MAPBOX_TOKEN` and restart dev server
 
 ### Type errors after data.json changes
-Update codecs in `src/data.io.ts` to match new schema
+
+Update codecs in `src/domain/sound/codec.ts` to match new schema
 
 ### Build fails but dev works
+
 ```bash
 pnpm clean && pnpm build
 ```
 
+### Integration tests
+
+Playwright tests live under `playwright/` and launch a browser against `pnpm dev:test`:
+
+```bash
+pnpm exec playwright install        # once per environment
+pnpm exec playwright test           # runs browser tests with a dedicated dev server
+```
+
 ### Tests failing after dependency update
+
 ```bash
 rm -rf node_modules && pnpm install
 ```
@@ -142,7 +162,6 @@ ssh-add -l                         # verify the key is available
 
 Use `git commit --no-gpg-sign` to bypass signing for a single commit when troubleshooting.
 
-
 ## Tech Stack Reference
 
 - **React 17** - UI framework
@@ -161,11 +180,13 @@ Use `git commit --no-gpg-sign` to bypass signing for a single commit when troubl
 ## IDE Setup (VS Code)
 
 Recommended extensions:
+
 - Biome (`biomejs.biome`)
 - Tailwind CSS IntelliSense
 - TypeScript and JavaScript Language Features (built-in)
 
 `.vscode/settings.json`:
+
 ```json
 {
   "editor.defaultFormatter": "biomejs.biome",

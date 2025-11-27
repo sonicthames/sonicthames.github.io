@@ -3,9 +3,9 @@ import { constFalse, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import type { Subject } from "rxjs"
-import type { Sound } from "../../domain/base"
-import { Icon } from "../../icon"
-import type { Coordinate, GoTo } from "../../lib/map"
+import type { Sound } from "@/domain/sound"
+import { Icon } from "@/icon"
+import type { Coordinate, GoTo } from "@/lib/map"
 import {
   iconButton,
   playlist,
@@ -29,7 +29,7 @@ export const PlaylistItem = ({
   focused = false,
 }: PlaylistItemProps) => {
   return (
-    <li className={playlistItem({ focused })}>
+    <li className={playlistItem({ focused })} data-sound-title={name}>
       <button
         type="button"
         onClick={() => play$.next(name)}
@@ -78,7 +78,7 @@ interface PlaylistProps {
 export const Playlist = ({ goTo$, play$, soundO, sounds }: PlaylistProps) => {
   return (
     <div>
-      <ul className={playlist}>
+      <ul className={playlist} data-testid="map-playlist">
         {pipe(
           sounds,
           RA.map(({ title, coordinates }) => (

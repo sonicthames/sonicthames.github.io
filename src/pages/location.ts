@@ -1,6 +1,6 @@
 import type { Show } from "fp-ts/Show"
 import * as S from "fp-ts/string"
-import type { Sound } from "../domain/base"
+import type { Sound } from "../domain/sound"
 import type { AppRoutes } from "../lib/routing"
 import { routePath } from "../lib/routing"
 

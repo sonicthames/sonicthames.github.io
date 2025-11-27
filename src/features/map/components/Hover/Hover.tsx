@@ -2,13 +2,13 @@ import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import type { Subject } from "rxjs"
+import { H3 } from "@/components/Typography"
 import { Button } from "@/components/ui"
+import type { Sound } from "@/domain/sound"
+import { showDateTime, showInterval } from "@/domain/sound"
+import { Icon } from "@/icon"
 import { cn } from "@/lib/utils"
-import { H3 } from "../../components/Typography"
-import type { Sound } from "../../domain/base"
-import { showDateTime, showInterval } from "../../domain/base"
-import { Icon } from "../../icon"
-import { controlIconSize } from "../../theme/spacing"
+import { controlIconSize } from "@/theme/spacing"
 import {
   bodyContainer,
   hoverCard,
