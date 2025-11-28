@@ -24,10 +24,8 @@ class MockLngLat {
       const [lng, lat] = value
       return new MockLngLat(lng, lat)
     }
-    if (typeof value === "object" && value !== null) {
-      return new MockLngLat(value.lng, value.lat)
-    }
-    throw new Error("Invalid coordinates")
+    const obj = value as { readonly lng: number; readonly lat: number }
+    return new MockLngLat(obj.lng, obj.lat)
   }
 
   distanceTo(other: MockLngLat): number {
@@ -97,7 +95,6 @@ if (typeof window.scrollTo !== "function") {
 }
 
 if (typeof globalThis.scrollTo !== "function") {
-  // @ts-expect-error jsdom global typing
   globalThis.scrollTo = noop
 }
 

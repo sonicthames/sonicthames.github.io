@@ -1,7 +1,6 @@
 import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
-import type { Subject } from "rxjs"
 import { H3 } from "@/components/Typography"
 import { Button } from "@/components/ui"
 import type { Sound } from "@/domain/sound"
@@ -24,17 +23,17 @@ import {
 interface Props {
   readonly sound: Sound
   readonly className?: string
-  readonly close$: Subject<void>
-  readonly play$: Subject<string>
+  readonly onClose: () => void
+  readonly onPlay: (soundTitle: string) => void
 }
 
-export const Hover = ({ sound, close$, play$, className }: Props) => {
+export const Hover = ({ sound, onClose, onPlay, className }: Props) => {
   return (
     <div className={cn(hoverCard, className)}>
       <header className={hoverHeader}>
         <button
           type="button"
-          onClick={() => close$.next()}
+          onClick={onClose}
           className={hoverCloseButton}
           aria-label="close"
         >
@@ -54,7 +53,7 @@ export const Hover = ({ sound, close$, play$, className }: Props) => {
             size="sm"
             fullWidth
             className={playButton}
-            onClick={() => play$.next(sound.title)}
+            onClick={() => onPlay(sound.title)}
           >
             <H3 className={hoverTitle}>{sound.title}</H3>
             <Icon

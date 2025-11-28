@@ -2,7 +2,6 @@ import * as d3 from "d3-ease"
 import { constFalse, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
-import type { Subject } from "rxjs"
 import type { Sound } from "@/domain/sound"
 import { Icon } from "@/icon"
 import type { Coordinate, GoTo } from "@/lib/map"
@@ -15,16 +14,16 @@ import {
 
 interface PlaylistItemProps {
   readonly name: string
-  readonly goTo$: Subject<GoTo>
+  readonly onGoTo: (goTo: GoTo) => void
   readonly focused: boolean
-  readonly play$: Subject<string>
+  readonly onPlay: (soundTitle: string) => void
   readonly coordinates: Coordinate
 }
 
 export const PlaylistItem = ({
   name,
-  goTo$,
-  play$,
+  onGoTo,
+  onPlay,
   coordinates,
   focused = false,
 }: PlaylistItemProps) => {
@@ -32,7 +31,7 @@ export const PlaylistItem = ({
     <li className={playlistItem({ focused })} data-sound-title={name}>
       <button
         type="button"
-        onClick={() => play$.next(name)}
+        onClick={() => onPlay(name)}
         className={iconButton}
         title="play"
       >
@@ -42,7 +41,7 @@ export const PlaylistItem = ({
       <button
         type="button"
         onClick={() =>
-          goTo$.next({
+          onGoTo({
             ...coordinates,
             zoom: 14,
             transitionDuration: 500,
@@ -70,12 +69,12 @@ export const PlaylistItem = ({
 
 interface PlaylistProps {
   readonly sounds: ReadonlyArray<Sound>
-  readonly play$: Subject<string>
+  readonly onPlay: (soundTitle: string) => void
   readonly soundO: O.Option<Sound>
-  readonly goTo$: Subject<GoTo>
+  readonly onGoTo: (goTo: GoTo) => void
 }
 
-export const Playlist = ({ goTo$, play$, soundO, sounds }: PlaylistProps) => {
+export const Playlist = ({ onGoTo, onPlay, soundO, sounds }: PlaylistProps) => {
   return (
     <div>
       <ul className={playlist} data-testid="map-playlist">
@@ -84,13 +83,13 @@ export const Playlist = ({ goTo$, play$, soundO, sounds }: PlaylistProps) => {
           RA.map(({ title, coordinates }) => (
             <PlaylistItem
               key={title}
-              goTo$={goTo$}
+              onGoTo={onGoTo}
               focused={pipe(
                 soundO,
                 O.fold(constFalse, (s) => s.title === title),
               )}
               name={title}
-              play$={play$}
+              onPlay={onPlay}
               // TODO Rename lat lng
               coordinates={{
                 latitude: coordinates.lat,

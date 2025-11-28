@@ -10,14 +10,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { useLocation } from "react-router-dom"
-import { BehaviorSubject, Subject } from "rxjs"
 import { H2, H3 } from "@/components/Typography"
 import type { Category, Sound } from "@/domain/sound"
 import { showDateTime, showInterval } from "@/domain/sound"
 import { Icon } from "@/icon"
 import { haversineDistanceMeters } from "@/lib/geo"
 import type { GoTo } from "@/lib/map"
-import { lazyUnsubscribe } from "@/lib/rxjs"
 import { brandColors, colorToCssHex } from "@/theme/colors"
 import { Hover } from "./components/Hover/Hover"
 import { Playlist } from "./components/Playlist/Playlist"
@@ -43,6 +41,7 @@ import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
 import { SoundMarkersCanvas } from "./overlays/SoundMarkers/SoundMarkersCanvas"
 import type { UserPositionHandle } from "./overlays/UserPosition/UserPositionCanvas"
 import { UserPositionCanvas } from "./overlays/UserPosition/UserPositionCanvas"
+import { useMapStore } from "./store"
 import { ProximityVideo } from "./video/ProximityVideo"
 
 const EnvDecoder = D.struct({
@@ -238,34 +237,23 @@ const buildRouteSegments = (
 
 /** @deprecated The old map sidebar/dialog is being retired in favor of a more minimal UI. */
 const Sidebar = ({
-  expand$,
-  filters$,
-  goTo$,
-  play$,
+  onGoTo,
+  onPlay,
   sounds,
   soundO,
 }: {
-  readonly expand$: BehaviorSubject<boolean>
-  readonly filters$: BehaviorSubject<readonly Category[]>
-  readonly goTo$: Subject<GoTo>
-  readonly play$: Subject<string>
+  readonly onGoTo: (goTo: GoTo) => void
+  readonly onPlay: (soundTitle: string) => void
   readonly soundO: O.Option<Sound>
   readonly sounds: ReadonlyArray<Sound>
 }) => {
-  const [expand, setExpand] = useState<boolean>(expand$.value)
-  useEffect(() => {
-    const subscription = expand$.subscribe(setExpand)
-    return () => subscription.unsubscribe()
-  }, [expand$])
-
-  const [filters, setFilters] = useState<readonly Category[]>(filters$.value)
-  useEffect(() => {
-    const subscription = filters$.subscribe(setFilters)
-    return () => subscription.unsubscribe()
-  }, [filters$])
+  const expanded = useMapStore((s) => s.expanded)
+  const setExpanded = useMapStore((s) => s.setExpanded)
+  const filters = useMapStore((s) => s.filters)
+  const setFilters = useMapStore((s) => s.setFilters)
 
   return (
-    <aside className={sidebarStyle({ expanded: expand })}>
+    <aside className={sidebarStyle({ expanded })}>
       <header className={sidebarHeader}>
         <H2>Sonic Thames</H2>
         <div>
@@ -277,7 +265,7 @@ const Sidebar = ({
                 const newFilters = filters.includes("Listen")
                   ? filters.filter((f) => f !== "Listen")
                   : [...filters, "Listen"]
-                filters$.next(newFilters as readonly Category[])
+                setFilters(newFilters as readonly Category[])
               }}
               title="toggle listen"
               className={
@@ -298,7 +286,7 @@ const Sidebar = ({
                 const newFilters = filters.includes("See")
                   ? filters.filter((f) => f !== "See")
                   : [...filters, "See"]
-                filters$.next(newFilters as readonly Category[])
+                setFilters(newFilters as readonly Category[])
               }}
               title="toggle see"
               className={
@@ -315,7 +303,7 @@ const Sidebar = ({
                 const newFilters = filters.includes("Feel")
                   ? filters.filter((f) => f !== "Feel")
                   : [...filters, "Feel"]
-                filters$.next(newFilters as readonly Category[])
+                setFilters(newFilters as readonly Category[])
               }}
               title="toggle feel"
               className={
@@ -334,7 +322,7 @@ const Sidebar = ({
         </div>
         <button
           type="button"
-          onClick={() => setExpand(false)}
+          onClick={() => setExpanded(false)}
           title="close"
           className={sidebarCloseButton}
         >
@@ -401,7 +389,12 @@ const Sidebar = ({
         )),
       )}
       <hr />
-      <Playlist play$={play$} goTo$={goTo$} sounds={sounds} soundO={soundO} />
+      <Playlist
+        onPlay={onPlay}
+        onGoTo={onGoTo}
+        sounds={sounds}
+        soundO={soundO}
+      />
     </aside>
   )
 }
@@ -732,81 +725,58 @@ export const MainMap = ({ sounds }: Props) => {
     }
   }, [cancelRouteAnimation])
 
-  const [goTo$] = useState(() => new Subject<GoTo>())
-  useEffect(
-    () =>
-      pipe(
-        goTo$,
-        ($) =>
-          $.subscribe(
-            ({
-              latitude,
-              longitude,
-              zoom,
-              transitionDuration,
-              transitionEasing,
-            }) => {
-              const map = mapRef.current
-              if (!map) {
-                return
-              }
+  const handleGoTo = useCallback(
+    ({
+      latitude,
+      longitude,
+      zoom,
+      transitionDuration,
+      transitionEasing,
+    }: GoTo) => {
+      const map = mapRef.current
+      if (!map) {
+        return
+      }
 
-              map.flyTo({
-                center: [longitude, latitude],
-                zoom,
-                duration: transitionDuration,
-                easing: transitionEasing,
-              })
-            },
-          ),
-        lazyUnsubscribe,
-      ),
-    [goTo$],
+      map.flyTo({
+        center: [longitude, latitude],
+        zoom,
+        duration: transitionDuration,
+        easing: transitionEasing,
+      })
+    },
+    [],
   )
 
   const [soundO, setSoundO] = useState(RA.head(sounds))
 
   const [hoverSoundO, setHoverSoundO] = useState<O.Option<Sound>>(() => O.none)
-  const [hoverClose$] = useState(() => new Subject<void>())
-  useEffect(() =>
-    pipe(
-      hoverClose$,
-      ($) => $.subscribe(() => setHoverSoundO(O.none)),
-      lazyUnsubscribe,
-    ),
-  )
 
-  const [expand$] = useState(() => new BehaviorSubject<boolean>(false))
+  const handleHoverClose = useCallback(() => {
+    setHoverSoundO(O.none)
+  }, [])
+
+  const setExpanded = useMapStore((s) => s.setExpanded)
 
   // Auto-close playlist when navigating to a different page
   useEffect(() => {
     if (location.pathname !== "/main") {
-      expand$.next(false)
+      setExpanded(false)
     }
-  }, [location.pathname, expand$])
+  }, [location.pathname, setExpanded])
 
-  const [play$] = useState(() => new Subject<string>())
-  useEffect(() => {
-    const subscription = play$.subscribe((sound) => {
+  const handlePlay = useCallback(
+    (soundTitle: string) => {
       pipe(
         sounds,
-        RA.findFirst((x) => x.title === sound),
+        RA.findFirst((x) => x.title === soundTitle),
         setSoundO,
       )
-    })
-    return () => subscription.unsubscribe()
-  }, [play$, sounds])
-
-  const [filters$] = useState(
-    () => new BehaviorSubject<readonly Category[]>(["Feel", "Listen", "See"]),
+    },
+    [sounds],
   )
-  const [filters, setFilters] = useState<readonly Category[]>(filters$.value)
-  useEffect(() => {
-    const subscription = filters$.subscribe((fs) => {
-      setFilters(fs)
-    })
-    return () => subscription.unsubscribe()
-  }, [filters$])
+
+  const filters = useMapStore((s) => s.filters)
 
   const handleSoundClick = useCallback((sound: Sound) => {
     // Stable callback prevents SoundMarkersCanvas from reinitializing Pixi on every render
@@ -840,8 +810,8 @@ export const MainMap = ({ sounds }: Props) => {
         O.fold(constNull, (sound) => (
           <Hover
             className={hoverFloating}
-            close$={hoverClose$}
-            play$={play$}
+            onClose={handleHoverClose}
+            onPlay={handlePlay}
             sound={sound}
           />
         )),
@@ -883,10 +853,8 @@ export const MainMap = ({ sounds }: Props) => {
         </div>
       )}
       <Sidebar
-        expand$={expand$}
-        goTo$={goTo$}
-        filters$={filters$}
-        play$={play$}
+        onGoTo={handleGoTo}
+        onPlay={handlePlay}
         sounds={sounds}
         soundO={soundO}
       />

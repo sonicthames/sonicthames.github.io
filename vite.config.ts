@@ -1,5 +1,6 @@
 import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin"
 import react from "@vitejs/plugin-react"
+import { visualizer } from "rollup-plugin-visualizer"
 import type { UserConfig } from "vite"
 import { defineConfig } from "vitest/config"
 
@@ -11,6 +12,12 @@ export default defineConfig({
       },
     }),
     vanillaExtractPlugin(),
+    visualizer({
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+      filename: "dist/stats.html",
+    }),
   ],
   server: {
     port: 4420,
