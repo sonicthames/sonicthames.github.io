@@ -41,6 +41,7 @@ import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
 import { SoundMarkersCanvas } from "./overlays/SoundMarkers/SoundMarkersCanvas"
 import type { UserPositionHandle } from "./overlays/UserPosition/UserPositionCanvas"
 import { UserPositionCanvas } from "./overlays/UserPosition/UserPositionCanvas"
+import { usePersistenceStore } from "./persistence"
 import { useMapStore } from "./store"
 import { ProximityVideo } from "./video/ProximityVideo"
 
@@ -93,49 +94,19 @@ const MAPBOX_MAP_STYLE = {
   height: "100%",
 } as const
 
-const LAST_USER_POSITION_KEY = "sonic-thames:last-user-position"
-
-const readLastUserPosition = () => {
-  if (typeof window === "undefined") {
+const readLastUserPosition = (): LngLat | null => {
+  const stored = usePersistenceStore.getState().lastUserPosition
+  if (!stored) {
     return null
   }
-
-  try {
-    const raw = window.localStorage.getItem(LAST_USER_POSITION_KEY)
-    if (!raw) {
-      return null
-    }
-    const parsed = JSON.parse(raw)
-    if (
-      typeof parsed === "object" &&
-      parsed !== null &&
-      typeof parsed.lat === "number" &&
-      Number.isFinite(parsed.lat) &&
-      typeof parsed.lng === "number" &&
-      Number.isFinite(parsed.lng)
-    ) {
-      return LngLat.convert([parsed.lng, parsed.lat])
-    }
-  } catch {
-    // swallow serialization/localStorage errors
-  }
-
-  return null
+  return LngLat.convert([stored.lng, stored.lat])
 }
 
-const persistLastUserPosition = (position: LngLat) => {
-  if (typeof window === "undefined") {
-    return
-  }
-
-  try {
-    window.localStorage.setItem(
-      LAST_USER_POSITION_KEY,
-      JSON.stringify(position),
-    )
-  } catch {
-    // ignore when storage is unavailable
-  }
+const persistLastUserPosition = (position: LngLat): void => {
+  usePersistenceStore.getState().setLastUserPosition({
+    lng: position.lng,
+    lat: position.lat,
+  })
 }
 
 const MAP_STYLE: mapboxgl.Style = {

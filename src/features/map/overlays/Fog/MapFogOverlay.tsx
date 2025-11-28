@@ -10,13 +10,14 @@ import {
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
-import {
-  metersToPixels,
-  projectToScreen,
-  syncCanvasSize,
-} from "../../lib/mapCanvas"
+import { projectToScreen, syncCanvasSize } from "../../lib/mapCanvas"
 import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "../../lib/ripple"
+import { usePersistenceStore } from "../../persistence"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
+import { drawOuterFogBoundary, drawReveals } from "./renderer"
+import { cullRevealsToViewport, projectRevealsToScreen } from "./spatial"
+import { createTextureCache } from "./texture"
+import type { RevealPoint, ViewportBounds } from "./types"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -33,11 +34,16 @@ import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
  * - Uses "destination-out" composite operation to punch holes in the fog
  * - Runs at 60fps via requestAnimationFrame for smooth ripple animations
  * - Limits stored reveals to 200 points to prevent unbounded memory growth
+ *
+ * Two-Bound System:
+ * - Movement bounds (inner): Geographic area where avatar can move and reveal fog
+ * - Camera bounds (outer): Visible viewport - areas outside movement bounds stay fogged
+ * - This creates a soft boundary: user can see beyond movement bounds but can't explore there
  */
 
 interface MapFogOverlayProps {
   readonly mapRef: React.RefObject<MapRef | null>
-  readonly movementBounds?: LngLatBounds
+  readonly movementBounds: LngLatBounds // Inner bounds: where avatar can move and reveal
   readonly intensity?: number // 0-1, controls fog opacity (1.0 = fully opaque)
   readonly revealSize?: number // Pixel radius of reveal circles
   readonly enabled?: boolean
@@ -51,19 +57,10 @@ export interface MapFogOverlayHandle {
   trackUserPosition: (position: LngLat) => void
 }
 
-/**
- * RevealPoint stores where the user has explored.
- * Uses geographic coordinates so reveals stay in the same location on the map
- * regardless of zoom/pan operations.
- */
-type RevealPoint = {
-  readonly lng: number // Longitude (geographic coordinate)
-  readonly lat: number // Latitude (geographic coordinate)
-  readonly radiusMeters: number // Radius in meters (geographic distance)
-}
-const STORAGE_KEY = "sonic-thames-map-fog-reveals"
+// Constants
 const RIPPLE_CYCLE_MS = 8000 // 8-second cycle (4x slower than base 2s)
 const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, independent of zoom
+const MAX_REVEALS = 200 // Maximum number of reveals to store
 const PERSIST_DEBOUNCE_MS = 400
 
 const computeBoundsRevealRadius = (bounds: LngLatBounds, center: LngLat) => {
@@ -101,10 +98,19 @@ export const MapFogOverlay = forwardRef<
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLCanvasElement | null>(null)
     const animationFrameRef = useRef<number | null>(null)
+    const resizeObserverRef = useRef<ResizeObserver | null>(null)
+
+    // === TEXTURE CACHE ===
+    // Mutable cache for pre-rendered reveal textures (performance optimization)
+    const textureCacheRef = useRef(createTextureCache())
 
     // === MARKER POSITION TRACKING ===
     // Track the last marker position to detect movement
     const lastMarkerPosRef = useRef<LngLat | null>(null)
+
+    // === CAMERA BOUNDS TRACKING ===
+    // Track visible viewport bounds for outer fog boundary
+    const [cameraBounds, setCameraBounds] = useState<LngLatBounds | null>(null)
 
     // === VIEWPORT SIZE ===
     // Store as state so canvas can resize when viewport changes
@@ -127,30 +133,26 @@ export const MapFogOverlay = forwardRef<
     }, [])
 
     // === REVEAL PERSISTENCE ===
-    // Array of all revealed points (capped at 200 to prevent unbounded growth)
+    // Array of all revealed points (capped to prevent unbounded growth)
     const revealsRef = useRef<RevealPoint[]>([])
     // Timeout for debounced localStorage writes (avoid blocking on every mouse move)
     const persistTimeoutRef = useRef<number | null>(null)
     // Last reveal point for distance-based deduplication (prevents spam)
     const lastRevealRef = useRef<RevealPoint | null>(null)
+
     /**
-     * Debounced localStorage write.
+     * Debounced localStorage write using modular persistence layer.
      * Uses a short timeout to batch writes and avoid main-thread stalls during animations.
-     * Only keeps most recent 200 reveals to prevent localStorage bloat.
      */
     const persistReveals = useCallback(() => {
-      if (typeof window === "undefined") return
       if (persistTimeoutRef.current) {
         window.clearTimeout(persistTimeoutRef.current)
       }
 
       persistTimeoutRef.current = window.setTimeout(() => {
-        try {
-          const payload = JSON.stringify(revealsRef.current.slice(-200))
-          window.localStorage.setItem(STORAGE_KEY, payload)
-        } catch {
-          // Silently fail on quota exceeded or privacy mode
-        }
+        usePersistenceStore
+          .getState()
+          .setFogReveals(revealsRef.current.slice(-MAX_REVEALS))
         persistTimeoutRef.current = null
       }, PERSIST_DEBOUNCE_MS)
     }, [])
@@ -161,6 +163,7 @@ export const MapFogOverlay = forwardRef<
     /**
      * Watch container size changes and update canvas dimensions.
      * Needed for responsive behavior when window resizes or map container changes.
+     * Stores observer ref to prevent memory leaks on strict mode double-mounting.
      */
     useEffect(() => {
       const container = containerRef.current
@@ -168,52 +171,27 @@ export const MapFogOverlay = forwardRef<
 
       updateSize()
       const observer = new ResizeObserver(updateSize)
+      resizeObserverRef.current = observer
       observer.observe(container)
 
       return () => {
         observer.disconnect()
+        resizeObserverRef.current = null
       }
     }, [updateSize])
 
     // === EFFECT: LOAD PERSISTED REVEALS ===
     /**
-     * On mount, restore previously revealed areas from localStorage.
+     * On mount, restore previously revealed areas from localStorage using modular persistence layer.
      * Uses defensive parsing to handle corrupted or old data gracefully.
      * Only runs once on mount (empty deps array).
      */
     useEffect(() => {
-      if (typeof window === "undefined") return
-
-      try {
-        const stored = window.localStorage.getItem(STORAGE_KEY)
-        if (!stored) return
-        const parsed: unknown = JSON.parse(stored)
-        if (!Array.isArray(parsed)) return
-
-        // Validate each stored point has correct structure
-        const normalized: RevealPoint[] = []
-        for (const item of parsed.slice(-200)) {
-          if (typeof item !== "object" || item === null) {
-            continue
-          }
-
-          const candidate = item as Record<string, unknown>
-          const { lng, lat, radiusMeters } = candidate
-
-          if (
-            typeof lng === "number" &&
-            typeof lat === "number" &&
-            typeof radiusMeters === "number"
-          ) {
-            normalized.push({ lng, lat, radiusMeters })
-          }
-        }
-
-        revealsRef.current = normalized
-        lastRevealRef.current = normalized[normalized.length - 1] ?? null
-      } catch {
-        // Silently fall back to empty reveals on parse errors
-      }
+      const loaded = usePersistenceStore
+        .getState()
+        .fogReveals.slice(-MAX_REVEALS)
+      revealsRef.current = [...loaded]
+      lastRevealRef.current = loaded[loaded.length - 1] ?? null
     }, [])
 
     const revealAtPosition = useCallback(
@@ -242,7 +220,9 @@ export const MapFogOverlay = forwardRef<
           radiusMeters: FIXED_REVEAL_RADIUS_METERS,
         }
 
-        revealsRef.current = [...revealsRef.current, newReveal].slice(-200)
+        revealsRef.current = [...revealsRef.current, newReveal].slice(
+          -MAX_REVEALS,
+        )
         lastRevealRef.current = newReveal
         lastMarkerPosRef.current = position
         persistReveals()
@@ -262,9 +242,7 @@ export const MapFogOverlay = forwardRef<
           revealsRef.current = []
           lastRevealRef.current = null
           lastMarkerPosRef.current = null
-          if (typeof window !== "undefined") {
-            window.localStorage.removeItem(STORAGE_KEY)
-          }
+          usePersistenceStore.getState().clearFogReveals()
         },
         revealMap: () => {
           const map = getMap()
@@ -297,17 +275,33 @@ export const MapFogOverlay = forwardRef<
 
     // === EFFECT: MAP CHANGE TRACKING ===
     /**
-     * Update canvas size when map resizes or moves.
+     * Update canvas size and camera bounds when map resizes or moves.
      * Mapbox may resize its container during pan/zoom operations.
+     * Camera bounds define the outer fog boundary (visible viewport).
      */
     useEffect(() => {
       const map = mapRef.current?.getMap()
       if (!map) return
 
+      const updateBounds = () => {
+        const bounds = map.getBounds()
+        if (bounds) {
+          setCameraBounds(bounds)
+        }
+      }
+
+      // Initialize bounds
+      updateBounds()
+
+      // Update on map interactions
       map.on("resize", updateSize)
+      map.on("move", updateBounds)
+      map.on("zoom", updateBounds)
 
       return () => {
         map.off("resize", updateSize)
+        map.off("move", updateBounds)
+        map.off("zoom", updateBounds)
       }
     }, [mapRef, updateSize])
 
@@ -387,30 +381,43 @@ export const MapFogOverlay = forwardRef<
             }
           }
 
-          // STEP 3: Punch holes in fog for persistent reveals
-          ctx.globalCompositeOperation = "destination-out"
-
-          // STEP 4: Draw all stored reveal circles (from past exploration)
+          // STEP 3: Draw persistent reveals (optimized with viewport culling + texture cache)
           // Using geographic coordinates so they stay in place during pan/zoom
-          const reveals = revealsRef.current
-          if (reveals.length > 0) {
-            for (let i = 0; i < reveals.length; i++) {
-              const reveal = reveals[i]
-              // Project geographic coordinates to screen pixels
-              const screen = projectToScreen(map, reveal.lng, reveal.lat)
+          const allReveals = revealsRef.current
+          if (allReveals.length > 0) {
+            // Optimization 1: Cull reveals outside viewport
+            const viewport: ViewportBounds = { width, height }
+            const visibleReveals = cullRevealsToViewport(
+              allReveals,
+              map,
+              viewport,
+              currentZoom,
+            )
 
-              // Calculate pixel radius from meters based on current zoom
-              const radiusPixels = Math.max(
-                20,
-                metersToPixels(reveal.radiusMeters, reveal.lat, currentZoom),
-              )
+            // Optimization 2: Project to screen space once
+            const screenReveals = projectRevealsToScreen(
+              visibleReveals,
+              map,
+              currentZoom,
+            )
 
-              drawRevealCircle(ctx, screen.x, screen.y, radiusPixels)
-            }
+            // Optimization 3: Render using cached textures
+            drawReveals(ctx, textureCacheRef.current, screenReveals)
           }
 
-          // Reset composite mode (markers are rendered separately by SoundMarkersCanvas)
-          ctx.globalCompositeOperation = "source-over"
+          // STEP 4: Draw outer fog boundary (areas outside movement bounds)
+          // This keeps areas beyond the allowed movement zone obscured
+          if (cameraBounds) {
+            ctx.globalCompositeOperation = "source-over"
+            drawOuterFogBoundary(
+              ctx,
+              map,
+              movementBounds,
+              width,
+              height,
+              intensity,
+            )
+          }
         }
 
         applyReveal()
@@ -424,9 +431,19 @@ export const MapFogOverlay = forwardRef<
       return () => {
         if (animationFrameRef.current) {
           cancelAnimationFrame(animationFrameRef.current)
+          animationFrameRef.current = null
         }
       }
-    }, [size, intensity, enabled, getMap, sounds, filters])
+    }, [
+      size,
+      intensity,
+      enabled,
+      getMap,
+      sounds,
+      filters,
+      cameraBounds,
+      movementBounds,
+    ])
 
     // === EFFECT: CLEANUP ===
     /**
@@ -457,44 +474,3 @@ export const MapFogOverlay = forwardRef<
 )
 
 MapFogOverlay.displayName = "MapFogOverlay"
-
-/**
- * Draw a single reveal circle with radial gradient falloff.
- *
- * Gradient Approach:
- * - Inner stop (0): Fully opaque black (full reveal)
- * - Middle stop (0.6): Still mostly opaque - creates steeper fog progression
- * - Outer stop (1): Fully transparent (sharp edge)
- * - Steeper gradient makes fog appear to "get thicker faster"
- *
- * Why black gradient:
- * - With "destination-out" mode, black pixels erase fog
- * - Gradient alpha creates smooth transparency transition
- * - Steeper falloff creates more dramatic fog boundary
- */
-function drawRevealCircle(
-  ctx: CanvasRenderingContext2D,
-  centerX: number,
-  centerY: number,
-  radius: number,
-) {
-  if (radius <= 0) return
-
-  // Create radial gradient from center to edge
-  const gradient = ctx.createRadialGradient(
-    centerX,
-    centerY,
-    0, // Inner radius (center point)
-    centerX,
-    centerY,
-    radius, // Outer radius
-  )
-  gradient.addColorStop(0, "rgba(0,0,0,1)") // Fully opaque at center
-  gradient.addColorStop(0.6, "rgba(0,0,0,0.9)") // Still mostly opaque at 60%
-  gradient.addColorStop(1, "rgba(0,0,0,0)") // Fully transparent at edge
-
-  ctx.fillStyle = gradient
-  ctx.beginPath()
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
-  ctx.fill()
-}
