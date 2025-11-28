@@ -1,7 +1,7 @@
 import { z } from "zod"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
-import type { RevealPoint } from "@/features/map/overlays/Fog/types"
+import type { PersistedReveal } from "@/features/map/overlays/Fog/types"
 
 /**
  * Zod schemas for runtime validation of persisted data
@@ -12,15 +12,14 @@ const LngLatSchema = z.object({
   lat: z.number().finite(),
 })
 
-const RevealPointSchema = z.object({
+const PersistedRevealSchema = z.object({
   lng: z.number().finite(),
   lat: z.number().finite(),
-  radiusMeters: z.number().finite().nonnegative(),
 })
 
 const PersistedStateSchema = z.object({
   lastUserPosition: LngLatSchema.nullable(),
-  fogReveals: z.array(RevealPointSchema),
+  fogReveals: z.array(PersistedRevealSchema),
 })
 
 /**
@@ -34,8 +33,7 @@ type PersistedState = z.infer<typeof PersistedStateSchema>
  */
 interface PersistenceActions {
   setLastUserPosition: (position: LngLatData | null) => void
-  setFogReveals: (reveals: readonly RevealPoint[]) => void
-  addFogReveal: (reveal: RevealPoint) => void
+  setFogReveals: (reveals: readonly PersistedReveal[]) => void
   clearFogReveals: () => void
 }
 
@@ -60,12 +58,10 @@ export const usePersistenceStore = create<PersistenceStore>()(
       // Actions
       setLastUserPosition: (position) => set({ lastUserPosition: position }),
 
-      setFogReveals: (reveals) => set({ fogReveals: [...reveals] }),
-
-      addFogReveal: (reveal) =>
-        set((state) => ({
-          fogReveals: [...state.fogReveals, reveal],
-        })),
+      setFogReveals: (reveals) =>
+        set({
+          fogReveals: [...reveals],
+        }),
 
       clearFogReveals: () => set({ fogReveals: [] }),
     }),
@@ -120,9 +116,6 @@ export const useFogReveals = () =>
 
 export const useSetFogReveals = () =>
   usePersistenceStore((state) => state.setFogReveals)
-
-export const useAddFogReveal = () =>
-  usePersistenceStore((state) => state.addFogReveal)
 
 export const useClearFogReveals = () =>
   usePersistenceStore((state) => state.clearFogReveals)

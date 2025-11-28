@@ -18,7 +18,7 @@ const MOVEMENT_EPSILON = 1e-5
 const AFTERIMAGE_INTERVAL_MS = 800
 const AFTERIMAGE_LIFETIME_MS = 1100
 const MAX_AFTERIMAGES = 6
-const AVATAR_FADE_DURATION_MS = 150
+const AVATAR_FADE_DURATION_MS = 75
 
 type Afterimage = {
   sprite: Graphics

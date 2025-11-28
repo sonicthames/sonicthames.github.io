@@ -687,6 +687,26 @@ export const MainMap = ({ sounds }: Props) => {
   useEffect(() => {
     updateTrackedUserPosition(initialUserPosition)
     cancelRouteAnimation()
+
+    // Smoothly fly to the initial user position once map is loaded
+    const map = mapRef.current
+    if (!map) return
+
+    const handleLoad = () => {
+      map.flyTo({
+        center: [initialUserPosition.lng, initialUserPosition.lat],
+        zoom: 15,
+        duration: 2000,
+        essential: true,
+      })
+    }
+
+    const mapInstance = map.getMap()
+    if (mapInstance.isStyleLoaded()) {
+      handleLoad()
+    } else {
+      mapInstance.once("load", handleLoad)
+    }
   }, [initialUserPosition, cancelRouteAnimation, updateTrackedUserPosition])
 
   useEffect(() => {

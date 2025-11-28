@@ -1,12 +1,45 @@
+import type mapboxgl from "mapbox-gl"
+
 /**
- * RevealPoint stores where the user has explored.
- * Uses geographic coordinates so reveals stay in the same location on the map
- * regardless of zoom/pan operations.
+ * Persisted grid cell index for fog-of-war reveals.
+ * Cells are indexed in a Mercator-aligned grid to keep geographic size stable.
  */
-export type RevealPoint = {
-  readonly lng: number // Longitude (geographic coordinate)
-  readonly lat: number // Latitude (geographic coordinate)
-  readonly radiusMeters: number // Radius in meters (geographic distance)
+export type PersistedRevealCell = {
+  readonly col: number // Grid column
+  readonly row: number // Grid row
+}
+
+export type PersistedReveal = {
+  readonly lng: number
+  readonly lat: number
+}
+
+/**
+ * RevealPoint stores resolved cell centers for rendering.
+ * Each point corresponds to a fixed-size grid cell on the map.
+ */
+export type RevealPoint = PersistedRevealCell & {
+  readonly key: number // Stable cache key for sets/maps
+  readonly lng: number // Cell center longitude
+  readonly lat: number // Cell center latitude
+  readonly radiusMeters: number // Visual radius in meters (typically tied to cell size)
+}
+
+/**
+ * Grid transform used to snap reveals to fixed-size world cells.
+ */
+export type FogGrid = {
+  readonly origin: mapboxgl.MercatorCoordinate
+  readonly unitsPerMeter: number
+  readonly cellSizeMeters: number
+  readonly cellSizeUnits: number
+  readonly startCol: number
+  readonly startRow: number
+  readonly endCol: number
+  readonly endRow: number
+  readonly width: number
+  readonly height: number
+  readonly visualCellRadiusMeters: number
 }
 
 /**

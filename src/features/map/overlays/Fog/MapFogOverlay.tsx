@@ -10,14 +10,25 @@ import {
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
-import { projectToScreen, syncCanvasSize } from "../../lib/mapCanvas"
+import {
+  clampValue,
+  projectToScreen,
+  syncCanvasSize,
+} from "../../lib/mapCanvas"
 import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "../../lib/ripple"
 import { usePersistenceStore } from "../../persistence"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
 import { drawOuterFogBoundary, drawReveals } from "./renderer"
-import { cullRevealsToViewport, projectRevealsToScreen } from "./spatial"
+import {
+  collectCellsInBounds,
+  collectCellsInRadius,
+  createFogGrid,
+  cullRevealsToViewport,
+  projectRevealsToScreen,
+  resolvePersistedReveals,
+} from "./spatial"
 import { createTextureCache } from "./texture"
-import type { RevealPoint, ViewportBounds } from "./types"
+import type { FogGrid, RevealPoint, ViewportBounds } from "./types"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -58,24 +69,35 @@ export interface MapFogOverlayHandle {
 }
 
 // Constants
-const RIPPLE_CYCLE_MS = 8000 // 8-second cycle (4x slower than base 2s)
-const FIXED_REVEAL_RADIUS_METERS = 3000 // Fixed reveal radius in meters, independent of zoom
-const MAX_REVEALS = 200 // Maximum number of reveals to store
-const PERSIST_DEBOUNCE_MS = 400
+const RIPPLE_CYCLE_MS = 10000
+const NODE_SIDE_IN_CELLS = 4 // Visual node spans roughly four grid cells in the reveal mesh
+const MIN_CELL_SIZE_METERS = 80
+const MAX_CELL_SIZE_METERS = 220
+const TARGET_GRID_CELLS = 1600
 
-const computeBoundsRevealRadius = (bounds: LngLatBounds, center: LngLat) => {
-  const corners = [
-    bounds.getNorthEast(),
-    bounds.getNorthWest(),
-    bounds.getSouthEast(),
+const computeCellMetrics = (bounds: LngLatBounds) => {
+  const diagonalMeters = haversineDistanceMeters(
     bounds.getSouthWest(),
-  ]
+    bounds.getNorthEast(),
+  )
+  const idealCellSize = diagonalMeters / Math.sqrt(TARGET_GRID_CELLS)
+  const cellSize = clampValue(
+    idealCellSize,
+    MIN_CELL_SIZE_METERS,
+    MAX_CELL_SIZE_METERS,
+  )
 
-  return corners.reduce((maxRadius, corner) => {
-    const distance = haversineDistanceMeters(center, corner)
-    return Math.max(maxRadius, distance)
-  }, 0)
+  return {
+    cellSize,
+    visualRadius: (cellSize * NODE_SIDE_IN_CELLS) / 2,
+  }
 }
+
+const serializeRevealsForPersistence = (entries: readonly RevealPoint[]) =>
+  entries.map((entry) => ({
+    lng: entry.lng,
+    lat: entry.lat,
+  }))
 
 export const MapFogOverlay = forwardRef<
   MapFogOverlayHandle,
@@ -86,7 +108,7 @@ export const MapFogOverlay = forwardRef<
       mapRef,
       movementBounds,
       intensity = 0.85,
-      revealSize = 200,
+      revealSize = 30,
       enabled = true,
       sounds = [],
       filters = [],
@@ -133,31 +155,86 @@ export const MapFogOverlay = forwardRef<
     }, [])
 
     // === REVEAL PERSISTENCE ===
-    // Array of all revealed points (capped to prevent unbounded growth)
-    const revealsRef = useRef<RevealPoint[]>([])
+    // Revealed grid cells (capped to prevent unbounded growth)
+    const gridRef = useRef<FogGrid | null>(null)
+    const revealsRef = useRef<Map<number, RevealPoint>>(new Map())
+    const revealOrderRef = useRef<number[]>([])
+    const revealedBitmapRef = useRef<Uint8Array | null>(null)
+    const dirtyKeysRef = useRef<Set<number>>(new Set())
     // Timeout for debounced localStorage writes (avoid blocking on every mouse move)
-    const persistTimeoutRef = useRef<number | null>(null)
-    // Last reveal point for distance-based deduplication (prevents spam)
-    const lastRevealRef = useRef<RevealPoint | null>(null)
+    const maxRevealCellsRef = useRef<number | null>(null)
 
-    /**
-     * Debounced localStorage write using modular persistence layer.
-     * Uses a short timeout to batch writes and avoid main-thread stalls during animations.
-     */
     const persistReveals = useCallback(() => {
-      if (persistTimeoutRef.current) {
-        window.clearTimeout(persistTimeoutRef.current)
-      }
+      if (dirtyKeysRef.current.size === 0) return
 
-      persistTimeoutRef.current = window.setTimeout(() => {
-        usePersistenceStore
-          .getState()
-          .setFogReveals(revealsRef.current.slice(-MAX_REVEALS))
-        persistTimeoutRef.current = null
-      }, PERSIST_DEBOUNCE_MS)
+      const maxCells = maxRevealCellsRef.current
+      const limit =
+        maxCells && maxCells > 0 ? maxCells : revealOrderRef.current.length
+      const orderedKeys = revealOrderRef.current.slice(-limit)
+      const persistedEntries = orderedKeys
+        .map((key) => revealsRef.current.get(key))
+        .filter((entry): entry is RevealPoint => Boolean(entry))
+      usePersistenceStore
+        .getState()
+        .setFogReveals(serializeRevealsForPersistence(persistedEntries))
+      dirtyKeysRef.current.clear()
     }, [])
     // Memoized Mapbox map accessor
     const getMap = useCallback(() => mapRef.current?.getMap(), [mapRef])
+    const ensureGrid = useCallback((): FogGrid | null => {
+      if (gridRef.current) {
+        return gridRef.current
+      }
+
+      const map = getMap()
+      const bounds = movementBounds ?? map?.getBounds()
+      if (!bounds) return null
+
+      const metrics = computeCellMetrics(bounds)
+      const grid = createFogGrid(bounds, metrics.cellSize, metrics.visualRadius)
+      gridRef.current = grid
+      revealedBitmapRef.current = new Uint8Array(grid.width * grid.height)
+      maxRevealCellsRef.current = grid.width * grid.height
+      return grid
+    }, [getMap, movementBounds])
+    const addReveals = useCallback(
+      (cells: readonly RevealPoint[]) => {
+        if (cells.length === 0) return
+
+        const revealMap = revealsRef.current
+        const order = revealOrderRef.current
+        const bitmap = revealedBitmapRef.current
+        let added = false
+
+        for (const cell of cells) {
+          if (bitmap && bitmap[cell.key] === 1) continue
+          if (revealMap.has(cell.key)) continue
+          revealMap.set(cell.key, cell)
+          order.push(cell.key)
+          if (bitmap) {
+            bitmap[cell.key] = 1
+          }
+          dirtyKeysRef.current.add(cell.key)
+          added = true
+        }
+
+        if (!added) return
+
+        const maxCells = maxRevealCellsRef.current
+        while (maxCells && maxCells > 0 && order.length > maxCells) {
+          const oldest = order.shift()
+          if (!oldest) break
+          revealMap.delete(oldest)
+          if (bitmap) {
+            bitmap[oldest] = 0
+          }
+          dirtyKeysRef.current.add(oldest)
+        }
+
+        persistReveals()
+      },
+      [persistReveals],
+    )
 
     // === EFFECT: RESIZE OBSERVER ===
     /**
@@ -182,52 +259,70 @@ export const MapFogOverlay = forwardRef<
 
     // === EFFECT: LOAD PERSISTED REVEALS ===
     /**
-     * On mount, restore previously revealed areas from localStorage using modular persistence layer.
-     * Uses defensive parsing to handle corrupted or old data gracefully.
-     * Only runs once on mount (empty deps array).
+     * Restore persisted reveals once a grid can be created.
+     * Legacy points are snapped to the grid so geographic coverage stays stable.
      */
     useEffect(() => {
-      const loaded = usePersistenceStore
-        .getState()
-        .fogReveals.slice(-MAX_REVEALS)
-      revealsRef.current = [...loaded]
-      lastRevealRef.current = loaded[loaded.length - 1] ?? null
-    }, [])
+      const grid = ensureGrid()
+      if (!grid) return
+
+      const storedReveals = usePersistenceStore.getState().fogReveals
+      const persistLimit =
+        maxRevealCellsRef.current && maxRevealCellsRef.current > 0
+          ? maxRevealCellsRef.current
+          : storedReveals.length
+      const loaded = storedReveals.slice(-persistLimit)
+
+      const resolved = resolvePersistedReveals(
+        grid,
+        loaded,
+        grid.visualCellRadiusMeters,
+        movementBounds,
+      )
+
+      const nextMap = new Map<number, RevealPoint>()
+      const order: number[] = []
+
+      for (const reveal of resolved) {
+        if (nextMap.has(reveal.key)) continue
+        nextMap.set(reveal.key, reveal)
+        order.push(reveal.key)
+        if (revealedBitmapRef.current) {
+          revealedBitmapRef.current[reveal.key] = 1
+        }
+      }
+
+      revealOrderRef.current = order
+      revealsRef.current = nextMap
+    }, [ensureGrid, movementBounds])
 
     const revealAtPosition = useCallback(
       (position: LngLat) => {
         const map = getMap()
         if (!map) return
 
-        const last = lastMarkerPosRef.current
-        if (last) {
-          const lastScreen = projectToScreen(map, last.lng, last.lat)
-          const currentScreen = projectToScreen(map, position.lng, position.lat)
-          const distance = Math.hypot(
-            currentScreen.x - lastScreen.x,
-            currentScreen.y - lastScreen.y,
-          )
+        const grid = ensureGrid()
+        if (!grid) return
 
-          const threshold = revealSize * 0.35
-          if (distance < threshold) {
-            return
-          }
-        }
+        const screenPosition = projectToScreen(map, position.lng, position.lat)
+        const comparison = map.unproject([
+          screenPosition.x + revealSize,
+          screenPosition.y,
+        ]) as LngLat
+        const revealRadiusMeters = position.distanceTo(comparison)
 
-        const newReveal: RevealPoint = {
-          lng: position.lng,
-          lat: position.lat,
-          radiusMeters: FIXED_REVEAL_RADIUS_METERS,
-        }
-
-        revealsRef.current = [...revealsRef.current, newReveal].slice(
-          -MAX_REVEALS,
+        const cells = collectCellsInRadius(
+          grid,
+          { lng: position.lng, lat: position.lat },
+          revealRadiusMeters,
+          grid.visualCellRadiusMeters,
+          movementBounds,
         )
-        lastRevealRef.current = newReveal
+
+        addReveals(cells)
         lastMarkerPosRef.current = position
-        persistReveals()
       },
-      [getMap, persistReveals, revealSize],
+      [addReveals, ensureGrid, getMap, movementBounds, revealSize],
     )
 
     // === IMPERATIVE HANDLE: EXPOSE RESTORE FOG FUNCTION ===
@@ -239,38 +334,43 @@ export const MapFogOverlay = forwardRef<
       ref,
       () => ({
         restoreFog: () => {
-          revealsRef.current = []
-          lastRevealRef.current = null
+          revealsRef.current = new Map()
+          revealOrderRef.current = []
+          if (revealedBitmapRef.current) {
+            revealedBitmapRef.current.fill(0)
+          }
+          dirtyKeysRef.current.clear()
           lastMarkerPosRef.current = null
           usePersistenceStore.getState().clearFogReveals()
         },
         revealMap: () => {
-          const map = getMap()
+          const grid = ensureGrid()
+          if (!grid) return
 
+          const map = getMap()
           const bounds = movementBounds ?? map?.getBounds()
           if (!bounds) return
-          const center = bounds.getCenter()
-          const coverageRadius = Math.max(
-            FIXED_REVEAL_RADIUS_METERS,
-            computeBoundsRevealRadius(bounds, center),
+
+          const cells = collectCellsInBounds(
+            grid,
+            bounds,
+            grid.visualCellRadiusMeters,
           )
 
-          const reveal: RevealPoint = {
-            lng: center.lng,
-            lat: center.lat,
-            radiusMeters: coverageRadius,
+          revealsRef.current = new Map()
+          revealOrderRef.current = []
+          if (revealedBitmapRef.current) {
+            revealedBitmapRef.current.fill(0)
           }
-
-          revealsRef.current = [reveal]
-          lastRevealRef.current = reveal
-          lastMarkerPosRef.current = center
-          persistReveals()
+          dirtyKeysRef.current.clear()
+          addReveals(cells)
+          lastMarkerPosRef.current = bounds.getCenter()
         },
         trackUserPosition: (position: LngLat) => {
           revealAtPosition(position)
         },
       }),
-      [getMap, movementBounds, persistReveals, revealAtPosition],
+      [addReveals, ensureGrid, getMap, movementBounds, revealAtPosition],
     )
 
     // === EFFECT: MAP CHANGE TRACKING ===
@@ -383,7 +483,7 @@ export const MapFogOverlay = forwardRef<
 
           // STEP 3: Draw persistent reveals (optimized with viewport culling + texture cache)
           // Using geographic coordinates so they stay in place during pan/zoom
-          const allReveals = revealsRef.current
+          const allReveals = Array.from(revealsRef.current.values())
           if (allReveals.length > 0) {
             // Optimization 1: Cull reveals outside viewport
             const viewport: ViewportBounds = { width, height }
@@ -450,15 +550,6 @@ export const MapFogOverlay = forwardRef<
      * Cancel pending localStorage writes on unmount.
      * Prevents memory leaks from dangling requestAnimationFrame callbacks.
      */
-    useEffect(
-      () => () => {
-        if (persistTimeoutRef.current) {
-          window.clearTimeout(persistTimeoutRef.current)
-        }
-      },
-      [],
-    )
-
     if (!enabled) return null
 
     return (

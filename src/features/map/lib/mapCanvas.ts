@@ -84,3 +84,16 @@ export const metersToPixels = (
     (156543.03392 * Math.cos((latitude * Math.PI) / 180)) / 2 ** zoom
   return meters / metersPerPixel
 }
+
+/**
+ * Converts pixels to meters at a given latitude and zoom level.
+ */
+export const pixelsToMeters = (
+  pixels: number,
+  latitude: number,
+  zoom: number,
+): number => {
+  const metersPerPixel =
+    (156543.03392 * Math.cos((latitude * Math.PI) / 180)) / 2 ** zoom
+  return pixels * metersPerPixel
+}
