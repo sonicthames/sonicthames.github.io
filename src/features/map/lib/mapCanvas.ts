@@ -50,11 +50,17 @@ export const syncCanvasSize = (
 ): number => {
   const dpr = window.devicePixelRatio || 1
 
-  canvas.width = width * dpr
-  canvas.height = height * dpr
-  canvas.style.width = `${width}px`
-  canvas.style.height = `${height}px`
-  ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  const targetWidth = width * dpr
+  const targetHeight = height * dpr
+
+  // Avoid reallocating the canvas backing store unless dimensions actually change
+  if (canvas.width !== targetWidth || canvas.height !== targetHeight) {
+    canvas.width = targetWidth
+    canvas.height = targetHeight
+    canvas.style.width = `${width}px`
+    canvas.style.height = `${height}px`
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+  }
 
   return dpr
 }

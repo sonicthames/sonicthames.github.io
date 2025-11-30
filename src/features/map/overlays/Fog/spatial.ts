@@ -247,18 +247,19 @@ export const cullRevealsToViewport = (
   map: MapboxMap,
   viewport: ViewportBounds,
   currentZoom: number,
+  out: RevealPoint[] = [],
 ): readonly RevealPoint[] => {
   // Imperative loop for performance (faster than .filter for large arrays)
-  const visible: RevealPoint[] = []
+  out.length = 0
 
   for (let i = 0; i < reveals.length; i++) {
     const reveal = reveals[i]
     if (isRevealVisible(reveal, map, viewport, currentZoom)) {
-      visible.push(reveal)
+      out.push(reveal)
     }
   }
 
-  return visible
+  return out
 }
 
 const MIN_REVEAL_RADIUS_PIXELS = 2 // Prevent vanishingly small reveals when extremely zoomed out
@@ -289,20 +290,21 @@ export const projectRevealsToScreen = (
   reveals: readonly RevealPoint[],
   map: MapboxMap,
   currentZoom: number,
+  out: RevealScreenSpace[] = [],
 ): readonly RevealScreenSpace[] => {
-  const projected: RevealScreenSpace[] = new Array(reveals.length)
+  out.length = reveals.length
 
   for (let i = 0; i < reveals.length; i++) {
     const reveal = reveals[i]
     const screen = map.project(reveal)
     const radiusPixels = renderRadiusPixels(reveal, currentZoom)
 
-    projected[i] = {
+    out[i] = {
       x: screen.x,
       y: screen.y,
       radiusPixels,
     }
   }
 
-  return projected
+  return out
 }

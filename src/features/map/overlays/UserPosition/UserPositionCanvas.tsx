@@ -13,18 +13,12 @@ const AFTERIMAGE_LIFETIME_MS = 800
 const hexToPixiColor = (hex: string): number =>
   Number.parseInt(hex.replace("#", ""), 16)
 const AVATAR_COLOR = hexToPixiColor(mapColorTheme.userAvatarColor)
-const AVATAR_PULSE_COLOR = hexToPixiColor(mapColorTheme.userAvatarPulseColor)
 const AVATAR_FADE_DURATION_MS = 350
 const BASE_USER_RADIUS = 8
 const MAX_AFTERIMAGES = 4
 const MAX_USER_RADIUS = 16
 const MIN_USER_RADIUS = 4
 const MOVEMENT_EPSILON = 1e-5
-const AVATAR_PULSE_RADIUS_MULTIPLIER =
-  mapColorTheme.userAvatarPulseRadiusMultiplier
-const AVATAR_PULSE_OPACITY = mapColorTheme.userAvatarPulseOpacity
-const AVATAR_PULSE_DURATION_MS = mapColorTheme.userAvatarPulseDurationMs
-const AVATAR_PULSE_LINE_WIDTH = 2
 
 type Afterimage = {
   sprite: Graphics
@@ -57,7 +51,6 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
     const avatarAlphaRef = useRef(1)
     const targetAvatarAlphaRef = useRef(1)
     const avatarRef = useRef<Graphics | null>(null)
-    const pulseRef = useRef<Graphics | null>(null)
     const ghostContainerRef = useRef<Container | null>(null)
 
     useImperativeHandle(
@@ -85,9 +78,8 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
           return
         }
         const ghost = new Graphics()
-        ghost.beginFill(AVATAR_COLOR)
-        ghost.drawCircle(0, 0, 1)
-        ghost.endFill()
+        ghost.circle(0, 0, 1)
+        ghost.fill({ color: AVATAR_COLOR })
         ghost.alpha = 0
         ghostContainer.addChild(ghost)
         afterimagesRef.current = [
@@ -124,13 +116,10 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
           container.appendChild(app.canvas)
 
           const ghostContainer = new Container()
-          const pulse = new Graphics()
           const avatar = new Graphics()
           ghostContainerRef.current = ghostContainer
           avatarRef.current = avatar
-          pulseRef.current = pulse
           app.stage.addChild(ghostContainer)
-          app.stage.addChild(pulse)
           app.stage.addChild(avatar)
 
           app.ticker.add((ticker) => {
@@ -158,27 +147,9 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
               return
             }
             avatarGraphic.clear()
-            avatarGraphic.beginFill(AVATAR_COLOR)
-            avatarGraphic.drawCircle(0, 0, scaledRadius)
-            avatarGraphic.endFill()
+            avatarGraphic.circle(0, 0, scaledRadius)
+            avatarGraphic.fill({ color: AVATAR_COLOR })
             avatarGraphic.position.set(screenPoint.x, screenPoint.y)
-
-            const pulseGraphic = pulseRef.current
-            if (pulseGraphic) {
-              const pulseProgress =
-                (now % AVATAR_PULSE_DURATION_MS) / AVATAR_PULSE_DURATION_MS
-              const easedPulse = 1 - pulseProgress
-              const pulseRadius =
-                scaledRadius *
-                (AVATAR_PULSE_RADIUS_MULTIPLIER + pulseProgress * 0.1)
-              pulseGraphic.clear()
-              pulseGraphic.lineStyle(
-                AVATAR_PULSE_LINE_WIDTH,
-                AVATAR_PULSE_COLOR,
-                AVATAR_PULSE_OPACITY * Math.max(0, easedPulse),
-              )
-              pulseGraphic.drawCircle(screenPoint.x, screenPoint.y, pulseRadius)
-            }
 
             const prevPosition = prevPositionRef.current ?? positionRef.current
             const moved =
@@ -299,7 +270,6 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
         avatarAlphaRef.current = 1
         targetAvatarAlphaRef.current = 1
         avatarRef.current = null
-        pulseRef.current = null
         ghostContainerRef.current = null
 
         if (appRef.current) {

@@ -351,26 +351,23 @@ export const SoundMarkersCanvas = ({
             // DOT DRAWING (non-linear zoom effect)
             marker.dot.clear()
             if (marker.glowAlpha > 0.01) {
-              marker.dot.lineStyle(0)
-              marker.dot.beginFill(
-                hexColorToNumber(GLOW_COLORS[marker.sound.category]),
-                marker.glowAlpha,
-              )
-              marker.dot.drawCircle(
+              marker.dot.circle(
                 point.x,
                 point.y,
                 marker.currentRadius + SOUND_GLOW_RADIUS,
               )
-              marker.dot.endFill()
+              marker.dot.fill({
+                color: hexColorToNumber(GLOW_COLORS[marker.sound.category]),
+                alpha: marker.glowAlpha,
+              })
             }
-            marker.dot.lineStyle(
-              MARKER_STROKE_WIDTH,
-              strokeColorValue,
-              strokeAlpha,
-            )
-            marker.dot.beginFill(0x000000, 0)
-            marker.dot.drawCircle(point.x, point.y, marker.currentRadius)
-            marker.dot.endFill()
+            marker.dot.circle(point.x, point.y, marker.currentRadius)
+            marker.dot.stroke({
+              width: MARKER_STROKE_WIDTH,
+              color: strokeColorValue,
+              alpha: strokeAlpha,
+            })
+            marker.dot.fill({ color: 0x000000, alpha: 0 })
           }
         })
       } catch (err) {

@@ -28,7 +28,12 @@ import {
   resolvePersistedReveals,
 } from "./spatial"
 import { createTextureCache } from "./texture"
-import type { FogGrid, RevealPoint, ViewportBounds } from "./types"
+import type {
+  FogGrid,
+  RevealPoint,
+  RevealScreenSpace,
+  ViewportBounds,
+} from "./types"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -162,6 +167,9 @@ export const MapFogOverlay = forwardRef<
     const revealOrderRef = useRef<number[]>([])
     const revealedBitmapRef = useRef<Uint8Array | null>(null)
     const dirtyKeysRef = useRef<Set<number>>(new Set())
+    const revealsBufferRef = useRef<RevealPoint[]>([])
+    const visibleRevealsBufferRef = useRef<RevealPoint[]>([])
+    const screenRevealsBufferRef = useRef<RevealScreenSpace[]>([])
     // Timeout for debounced localStorage writes (avoid blocking on every mouse move)
     const maxRevealCellsRef = useRef<number | null>(null)
 
@@ -484,7 +492,11 @@ export const MapFogOverlay = forwardRef<
 
           // STEP 3: Draw persistent reveals (optimized with viewport culling + texture cache)
           // Using geographic coordinates so they stay in place during pan/zoom
-          const allReveals = Array.from(revealsRef.current.values())
+          const allReveals = revealsBufferRef.current
+          allReveals.length = 0
+          revealsRef.current.forEach((reveal) => {
+            allReveals.push(reveal)
+          })
           if (allReveals.length > 0) {
             // Optimization 1: Cull reveals outside viewport
             const viewport: ViewportBounds = { width, height }
@@ -493,17 +505,21 @@ export const MapFogOverlay = forwardRef<
               map,
               viewport,
               currentZoom,
+              visibleRevealsBufferRef.current,
             )
 
-            // Optimization 2: Project to screen space once
-            const screenReveals = projectRevealsToScreen(
-              visibleReveals,
-              map,
-              currentZoom,
-            )
+            if (visibleReveals.length > 0) {
+              // Optimization 2: Project to screen space once
+              const screenReveals = projectRevealsToScreen(
+                visibleReveals,
+                map,
+                currentZoom,
+                screenRevealsBufferRef.current,
+              )
 
-            // Optimization 3: Render using cached textures
-            drawReveals(ctx, textureCacheRef.current, screenReveals)
+              // Optimization 3: Render using cached textures
+              drawReveals(ctx, textureCacheRef.current, screenReveals)
+            }
           }
 
           // STEP 4: Draw outer fog boundary (areas outside movement bounds)
