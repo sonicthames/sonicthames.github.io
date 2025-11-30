@@ -17,7 +17,7 @@ import { showDateTime, showInterval } from "@/domain/sound"
 import { Icon } from "@/icon"
 import { haversineDistanceMeters } from "@/lib/geo"
 import type { GoTo } from "@/lib/map"
-import { brandColors, colorToCssHex } from "@/theme/colors"
+import { mapColorTheme } from "@/theme/mapColors"
 import { Hover } from "./components/Hover/Hover"
 import { Playlist } from "./components/Playlist/Playlist"
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
@@ -115,7 +115,7 @@ const MAP_STYLE: mapboxgl.Style = {
       id: "background",
       type: "background",
       paint: {
-        "background-color": colorToCssHex(brandColors.map.land),
+        "background-color": mapColorTheme.streetSurfaceColor,
       },
     },
     {
@@ -124,7 +124,7 @@ const MAP_STYLE: mapboxgl.Style = {
       "source-layer": "road",
       type: "line",
       paint: {
-        "line-color": brandColors.neutral.black,
+        "line-color": mapColorTheme.streetLineColor,
       },
     },
     {
@@ -133,7 +133,7 @@ const MAP_STYLE: mapboxgl.Style = {
       "source-layer": "water",
       type: "fill",
       paint: {
-        "fill-color": colorToCssHex(brandColors.map.water),
+        "fill-color": mapColorTheme.riverColor,
       },
     },
   ],

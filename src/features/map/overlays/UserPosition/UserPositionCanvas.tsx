@@ -2,6 +2,7 @@ import type { LngLat, LngLatLike, Map as MapboxMapInstance } from "mapbox-gl"
 import { Application, Container, Graphics } from "pixi.js"
 import { forwardRef, useEffect, useImperativeHandle, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
+import { mapColorTheme } from "@/theme/mapColors"
 import { syncPixiRendererSize } from "../../lib/mapCanvas"
 import { computeZoomScale, scaleAndClampRadius } from "../../lib/zoomScale"
 import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
@@ -9,13 +10,21 @@ import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
 const AFTERIMAGE_FADE_DURATION_MS = 350
 const AFTERIMAGE_INTERVAL_MS = 700
 const AFTERIMAGE_LIFETIME_MS = 800
-const AVATAR_COLOR = 0xbca7fb
+const hexToPixiColor = (hex: string): number =>
+  Number.parseInt(hex.replace("#", ""), 16)
+const AVATAR_COLOR = hexToPixiColor(mapColorTheme.userAvatarColor)
+const AVATAR_PULSE_COLOR = hexToPixiColor(mapColorTheme.userAvatarPulseColor)
 const AVATAR_FADE_DURATION_MS = 350
 const BASE_USER_RADIUS = 8
 const MAX_AFTERIMAGES = 4
 const MAX_USER_RADIUS = 16
 const MIN_USER_RADIUS = 4
 const MOVEMENT_EPSILON = 1e-5
+const AVATAR_PULSE_RADIUS_MULTIPLIER =
+  mapColorTheme.userAvatarPulseRadiusMultiplier
+const AVATAR_PULSE_OPACITY = mapColorTheme.userAvatarPulseOpacity
+const AVATAR_PULSE_DURATION_MS = mapColorTheme.userAvatarPulseDurationMs
+const AVATAR_PULSE_LINE_WIDTH = 2
 
 type Afterimage = {
   sprite: Graphics
@@ -48,6 +57,7 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
     const avatarAlphaRef = useRef(1)
     const targetAvatarAlphaRef = useRef(1)
     const avatarRef = useRef<Graphics | null>(null)
+    const pulseRef = useRef<Graphics | null>(null)
     const ghostContainerRef = useRef<Container | null>(null)
 
     useImperativeHandle(
@@ -114,10 +124,13 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
           container.appendChild(app.canvas)
 
           const ghostContainer = new Container()
+          const pulse = new Graphics()
           const avatar = new Graphics()
           ghostContainerRef.current = ghostContainer
           avatarRef.current = avatar
+          pulseRef.current = pulse
           app.stage.addChild(ghostContainer)
+          app.stage.addChild(pulse)
           app.stage.addChild(avatar)
 
           app.ticker.add((ticker) => {
@@ -137,6 +150,8 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
               MIN_USER_RADIUS,
               MAX_USER_RADIUS,
             )
+            const deltaMs = ticker.deltaMS ?? (ticker.deltaTime / 60) * 1000
+            const now = performance.now()
 
             const avatarGraphic = avatarRef.current
             if (!avatarGraphic) {
@@ -148,8 +163,22 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
             avatarGraphic.endFill()
             avatarGraphic.position.set(screenPoint.x, screenPoint.y)
 
-            const deltaMs = ticker.deltaMS ?? (ticker.deltaTime / 60) * 1000
-            const now = performance.now()
+            const pulseGraphic = pulseRef.current
+            if (pulseGraphic) {
+              const pulseProgress =
+                (now % AVATAR_PULSE_DURATION_MS) / AVATAR_PULSE_DURATION_MS
+              const easedPulse = 1 - pulseProgress
+              const pulseRadius =
+                scaledRadius *
+                (AVATAR_PULSE_RADIUS_MULTIPLIER + pulseProgress * 0.1)
+              pulseGraphic.clear()
+              pulseGraphic.lineStyle(
+                AVATAR_PULSE_LINE_WIDTH,
+                AVATAR_PULSE_COLOR,
+                AVATAR_PULSE_OPACITY * Math.max(0, easedPulse),
+              )
+              pulseGraphic.drawCircle(screenPoint.x, screenPoint.y, pulseRadius)
+            }
 
             const prevPosition = prevPositionRef.current ?? positionRef.current
             const moved =
@@ -270,6 +299,7 @@ export const UserPositionCanvas = forwardRef<UserPositionHandle, Props>(
         avatarAlphaRef.current = 1
         targetAvatarAlphaRef.current = 1
         avatarRef.current = null
+        pulseRef.current = null
         ghostContainerRef.current = null
 
         if (appRef.current) {

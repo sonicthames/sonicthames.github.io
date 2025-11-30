@@ -11,7 +11,11 @@ import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
 import { clampValue, syncCanvasSize } from "../../lib/mapCanvas"
-import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "../../lib/ripple"
+import {
+  drawCanvasRipple,
+  FOG_RIPPLE_CONFIG,
+  SOUND_MARKER_RIPPLE_CONFIG,
+} from "../../lib/ripple"
 import { usePersistenceStore } from "../../persistence"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
 import { drawOuterFogBoundary, drawReveals } from "./renderer"
@@ -65,7 +69,8 @@ export interface MapFogOverlayHandle {
 }
 
 // Constants
-const RIPPLE_CYCLE_MS = 10000
+const RIPPLE_CYCLE_MS = SOUND_MARKER_RIPPLE_CONFIG.maxAge * 1000 * 2
+const FOG_RIPPLE_COUNT = 1
 const NODE_SIDE_IN_CELLS = 4 // Visual node spans roughly four grid cells in the reveal mesh
 const MIN_CELL_SIZE_METERS = 80
 const MAX_CELL_SIZE_METERS = 220
@@ -458,8 +463,12 @@ export const MapFogOverlay = forwardRef<
 
             const screen = map.project(sound.coordinate)
 
-            // Draw 2 ripples with offset phases for continuous effect
-            for (let rippleIndex = 0; rippleIndex < 2; rippleIndex++) {
+            // Draw ripple hints to guide users toward obscured sounds
+            for (
+              let rippleIndex = 0;
+              rippleIndex < FOG_RIPPLE_COUNT;
+              rippleIndex += 1
+            ) {
               drawCanvasRipple(
                 ctx,
                 screen.x,

@@ -2,7 +2,7 @@ import { Application, Graphics } from "pixi.js"
 import { useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
-import { brandColors } from "@/theme/colors"
+import { mapColorTheme } from "@/theme/mapColors"
 import { syncPixiRendererSize } from "../../lib/mapCanvas"
 import type { PixiRipple } from "../../lib/ripple"
 import {
@@ -21,18 +21,21 @@ interface Props {
   readonly playingSound: Sound | null
 }
 
+type RGBColor = readonly [number, number, number]
+
 interface SoundMarker {
   sound: Sound
   ripples: PixiRipple[]
   dot: Graphics
   screenPosition: { x: number; y: number }
+  currentRadius: number
+  currentColor: RGBColor
+  glowAlpha: number
 }
 
-const CATEGORY_COLORS = {
-  Listen: brandColors.icons.listen,
-  See: brandColors.icons.see,
-  Feel: brandColors.icons.feel,
-} as const
+const CATEGORY_COLORS = mapColorTheme.soundBaseColors
+const HOVER_COLORS = mapColorTheme.soundHoverColors
+const GLOW_COLORS = mapColorTheme.soundGlowColors
 
 const CATEGORY_RADIUS_FACTOR: Record<Category, number> = {
   Listen: 1,
@@ -44,28 +47,49 @@ const BASE_SOUND_RADIUS = 8
 const MIN_MARKER_RADIUS = 4
 const MAX_MARKER_RADIUS = 16
 const MARKER_STROKE_WIDTH = 3
-const DEFAULT_DIM_FACTOR = 0.75
-const HOVER_VIBRANCY_FACTOR = 1.25
+const SOUND_TRANSITION_DURATION_MS = mapColorTheme.hoverTransitionMs
+const SOUND_GLOW_RADIUS = mapColorTheme.soundGlowRadius
+const SOUND_GLOW_OPACITY = mapColorTheme.soundGlowOpacity
+const RIPPLE_STROKE_WIDTH = mapColorTheme.peripheralRingStrokeWidth
+const RIPPLE_ALPHA_SCALE = mapColorTheme.peripheralRingOpacityScale
 
 const clampColorChannel = (value: number) =>
   Math.min(255, Math.max(0, Math.round(value)))
 
-const toHexChannel = (value: number) =>
-  clampColorChannel(value).toString(16).padStart(2, "0").toUpperCase()
+const hexColorToNumber = (hexColor: string): number =>
+  Number.parseInt(hexColor.replace("#", ""), 16)
 
-const adjustHexColorBrightness = (hexColor: string, factor: number): string => {
+const hexToRgb = (hexColor: string): RGBColor => {
   const normalized = hexColor.replace("#", "")
   const channels = [0, 2, 4].map((offset) =>
     Number.parseInt(normalized.slice(offset, offset + 2), 16),
   )
 
-  return `#${channels
-    .map((channel) => toHexChannel(channel * factor))
-    .join("")}`
+  return [
+    clampColorChannel(channels[0]),
+    clampColorChannel(channels[1]),
+    clampColorChannel(channels[2]),
+  ] as RGBColor
 }
 
-const hexColorToNumber = (hexColor: string): number =>
-  Number.parseInt(hexColor.replace("#", ""), 16)
+const rgbToNumber = ([r, g, b]: RGBColor): number =>
+  (clampColorChannel(r) << 16) |
+  (clampColorChannel(g) << 8) |
+  clampColorChannel(b)
+
+const lerpValue = (current: number, target: number, factor: number) =>
+  current + (target - current) * factor
+
+const lerpColor = (
+  current: RGBColor,
+  target: RGBColor,
+  factor: number,
+): RGBColor =>
+  [
+    clampColorChannel(lerpValue(current[0], target[0], factor)),
+    clampColorChannel(lerpValue(current[1], target[1], factor)),
+    clampColorChannel(lerpValue(current[2], target[2], factor)),
+  ] as RGBColor
 
 /**
  * Sound markers rendered on a Pixi.js canvas overlay with ripple effects.
@@ -121,8 +145,9 @@ export const SoundMarkersCanvas = ({
       for (const marker of markersRef.current) {
         if (!filtersRef.current.includes(marker.sound.category)) continue
         const { x: markerX, y: markerY } = marker.screenPosition
+        const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
         const distance = Math.hypot(x - markerX, y - markerY)
-        if (distance <= 36) {
+        if (distance <= radius) {
           nearest = marker.sound
           break
         }
@@ -146,9 +171,10 @@ export const SoundMarkersCanvas = ({
         if (!filtersRef.current.includes(marker.sound.category)) continue
 
         const { x: markerX, y: markerY } = marker.screenPosition
+        const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
         const distance = Math.hypot(x - markerX, y - markerY)
 
-        if (distance <= 36) {
+        if (distance <= radius) {
           onSoundClickRef.current(marker.sound)
           return
         }
@@ -211,6 +237,9 @@ export const SoundMarkersCanvas = ({
             ripples,
             dot,
             screenPosition: { x: 0, y: 0 },
+            currentRadius: BASE_SOUND_RADIUS,
+            currentColor: hexToRgb(CATEGORY_COLORS[sound.category]),
+            glowAlpha: 0,
           })
         }
         markersRef.current = markers
@@ -224,11 +253,15 @@ export const SoundMarkersCanvas = ({
           syncPixiRendererSize(app, currentMap)
 
           const deltaTime = ticker.deltaTime / 60
+          const deltaMs = ticker.deltaMS ?? deltaTime * 1000
           const currentZoom = currentMap.getZoom()
 
           // Non-linear scale for dots
           const zoomScale = computeZoomScale(currentZoom)
-
+          const smoothingFactor = Math.min(
+            1,
+            deltaMs / SOUND_TRANSITION_DURATION_MS,
+          )
           for (const marker of markersRef.current) {
             if (!filtersRef.current.includes(marker.sound.category)) {
               for (const ripple of marker.ripples) {
@@ -252,7 +285,7 @@ export const SoundMarkersCanvas = ({
               ? 1 + Math.sin(performance.now() / 300) * 0.15
               : 1
 
-            const scaledRadius = scaleAndClampRadius(
+            const targetRadius = scaleAndClampRadius(
               BASE_SOUND_RADIUS,
               zoomScale,
               categoryRadiusScale * hoverScale * playingScale,
@@ -260,19 +293,48 @@ export const SoundMarkersCanvas = ({
               MAX_MARKER_RADIUS,
             )
 
-            const baseColor = CATEGORY_COLORS[marker.sound.category]
-            const strokeColorHex = adjustHexColorBrightness(
-              baseColor,
-              isHovered ? HOVER_VIBRANCY_FACTOR : DEFAULT_DIM_FACTOR,
+            marker.currentRadius = lerpValue(
+              marker.currentRadius,
+              targetRadius,
+              smoothingFactor,
             )
-            const strokeColorValue = hexColorToNumber(strokeColorHex)
+
+            const targetColor = hexToRgb(
+              isHovered
+                ? HOVER_COLORS[marker.sound.category]
+                : CATEGORY_COLORS[marker.sound.category],
+            )
+            marker.currentColor = lerpColor(
+              marker.currentColor,
+              targetColor,
+              smoothingFactor,
+            )
+            const strokeColorValue = rgbToNumber(marker.currentColor)
             const strokeAlpha = isHovered ? 1 : 0.85
+            const targetGlowAlpha = isHovered ? SOUND_GLOW_OPACITY : 0
+            marker.glowAlpha = lerpValue(
+              marker.glowAlpha,
+              targetGlowAlpha,
+              smoothingFactor,
+            )
 
             // RIPPLE DRAWING
+            const rippleBaseRadius = scaleAndClampRadius(
+              BASE_SOUND_RADIUS,
+              zoomScale,
+              categoryRadiusScale,
+              MIN_MARKER_RADIUS,
+              MAX_MARKER_RADIUS,
+            )
             const rippleConfig = {
               ...SOUND_MARKER_RIPPLE_CONFIG,
-              baseRadius: scaledRadius * 2,
+              baseRadius: rippleBaseRadius * 2,
+              alphaScale: RIPPLE_ALPHA_SCALE,
+              strokeWidth: RIPPLE_STROKE_WIDTH,
             }
+            const rippleColorValue = hexColorToNumber(
+              mapColorTheme.peripheralRingColor,
+            )
 
             for (const ripple of marker.ripples) {
               updatePixiRipple(
@@ -282,19 +344,32 @@ export const SoundMarkersCanvas = ({
                 point.y,
                 currentZoom,
                 rippleConfig,
-                strokeColorValue,
+                rippleColorValue,
               )
             }
 
             // DOT DRAWING (non-linear zoom effect)
             marker.dot.clear()
+            if (marker.glowAlpha > 0.01) {
+              marker.dot.lineStyle(0)
+              marker.dot.beginFill(
+                hexColorToNumber(GLOW_COLORS[marker.sound.category]),
+                marker.glowAlpha,
+              )
+              marker.dot.drawCircle(
+                point.x,
+                point.y,
+                marker.currentRadius + SOUND_GLOW_RADIUS,
+              )
+              marker.dot.endFill()
+            }
             marker.dot.lineStyle(
               MARKER_STROKE_WIDTH,
               strokeColorValue,
               strokeAlpha,
             )
             marker.dot.beginFill(0x000000, 0)
-            marker.dot.drawCircle(point.x, point.y, scaledRadius)
+            marker.dot.drawCircle(point.x, point.y, marker.currentRadius)
             marker.dot.endFill()
           }
         })

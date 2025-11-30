@@ -25,6 +25,10 @@ export interface RippleConfig {
   readonly baseRadius: number
   /** Range multiplier for animation (ripple grows from base to base * range) */
   readonly animationRange: number
+  /** Optional override for stroke width */
+  readonly strokeWidth?: number
+  /** Optional override for max alpha */
+  readonly alphaScale?: number
 }
 
 /**
@@ -85,11 +89,13 @@ export const updatePixiRipple = (
   const easedProgress = 1 - (1 - progress) ** 2
   const expansion = 1 + easedProgress * config.animationRange
   const radius = config.baseRadius * expansion * zoomScale
-  const alpha = Math.max(0, 1 - progress ** 0.5) * 0.6
+  const strokeWidth = config.strokeWidth ?? 2
+  const alphaScale = config.alphaScale ?? 0.6
+  const alpha = Math.max(0, 1 - progress ** 0.5) * alphaScale
 
   ripple.graphics.circle(x, y, radius)
   ripple.graphics.stroke({
-    width: 2,
+    width: strokeWidth,
     color,
     alpha,
   })
@@ -133,27 +139,31 @@ export const drawCanvasRipple = (
 }
 
 /**
- * Default ripple configuration for sound markers (PIXI.js).
+ * Default ripple configuration for sound markers.
  */
 export const SOUND_MARKER_RIPPLE_CONFIG: RippleConfig = {
-  count: 2,
+  count: 1,
   maxAge: 3.0,
   delay: 1.0,
   minScale: 0.8,
   maxScale: 1.6,
-  baseRadius: 8, // Will be multiplied by scaled marker radius
+  baseRadius: 8,
   animationRange: 3,
+  strokeWidth: 2,
+  alphaScale: 0.6,
 }
 
 /**
  * Default ripple configuration for fog overlay (Canvas 2D).
  */
 export const FOG_RIPPLE_CONFIG: RippleConfig = {
-  count: 2,
-  maxAge: 8.0, // 8-second cycle (4x slower than base 2s)
-  delay: 0.5,
-  minScale: 1,
-  maxScale: 4,
-  baseRadius: 20,
-  animationRange: 1, // Grows from 0 to baseRadius
+  count: 1,
+  maxAge: SOUND_MARKER_RIPPLE_CONFIG.maxAge / 2,
+  delay: 0.25,
+  minScale: 0.6,
+  maxScale: 1.4,
+  baseRadius: 6,
+  animationRange: 1.5,
+  strokeWidth: 1,
+  alphaScale: 0.5,
 }
