@@ -69,15 +69,15 @@ export const D_Category = D.union(
   D.literal("Feel"),
 )
 
-const D_Coordinates: D.Decoder<unknown, LngLat> = pipe(
+const D_Coordinate: D.Decoder<unknown, LngLat> = pipe(
   D.struct({
     lat: D.number,
     lng: D.number,
   }),
-  D.parse(({ lat, lng }) =>
+  D.parse((x) =>
     E.tryCatch(
-      () => LngLat.convert([lng, lat]),
-      () => D.error({ lat, lng }, "Invalid coordinates"),
+      () => LngLat.convert(x),
+      () => D.error(x, "Invalid coordinate"),
     ),
   ),
 )
@@ -92,7 +92,7 @@ const D_SoundBase: D.Decoder<unknown, SoundBase> = readonlyStruct(
     duration: decodeIso("Duration.fromISO", Duration.fromISO),
     location: optional(D.string),
     access: optional(D.string),
-    coordinates: D_Coordinates,
+    coordinate: D_Coordinate,
     videoSrc: D.string,
     thumbnailSrc: optional(D.string),
   }),

@@ -1,6 +1,6 @@
 import type { LngLat, LngLatBounds, Map as MapboxMap } from "mapbox-gl"
 import { MercatorCoordinate } from "mapbox-gl"
-import { metersToPixels, projectToScreen } from "../../lib/mapCanvas"
+import { metersToPixels } from "../../lib/mapCanvas"
 import type {
   FogGrid,
   PersistedReveal,
@@ -222,7 +222,7 @@ export const isRevealVisible = (
   viewport: ViewportBounds,
   currentZoom: number,
 ): boolean => {
-  const screen = projectToScreen(map, reveal.lng, reveal.lat)
+  const screen = map.project(reveal)
   const radiusPixels = renderRadiusPixels(reveal, currentZoom)
 
   // Bounding box check with buffer for edge cases
@@ -294,7 +294,7 @@ export const projectRevealsToScreen = (
 
   for (let i = 0; i < reveals.length; i++) {
     const reveal = reveals[i]
-    const screen = projectToScreen(map, reveal.lng, reveal.lat)
+    const screen = map.project(reveal)
     const radiusPixels = renderRadiusPixels(reveal, currentZoom)
 
     projected[i] = {

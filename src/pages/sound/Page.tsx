@@ -100,12 +100,12 @@ export const SoundPage = ({ sound }: Props) => {
               </div>
               <div
                 className={technicalListItem}
-                title={`${sound.coordinates.lat},${sound.coordinates.lng}`}
+                title={`${sound.coordinate.lat},${sound.coordinate.lng}`}
               >
                 <dt className={technicalTerm}>Map Location:</dt>
                 <dd className={technicalDefinition}>
                   {pipe(
-                    `${sound.coordinates.lat.toFixed(3)}, ${sound.coordinates.lng.toFixed(3)}`,
+                    `${sound.coordinate.lat.toFixed(3)}, ${sound.coordinate.lng.toFixed(3)}`,
                     (message) =>
                       deviceType === "desktop" ? (
                         message
@@ -113,7 +113,7 @@ export const SoundPage = ({ sound }: Props) => {
                         <a
                           // TODO Test on mobile
                           // Show arrow that this opens a new link
-                          href={`geo:${sound.coordinates.lat},${sound.coordinates.lng}`}
+                          href={`geo:${sound.coordinate.lat},${sound.coordinate.lng}`}
                           rel="noreferrer"
                           target="_blank"
                         >

@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { brandColors } from "@/theme/colors"
-import { projectToScreen, syncPixiRendererSize } from "../../lib/mapCanvas"
+import { syncPixiRendererSize } from "../../lib/mapCanvas"
 import type { PixiRipple } from "../../lib/ripple"
 import {
   createPixiRipples,
@@ -43,6 +43,29 @@ const CATEGORY_RADIUS_FACTOR: Record<Category, number> = {
 const BASE_SOUND_RADIUS = 8
 const MIN_MARKER_RADIUS = 4
 const MAX_MARKER_RADIUS = 16
+const MARKER_STROKE_WIDTH = 3
+const DEFAULT_DIM_FACTOR = 0.75
+const HOVER_VIBRANCY_FACTOR = 1.25
+
+const clampColorChannel = (value: number) =>
+  Math.min(255, Math.max(0, Math.round(value)))
+
+const toHexChannel = (value: number) =>
+  clampColorChannel(value).toString(16).padStart(2, "0").toUpperCase()
+
+const adjustHexColorBrightness = (hexColor: string, factor: number): string => {
+  const normalized = hexColor.replace("#", "")
+  const channels = [0, 2, 4].map((offset) =>
+    Number.parseInt(normalized.slice(offset, offset + 2), 16),
+  )
+
+  return `#${channels
+    .map((channel) => toHexChannel(channel * factor))
+    .join("")}`
+}
+
+const hexColorToNumber = (hexColor: string): number =>
+  Number.parseInt(hexColor.replace("#", ""), 16)
 
 /**
  * Sound markers rendered on a Pixi.js canvas overlay with ripple effects.
@@ -81,15 +104,17 @@ export const SoundMarkersCanvas = ({
 
     let mounted = true
     let app: Application | null = null
+    const mapCanvas = map.getCanvas()
+    const previousCursor = mapCanvas.style.cursor
 
     const handlePointerMove = (event: PointerEvent) => {
-      const appInstance = appRef.current
-      if (!mapRef.current?.getMap() || !appInstance?.canvas) {
+      const currentMap = mapRef.current?.getMap()
+      if (!currentMap) {
         hoveredSoundRef.current = null
         return
       }
 
-      const rect = appInstance.canvas.getBoundingClientRect()
+      const rect = mapCanvas.getBoundingClientRect()
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
       let nearest: Sound | null = null
@@ -110,10 +135,10 @@ export const SoundMarkersCanvas = ({
     }
 
     const handleClick = (event: MouseEvent) => {
-      const appInstance = appRef.current
-      if (!mapRef.current?.getMap() || !appInstance?.canvas) return
+      const currentMap = mapRef.current?.getMap()
+      if (!currentMap) return
 
-      const rect = appInstance.canvas.getBoundingClientRect()
+      const rect = mapCanvas.getBoundingClientRect()
       const x = event.clientX - rect.left
       const y = event.clientY - rect.top
 
@@ -129,6 +154,21 @@ export const SoundMarkersCanvas = ({
         }
       }
     }
+
+    const handleMapDragStart = () => {
+      mapCanvas.style.cursor = "grabbing"
+    }
+
+    const handleMapDragEnd = () => {
+      mapCanvas.style.cursor = "pointer"
+    }
+
+    mapCanvas.style.cursor = "pointer"
+    mapCanvas.addEventListener("click", handleClick)
+    mapCanvas.addEventListener("pointermove", handlePointerMove)
+    mapCanvas.addEventListener("pointerleave", handlePointerLeave)
+    map.on("dragstart", handleMapDragStart)
+    map.on("dragend", handleMapDragEnd)
 
     const initPixi = async () => {
       try {
@@ -151,11 +191,6 @@ export const SoundMarkersCanvas = ({
         appRef.current = app
         app.canvas.className = pixiCanvas
         container.appendChild(app.canvas)
-
-        // Click handler
-        app.canvas.addEventListener("click", handleClick)
-        app.canvas.addEventListener("pointermove", handlePointerMove)
-        app.canvas.addEventListener("pointerleave", handlePointerLeave)
 
         // Create markers for each sound
         const markers: SoundMarker[] = []
@@ -203,13 +238,8 @@ export const SoundMarkersCanvas = ({
               continue
             }
 
-            const point = projectToScreen(
-              currentMap,
-              marker.sound.coordinates.lng,
-              marker.sound.coordinates.lat,
-            )
+            const point = currentMap.project(marker.sound.coordinate)
             marker.screenPosition = point
-            const color = CATEGORY_COLORS[marker.sound.category]
 
             const categoryRadiusScale =
               CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
@@ -230,6 +260,14 @@ export const SoundMarkersCanvas = ({
               MAX_MARKER_RADIUS,
             )
 
+            const baseColor = CATEGORY_COLORS[marker.sound.category]
+            const strokeColorHex = adjustHexColorBrightness(
+              baseColor,
+              isHovered ? HOVER_VIBRANCY_FACTOR : DEFAULT_DIM_FACTOR,
+            )
+            const strokeColorValue = hexColorToNumber(strokeColorHex)
+            const strokeAlpha = isHovered ? 1 : 0.85
+
             // RIPPLE DRAWING
             const rippleConfig = {
               ...SOUND_MARKER_RIPPLE_CONFIG,
@@ -244,14 +282,20 @@ export const SoundMarkersCanvas = ({
                 point.y,
                 currentZoom,
                 rippleConfig,
-                color,
+                strokeColorValue,
               )
             }
 
             // DOT DRAWING (non-linear zoom effect)
             marker.dot.clear()
-            marker.dot.circle(point.x, point.y, scaledRadius)
-            marker.dot.fill({ color, alpha: 0.9 })
+            marker.dot.lineStyle(
+              MARKER_STROKE_WIDTH,
+              strokeColorValue,
+              strokeAlpha,
+            )
+            marker.dot.beginFill(0x000000, 0)
+            marker.dot.drawCircle(point.x, point.y, scaledRadius)
+            marker.dot.endFill()
           }
         })
       } catch (err) {
@@ -264,16 +308,14 @@ export const SoundMarkersCanvas = ({
     return () => {
       mounted = false
 
+      mapCanvas.removeEventListener("click", handleClick)
+      mapCanvas.removeEventListener("pointermove", handlePointerMove)
+      mapCanvas.removeEventListener("pointerleave", handlePointerLeave)
+      map.off("dragstart", handleMapDragStart)
+      map.off("dragend", handleMapDragEnd)
+      mapCanvas.style.cursor = previousCursor
+
       if (appRef.current) {
-        appRef.current.canvas?.removeEventListener("click", handleClick)
-        appRef.current.canvas?.removeEventListener(
-          "pointermove",
-          handlePointerMove,
-        )
-        appRef.current.canvas?.removeEventListener(
-          "pointerleave",
-          handlePointerLeave,
-        )
         appRef.current.destroy(true, { children: true })
         appRef.current = null
       }

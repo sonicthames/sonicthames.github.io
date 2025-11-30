@@ -82,10 +82,10 @@ export const updatePixiRipple = (
   const zoomScale =
     config.minScale + zoomProgress * (config.maxScale - config.minScale)
 
-  const baseRadius =
-    config.baseRadius + progress * config.baseRadius * config.animationRange
-  const radius = baseRadius * zoomScale
-  const alpha = Math.max(0, 1 - progress) * 0.6
+  const easedProgress = 1 - (1 - progress) ** 2
+  const expansion = 1 + easedProgress * config.animationRange
+  const radius = config.baseRadius * expansion * zoomScale
+  const alpha = Math.max(0, 1 - progress ** 0.5) * 0.6
 
   ripple.graphics.circle(x, y, radius)
   ripple.graphics.stroke({
@@ -118,7 +118,9 @@ export const drawCanvasRipple = (
   const zoomScale =
     config.minScale + zoomProgress * (config.maxScale - config.minScale)
 
-  const radius = progress * config.baseRadius * zoomScale
+  const easedProgress = 1 - (1 - progress) ** 2
+  const expansion = 1 + easedProgress * config.animationRange
+  const radius = config.baseRadius * expansion * zoomScale
   const opacity = (1 - progress) * 0.5
 
   if (opacity > 0.05) {
@@ -137,8 +139,8 @@ export const SOUND_MARKER_RIPPLE_CONFIG: RippleConfig = {
   count: 2,
   maxAge: 3.0,
   delay: 1.0,
-  minScale: 1,
-  maxScale: 4,
+  minScale: 0.8,
+  maxScale: 1.6,
   baseRadius: 8, // Will be multiplied by scaled marker radius
   animationRange: 3,
 }

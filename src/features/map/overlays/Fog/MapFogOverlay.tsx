@@ -10,11 +10,7 @@ import {
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
-import {
-  clampValue,
-  projectToScreen,
-  syncCanvasSize,
-} from "../../lib/mapCanvas"
+import { clampValue, syncCanvasSize } from "../../lib/mapCanvas"
 import { drawCanvasRipple, FOG_RIPPLE_CONFIG } from "../../lib/ripple"
 import { usePersistenceStore } from "../../persistence"
 import { fogCanvas, fogOverlayContainer } from "./MapFogOverlay.css"
@@ -304,16 +300,16 @@ export const MapFogOverlay = forwardRef<
         const grid = ensureGrid()
         if (!grid) return
 
-        const screenPosition = projectToScreen(map, position.lng, position.lat)
+        const screenPosition = map.project(position)
         const comparison = map.unproject([
           screenPosition.x + revealSize,
           screenPosition.y,
-        ]) as LngLat
+        ])
         const revealRadiusMeters = position.distanceTo(comparison)
 
         const cells = collectCellsInRadius(
           grid,
-          { lng: position.lng, lat: position.lat },
+          position,
           revealRadiusMeters,
           grid.visualCellRadiusMeters,
           movementBounds,
@@ -460,11 +456,7 @@ export const MapFogOverlay = forwardRef<
               continue
             }
 
-            const screen = projectToScreen(
-              map,
-              sound.coordinates.lng,
-              sound.coordinates.lat,
-            )
+            const screen = map.project(sound.coordinate)
 
             // Draw 2 ripples with offset phases for continuous effect
             for (let rippleIndex = 0; rippleIndex < 2; rippleIndex++) {

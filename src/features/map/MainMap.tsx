@@ -3,11 +3,12 @@ import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import * as D from "io-ts/Decoder"
-import mapboxgl, { LngLat } from "mapbox-gl"
+import type mapboxgl from "mapbox-gl"
+import type { LngLatLike } from "mapbox-gl"
+import { LngLat, LngLatBounds } from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
-import type { LineString } from "geojson"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import type { MapRef } from "react-map-gl/mapbox"
+import type { MapProps, MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { useLocation } from "react-router-dom"
 import { H2, H3 } from "@/components/Typography"
@@ -68,24 +69,18 @@ const LNG_BOUND_OFFSET = 0.325
 const LAT_BOUND_OFFSET = 0.125
 const center = new LngLat(-0.001, 51.501)
 
-const lngLatBounds = new mapboxgl.LngLatBounds(
-  new mapboxgl.LngLat(
-    center.lng - LNG_BOUND_OFFSET,
-    center.lat - LAT_BOUND_OFFSET,
-  ),
-  new mapboxgl.LngLat(
-    center.lng + LNG_BOUND_OFFSET,
-    center.lat + LAT_BOUND_OFFSET,
-  ),
+const lngLatBounds = new LngLatBounds(
+  new LngLat(center.lng - LNG_BOUND_OFFSET, center.lat - LAT_BOUND_OFFSET),
+  new LngLat(center.lng + LNG_BOUND_OFFSET, center.lat + LAT_BOUND_OFFSET),
 )
 
-const initialViewState = {
+const initialViewState: MapProps["initialViewState"] = {
   latitude: center.lat,
   longitude: center.lng,
   zoom: 13,
   bearing: 0,
   pitch: 0,
-} as const
+}
 const MIN_ZOOM = ZOOM_MIN_LEVEL
 const MAX_ZOOM = 18
 
@@ -100,13 +95,6 @@ const readLastUserPosition = (): LngLat | null => {
     return null
   }
   return LngLat.convert([stored.lng, stored.lat])
-}
-
-const persistLastUserPosition = (position: LngLat): void => {
-  usePersistenceStore.getState().setLastUserPosition({
-    lng: position.lng,
-    lat: position.lat,
-  })
 }
 
 const MAP_STYLE: mapboxgl.Style = {
@@ -155,10 +143,24 @@ const headerIconSize = "2rem"
 const AVATAR_SPEED_MPS = 400
 const PROXIMITY_THRESHOLD_METERS = 120
 
-const CoordinatesTupleDecoder = D.tuple(D.number, D.number)
-const LineStringGeometryDecoder = D.struct({
+const LngLatDecoder: D.Decoder<unknown, LngLat> = pipe(
+  D.tuple(D.number, D.number),
+  D.parse(([lng, lat]) =>
+    E.tryCatch(
+      () => LngLat.convert([lng, lat]),
+      () => D.error([lng, lat], "Invalid coordinate"),
+    ),
+  ),
+)
+
+interface RouteGeometry {
+  readonly type: "LineString"
+  readonly coordinates: readonly LngLat[]
+}
+
+const LineStringGeometryDecoder: D.Decoder<unknown, RouteGeometry> = D.struct({
   type: D.literal("LineString"),
-  coordinates: D.array(CoordinatesTupleDecoder),
+  coordinates: D.array(LngLatDecoder),
 })
 const DirectionsRouteDecoder = D.struct({
   geometry: LineStringGeometryDecoder,
@@ -182,27 +184,29 @@ interface RouteState {
   distanceAlongSegment: number
 }
 
-const buildRouteSegments = (
-  coordinates: LineString["coordinates"],
-): RouteSegment[] => {
-  const segments: RouteSegment[] = []
-  for (let i = 0; i < coordinates.length - 1; i++) {
-    const [fromLng, fromLat] = coordinates[i] as unknown as readonly [
-      number,
-      number,
-    ]
-    const [toLng, toLat] = coordinates[i + 1] as unknown as readonly [
-      number,
-      number,
-    ]
-    const from = new LngLat(fromLng, fromLat)
-    const to = new LngLat(toLng, toLat)
-    segments.push({
-      from,
-      to,
-      distance: from.distanceTo(to),
-    })
+const buildRouteSegments = (coordinates: readonly LngLat[]): RouteSegment[] => {
+  if (coordinates.length < 2) {
+    return []
   }
+
+  const segments: RouteSegment[] = []
+  let previousPoint = coordinates[0]
+
+  for (let i = 1; i < coordinates.length; i++) {
+    const nextPoint = coordinates[i]
+    const distance = previousPoint.distanceTo(nextPoint)
+
+    if (distance > 0) {
+      segments.push({
+        from: previousPoint,
+        to: nextPoint,
+        distance,
+      })
+    }
+
+    previousPoint = nextPoint
+  }
+
   return segments
 }
 
@@ -405,7 +409,7 @@ export const MainMap = ({ sounds }: Props) => {
   const directionsAbortControllerRef = useRef<AbortController | null>(null)
   const lastPersistedUserPositionRef = useRef<LngLat | null>(null)
   const lastPersistTimeRef = useRef<number>(0)
-  const lastProximityCheckRef = useRef<LngLat | null>(null)
+  const lastProximityCheckRef = useRef<LngLatLike | null>(null)
   const proximitySounds = useMemo(
     // Stable list keeps proximity checks predictable and avoids re-filtering per frame
     () => sounds.filter((sound) => sound.playOnProximity),
@@ -424,15 +428,16 @@ export const MainMap = ({ sounds }: Props) => {
   }, [])
 
   const evaluateProximity = useCallback(
-    (position: LngLat) => {
+    (position: LngLatLike) => {
+      const normalized = LngLat.convert(position)
       const lastChecked = lastProximityCheckRef.current
       if (
         lastChecked &&
-        haversineDistanceMeters(lastChecked, position) < 15 // skip tiny movements
+        haversineDistanceMeters(lastChecked, normalized) < 15
       ) {
         return
       }
-      lastProximityCheckRef.current = position
+      lastProximityCheckRef.current = normalized
 
       // If we're currently traveling on a route, don't open videos until we reach the destination
       const isMoving = routeStateRef.current !== null
@@ -441,7 +446,7 @@ export const MainMap = ({ sounds }: Props) => {
       if (isMoving && destination) {
         // Check if we've reached the destination (within 10 meters)
         const distanceToDestination = haversineDistanceMeters(
-          position,
+          normalized,
           destination,
         )
         const hasReachedDestination = distanceToDestination < 10
@@ -455,7 +460,7 @@ export const MainMap = ({ sounds }: Props) => {
       let nearest: { sound: Sound; distance: number } | null = null
 
       for (const sound of proximitySounds) {
-        const distance = haversineDistanceMeters(position, sound.coordinates)
+        const distance = haversineDistanceMeters(normalized, sound.coordinate)
 
         if (nearest === null || distance < nearest.distance) {
           nearest = { sound, distance }
@@ -479,21 +484,24 @@ export const MainMap = ({ sounds }: Props) => {
   )
 
   const updateTrackedUserPosition = useCallback(
-    (position: LngLat) => {
-      userPositionRef.current = position
-      fogOverlayRef.current?.trackUserPosition(position)
-      evaluateProximity(position)
+    (position: LngLatLike) => {
+      const normalized = LngLat.convert(position)
+      userPositionRef.current = normalized
+      fogOverlayRef.current?.trackUserPosition(normalized)
+      evaluateProximity(normalized)
       const now =
         typeof performance !== "undefined" ? performance.now() : Date.now()
       const lastPersisted = lastPersistedUserPositionRef.current
       const sinceLastPersist = now - lastPersistTimeRef.current
       const movedSincePersist = lastPersisted
-        ? haversineDistanceMeters(lastPersisted, position)
+        ? haversineDistanceMeters(lastPersisted, normalized)
         : Infinity
 
       if (!lastPersisted || sinceLastPersist > 500 || movedSincePersist > 5) {
-        persistLastUserPosition(position)
-        lastPersistedUserPositionRef.current = position
+        usePersistenceStore
+          .getState()
+          .setLastUserPosition(LngLat.convert(normalized))
+        lastPersistedUserPositionRef.current = normalized
         lastPersistTimeRef.current = now
       }
     },
@@ -568,24 +576,21 @@ export const MainMap = ({ sounds }: Props) => {
   )
 
   const startRouteAnimation = useCallback(
-    (geometry: LineString) => {
+    (geometry: RouteGeometry) => {
       const segments = buildRouteSegments(geometry.coordinates)
-      const finalCoordinate =
-        geometry.coordinates[geometry.coordinates.length - 1]
+      const finalCoordinate = geometry.coordinates.at(-1)
+      const destination = finalCoordinate
+        ? LngLat.convert(finalCoordinate)
+        : null
 
       // Store the destination for proximity evaluation
-      if (finalCoordinate) {
-        routeDestinationRef.current = LngLat.convert([
-          finalCoordinate[0],
-          finalCoordinate[1],
-        ])
+      if (destination) {
+        routeDestinationRef.current = destination
       }
 
       if (segments.length === 0) {
-        if (finalCoordinate) {
-          updateTrackedUserPosition(
-            LngLat.convert([finalCoordinate[0], finalCoordinate[1]]),
-          )
+        if (destination) {
+          updateTrackedUserPosition(destination)
         }
         userPositionHandleRef.current?.fadeIn()
         routeDestinationRef.current = null
@@ -604,12 +609,13 @@ export const MainMap = ({ sounds }: Props) => {
   )
 
   const requestDirections = useCallback(
-    async (destination: mapboxgl.LngLat) => {
+    async (destination: LngLatLike) => {
       const origin = userPositionRef.current
+      const normalizedDestination = LngLat.convert(destination)
       if (
         !origin ||
-        (Math.abs(origin.lat - destination.lat) < 1e-6 &&
-          Math.abs(origin.lng - destination.lng) < 1e-6)
+        (Math.abs(origin.lat - normalizedDestination.lat) < 1e-6 &&
+          Math.abs(origin.lng - normalizedDestination.lng) < 1e-6)
       ) {
         return
       }
@@ -621,7 +627,7 @@ export const MainMap = ({ sounds }: Props) => {
 
       try {
         const url = new URL(
-          `https://api.mapbox.com/directions/v5/mapbox/walking/${origin.lng},${origin.lat};${destination.lng},${destination.lat}`,
+          `https://api.mapbox.com/directions/v5/mapbox/walking/${origin.lng},${origin.lat};${normalizedDestination.lng},${normalizedDestination.lat}`,
         )
         url.searchParams.set("alternatives", "false")
         url.searchParams.set("geometries", "geojson")
@@ -651,15 +657,7 @@ export const MainMap = ({ sounds }: Props) => {
         }
 
         const [route] = decoded.routes
-        const normalizedCoordinates = route.geometry.coordinates.map(
-          ([lng, lat]) => [lng, lat] as [number, number],
-        )
-        const geometry: LineString = {
-          type: "LineString",
-          coordinates: normalizedCoordinates,
-        }
-
-        startRouteAnimation(geometry)
+        startRouteAnimation(route.geometry)
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return
@@ -757,10 +755,10 @@ export const MainMap = ({ sounds }: Props) => {
   }, [location.pathname, setExpanded])
 
   const handlePlay = useCallback(
-    (soundTitle: string) => {
+    (title: string) => {
       pipe(
         sounds,
-        RA.findFirst((x) => x.title === soundTitle),
+        RA.findFirst((x) => x.title === title),
         setSoundO,
       )
     },
@@ -769,10 +767,11 @@ export const MainMap = ({ sounds }: Props) => {
 
   const filters = useMapStore((s) => s.filters)
 
-  const handleSoundClick = useCallback((sound: Sound) => {
-    // Stable callback prevents SoundMarkersCanvas from reinitializing Pixi on every render
-    setHoverSoundO(O.some(sound))
-  }, [])
+  // Stable callback prevents SoundMarkersCanvas from reinitializing Pixi on every render
+  const handleSoundClick = useCallback(
+    (s: Sound) => setHoverSoundO(O.some(s)),
+    [],
+  )
 
   return (
     <MapboxMap

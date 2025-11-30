@@ -19,18 +19,6 @@ export const clampValue = (value: number, min: number, max: number): number =>
   Math.max(min, Math.min(value, max))
 
 /**
- * Projects geographic coordinates to screen pixels using Mapbox's projection.
- */
-export const projectToScreen = (
-  map: MapboxMapInstance,
-  lng: number,
-  lat: number,
-): { x: number; y: number } => {
-  const point = map.project([lng, lat])
-  return { x: point.x, y: point.y }
-}
-
-/**
  * Synchronizes PIXI.js renderer dimensions with the Mapbox container.
  * Returns true if resize occurred, false if dimensions unchanged.
  */

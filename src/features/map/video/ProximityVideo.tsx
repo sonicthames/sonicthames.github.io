@@ -80,8 +80,8 @@ const buildLayouts = (
   const mapTop = containerRect.top
 
   const screenPoint = mapInstance.project([
-    sound.coordinates.lng,
-    sound.coordinates.lat,
+    sound.coordinate.lng,
+    sound.coordinate.lat,
   ])
 
   // Use full player dimensions for origin rect - scale will be applied via CSS transform

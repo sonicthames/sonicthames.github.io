@@ -13,6 +13,6 @@ export const pixiCanvas = style({
   position: "absolute",
   top: 0,
   left: 0,
-  cursor: "pointer",
+  pointerEvents: "none",
   zIndex: 1,
 })

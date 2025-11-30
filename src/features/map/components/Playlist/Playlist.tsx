@@ -80,7 +80,7 @@ export const Playlist = ({ onGoTo, onPlay, soundO, sounds }: PlaylistProps) => {
       <ul className={playlist} data-testid="map-playlist">
         {pipe(
           sounds,
-          RA.map(({ title, coordinates }) => (
+          RA.map(({ title, coordinate: coordinates }) => (
             <PlaylistItem
               key={title}
               onGoTo={onGoTo}

@@ -8,7 +8,7 @@
     "duration": "PT00M47S",
     "location": "Belvedere",
     "access": "37 Church Manorway, London SE2 9DP",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.49664419559667,
       "lng": 0.17203561267986422
     },
@@ -29,7 +29,7 @@
     "duration": "PT01M29S",
     "location": "Bexley",
     "access": "17 St Andrews Cl, London SE28 8QD",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.5128159484887,
       "lng": 0.12913891492938526
     },
@@ -50,7 +50,7 @@
     "duration": "PT03M24S",
     "location": "Greenwich ,– by 1 Erebus Dr",
     "access": "Tideslea Tower, Erebus Dr, London SE28 0GB",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.497877558036244,
       "lng": 0.08019043097443543
     },
@@ -71,7 +71,7 @@
     "playOnProximity": true,
     "duration": "PT03M30S",
     "location": "Greenwich",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.496241132379545,
       "lng": 0.07661236416820931
     },
@@ -92,7 +92,7 @@
     "duration": "PT03M03S",
     "location": "Royal Arsenal",
     "access": "Marlborough Rd, London SE18 6TL",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.49509930946537,
       "lng": 0.07157203485340902
     },
@@ -113,7 +113,7 @@
     "duration": "PT03M29S",
     "location": "Heritage Site",
     "access": "Royal Arsenal, London SE18 6S",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.494954262726154,
       "lng": 0.07055198101995548
     },
@@ -135,7 +135,7 @@
     "duration": "PT07M19S",
     "location": "Maribor Park Fountains",
     "access": " Woolwich London SE18 6PD",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.4945094251426,
       "lng": 0.06619430541535612
     },
@@ -156,7 +156,7 @@
     "duration": "PT05M31S",
     "location": "Opposite to Waterfront Leisure Centre",
     "access": "Woolwich High St, London SE18 6DL",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.49468219167793,
       "lng": 0.06412776851650571
     },
@@ -176,7 +176,7 @@
     "playOnProximity": true,
     "duration": "PT03M04S",
     "location": "Deptford",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.48557219958128,
       "lng": -0.02478712902387588
     },
@@ -206,7 +206,7 @@
     "duration": "PT02M34S",
     "location": "The Dog & Bell pub",
     "access": "116 Prince St, London SE8 3JD",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.48341857318575,
       "lng": -0.025753421051477505
     },
@@ -227,7 +227,7 @@
     "duration": "PT00M57S",
     "location": "Rotherhithe - Greenland Surrey Quays Pier",
     "access": "33 Princes Ct, London SE16 7TD",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.49475442767241,
       "lng": -0.03185434182294278
     },
@@ -247,7 +247,7 @@
     "duration": "PT08M47S",
     "location": "Rotherhithe - Greenland Surrey Quays Pier",
     "access": "33 Princes Ct, London SE16 7TD",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.49486297389876,
       "lng": -0.031789696129041575
     },
@@ -269,7 +269,7 @@
     "duration": "PT1M35S",
     "location": "Bermondsey - Behind King's Stairs Gardens",
     "access": "The Angel pub, 101 Bermondsey Wall E, London SE16 4NB",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.50101379900324,
       "lng": -0.0580068057175177
     },
@@ -289,7 +289,7 @@
     "duration": "PT01M17S",
     "location": "Bermondsey - Behind King's Stairs Gardens",
     "access": "The Angel pub, 101 Bermondsey Wall E, London SE16 4NB",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.50090122623746,
       "lng": -0.05899682436432989
     },
@@ -308,7 +308,7 @@
     "duration": "PT02M23S",
     "access": "Bermondsey Beach",
     "location": "158 Bermondsey Wall E, London SE16 4TT",
-    "coordinates": {
+    "coordinate": {
       "lat": 51.50086688194781,
       "lng": -0.06202818208663473
     },
@@ -325,7 +325,7 @@
     "duration": "PT1H01M58S",
     "access": null,
     "location": null,
-    "coordinates": {
+    "coordinate": {
       "lat": 51.483269753460455,
       "lng": -0.01014751786744664
     },

@@ -1,6 +1,5 @@
 import type mapboxgl from "mapbox-gl"
 import type { LngLatBounds } from "mapbox-gl"
-import { projectToScreen } from "../../lib/mapCanvas"
 import type { TextureCache } from "./texture"
 import { getCachedRevealTexture } from "./texture"
 import type { RevealScreenSpace } from "./types"
@@ -74,8 +73,8 @@ export const drawOuterFogBoundary = (
   const sw = movementBounds.getSouthWest()
   const ne = movementBounds.getNorthEast()
 
-  const swScreen = projectToScreen(map, sw.lng, sw.lat)
-  const neScreen = projectToScreen(map, ne.lng, ne.lat)
+  const swScreen = map.project(sw)
+  const neScreen = map.project(ne)
 
   // Calculate movement bounds rectangle in screen space
   const boundLeft = Math.min(swScreen.x, neScreen.x)

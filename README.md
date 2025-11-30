@@ -218,7 +218,7 @@ Sound recordings are defined in [src/data.json](src/data.json) with the followin
   duration: string;           // ISO 8601 duration (e.g., "PT01M29S")
   location: string | null;    // Location name
   access: string | null;      // Access instructions
-  coordinates: LngLat;
+  coordinate: LngLat;
   dateTime?: string;          // ISO timestamp
   interval?: string;          // ISO interval
   videoSrc: string;           // YouTube video ID

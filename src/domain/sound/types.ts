@@ -61,7 +61,7 @@ export interface SoundBase {
   readonly duration: Duration
   readonly location: O.Option<string>
   readonly access: O.Option<string>
-  readonly coordinates: LngLat
+  readonly coordinate: LngLat
   readonly videoSrc: string
   readonly thumbnailSrc: O.Option<string>
 }
