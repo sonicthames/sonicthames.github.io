@@ -1,9 +1,13 @@
-import { Application, Graphics } from "pixi.js"
-import { useEffect, useRef } from "react"
+import type mapboxgl from "mapbox-gl"
+import type { Application, Ticker } from "pixi.js"
+import { Container, Graphics } from "pixi.js"
+import { useCallback, useEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { mapColorTheme } from "@/theme/mapColors"
+import { interpolateColorNumber, smoothValue } from "../../lib/animation"
 import { syncPixiRendererSize } from "../../lib/mapCanvas"
+import { createPixiOverlay } from "../../lib/pixiOverlay"
 import type { PixiRipple } from "../../lib/ripple"
 import {
   createPixiRipples,
@@ -19,23 +23,23 @@ interface Props {
   readonly filters: readonly Category[]
   readonly onSoundClick: (sound: Sound) => void
   readonly playingSound: Sound | null
+  readonly mapReady: boolean
 }
-
-type RGBColor = readonly [number, number, number]
 
 interface SoundMarker {
   sound: Sound
   ripples: PixiRipple[]
   dot: Graphics
-  screenPosition: { x: number; y: number }
   currentRadius: number
-  currentColor: RGBColor
+  currentColor: string
   glowAlpha: number
 }
 
-const CATEGORY_COLORS = mapColorTheme.soundBaseColors
-const HOVER_COLORS = mapColorTheme.soundHoverColors
-const GLOW_COLORS = mapColorTheme.soundGlowColors
+type OverlayState = {
+  readonly app: Application
+  readonly layer: Container
+  readonly cleanupEvents: () => void
+}
 
 const CATEGORY_RADIUS_FACTOR: Record<Category, number> = {
   Listen: 1,
@@ -53,348 +57,402 @@ const SOUND_GLOW_OPACITY = mapColorTheme.soundGlowOpacity
 const RIPPLE_STROKE_WIDTH = mapColorTheme.peripheralRingStrokeWidth
 const RIPPLE_ALPHA_SCALE = mapColorTheme.peripheralRingOpacityScale
 
-const clampColorChannel = (value: number) =>
-  Math.min(255, Math.max(0, Math.round(value)))
+const createSoundMarker = (
+  layer: Container,
+  sound: Sound,
+  offset: number,
+): SoundMarker => {
+  const ripples = createPixiRipples(SOUND_MARKER_RIPPLE_CONFIG, offset)
 
-const hexColorToNumber = (hexColor: string): number =>
-  Number.parseInt(hexColor.replace("#", ""), 16)
+  for (const ripple of ripples) {
+    layer.addChild(ripple.graphics)
+  }
 
-const hexToRgb = (hexColor: string): RGBColor => {
-  const normalized = hexColor.replace("#", "")
-  const channels = [0, 2, 4].map((offset) =>
-    Number.parseInt(normalized.slice(offset, offset + 2), 16),
-  )
+  const dot = new Graphics()
+  layer.addChild(dot)
 
-  return [
-    clampColorChannel(channels[0]),
-    clampColorChannel(channels[1]),
-    clampColorChannel(channels[2]),
-  ] as RGBColor
+  return {
+    sound,
+    ripples,
+    dot,
+    currentRadius: BASE_SOUND_RADIUS,
+    currentColor: mapColorTheme.soundBaseColors[sound.category],
+    glowAlpha: 0,
+  }
 }
 
-const rgbToNumber = ([r, g, b]: RGBColor): number =>
-  (clampColorChannel(r) << 16) |
-  (clampColorChannel(g) << 8) |
-  clampColorChannel(b)
+const disposeSoundMarker = (marker: SoundMarker) => {
+  for (const ripple of marker.ripples) {
+    ripple.graphics.parent?.removeChild(ripple.graphics)
+    ripple.graphics.destroy()
+  }
+  marker.dot.parent?.removeChild(marker.dot)
+  marker.dot.destroy()
+}
 
-const lerpValue = (current: number, target: number, factor: number) =>
-  current + (target - current) * factor
-
-const lerpColor = (
-  current: RGBColor,
-  target: RGBColor,
-  factor: number,
-): RGBColor =>
-  [
-    clampColorChannel(lerpValue(current[0], target[0], factor)),
-    clampColorChannel(lerpValue(current[1], target[1], factor)),
-    clampColorChannel(lerpValue(current[2], target[2], factor)),
-  ] as RGBColor
-
-/**
- * Sound markers rendered on a Pixi.js canvas overlay with ripple effects.
- */
 export const SoundMarkersCanvas = ({
   mapRef,
   sounds,
   filters,
   onSoundClick,
   playingSound,
+  mapReady,
 }: Props) => {
   const containerRef = useRef<HTMLDivElement>(null)
-  const appRef = useRef<Application | null>(null)
   const markersRef = useRef<SoundMarker[]>([])
   const hoveredSoundRef = useRef<Sound | null>(null)
-  const playingSoundRef = useRef<Sound | null>(playingSound)
-  const filtersRef = useRef<readonly Category[]>(filters)
   const onSoundClickRef = useRef(onSoundClick)
+  const filtersRef = useRef(filters)
+  const playingSoundRef = useRef<Sound | null>(playingSound)
+  const soundsRef = useRef(sounds)
+  const soundRevisionRef = useRef(0)
+  const lastRenderedSoundRevisionRef = useRef(-1)
+  onSoundClickRef.current = onSoundClick
+  filtersRef.current = filters
+  playingSoundRef.current = playingSound
+  const prevSounds = soundsRef.current
+  if (prevSounds !== sounds) {
+    soundRevisionRef.current += 1
+  }
+  soundsRef.current = sounds
 
-  useEffect(() => {
-    playingSoundRef.current = playingSound
-  }, [playingSound])
+  const disposeMarkers = useCallback((layer?: Container) => {
+    for (const marker of markersRef.current) {
+      disposeSoundMarker(marker)
+    }
+    markersRef.current = []
+    layer?.removeChildren()
+  }, [])
 
-  useEffect(() => {
-    filtersRef.current = filters
-  }, [filters])
+  const reconcileMarkers = useCallback(
+    (layer: Container, targetSounds: ReadonlyArray<Sound>) => {
+      const existing = markersRef.current
+      const availableMarkers = new Map(
+        existing.map((marker) => [marker.sound.marker, marker] as const),
+      )
+      const nextMarkers: SoundMarker[] = []
 
-  useEffect(() => {
-    onSoundClickRef.current = onSoundClick
-  }, [onSoundClick])
+      for (let index = 0; index < targetSounds.length; index++) {
+        const sound = targetSounds[index]
+        const markerKey = sound.marker
+        const reusedMarker = availableMarkers.get(markerKey)
 
-  useEffect(() => {
-    const map = mapRef.current?.getMap()
-    const container = containerRef.current
-    if (!map || !container) return
-
-    let mounted = true
-    let app: Application | null = null
-    const mapCanvas = map.getCanvas()
-    const previousCursor = mapCanvas.style.cursor
-
-    const handlePointerMove = (event: PointerEvent) => {
-      const currentMap = mapRef.current?.getMap()
-      if (!currentMap) {
-        hoveredSoundRef.current = null
-        return
-      }
-
-      const rect = mapCanvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-      let nearest: Sound | null = null
-      for (const marker of markersRef.current) {
-        if (!filtersRef.current.includes(marker.sound.category)) continue
-        const { x: markerX, y: markerY } = marker.screenPosition
-        const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
-        const distance = Math.hypot(x - markerX, y - markerY)
-        if (distance <= radius) {
-          nearest = marker.sound
-          break
+        if (reusedMarker) {
+          reusedMarker.sound = sound
+          nextMarkers.push(reusedMarker)
+          availableMarkers.delete(markerKey)
+          continue
         }
+
+        nextMarkers.push(createSoundMarker(layer, sound, index * 0.3))
       }
-      hoveredSoundRef.current = nearest
-    }
 
-    const handlePointerLeave = () => {
-      hoveredSoundRef.current = null
-    }
-
-    const handleClick = (event: MouseEvent) => {
-      const currentMap = mapRef.current?.getMap()
-      if (!currentMap) return
-
-      const rect = mapCanvas.getBoundingClientRect()
-      const x = event.clientX - rect.left
-      const y = event.clientY - rect.top
-
-      for (const marker of markersRef.current) {
-        if (!filtersRef.current.includes(marker.sound.category)) continue
-
-        const { x: markerX, y: markerY } = marker.screenPosition
-        const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
-        const distance = Math.hypot(x - markerX, y - markerY)
-
-        if (distance <= radius) {
-          onSoundClickRef.current(marker.sound)
-          return
-        }
+      for (const leftover of Array.from(availableMarkers.values())) {
+        disposeSoundMarker(leftover)
       }
-    }
 
-    const handleMapDragStart = () => {
-      mapCanvas.style.cursor = "grabbing"
-    }
+      markersRef.current = nextMarkers
+    },
+    [],
+  )
 
-    const handleMapDragEnd = () => {
-      mapCanvas.style.cursor = "pointer"
-    }
+  const init = useCallback(
+    async (app: Application, mapInstance: mapboxgl.Map) => {
+      const container = containerRef.current
+      if (!container) {
+        throw new Error("Sound markers container is missing")
+      }
 
-    mapCanvas.style.cursor = "pointer"
-    mapCanvas.addEventListener("click", handleClick)
-    mapCanvas.addEventListener("pointermove", handlePointerMove)
-    mapCanvas.addEventListener("pointerleave", handlePointerLeave)
-    map.on("dragstart", handleMapDragStart)
-    map.on("dragend", handleMapDragEnd)
+      const mapCanvas = mapInstance.getCanvas()
+      const previousCursor = mapCanvas.style.cursor
 
-    const initPixi = async () => {
-      try {
-        app = new Application()
-        const mapContainer = map.getContainer()
-        await app.init({
-          backgroundAlpha: 0,
-          antialias: true,
-          resolution: 1,
-          autoDensity: false,
-          width: mapContainer.clientWidth,
-          height: mapContainer.clientHeight,
-        })
-
-        if (!mounted || !app.canvas) {
-          app.destroy(true, { children: true })
+      const updateHover = (event: PointerEvent) => {
+        const currentMap = mapRef.current?.getMap()
+        if (!currentMap) {
+          hoveredSoundRef.current = null
           return
         }
 
-        appRef.current = app
-        app.canvas.className = pixiCanvas
-        container.appendChild(app.canvas)
+        const rect = mapCanvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+        let nearest: Sound | null = null
 
-        // Create markers for each sound
-        const markers: SoundMarker[] = []
-        for (let i = 0; i < sounds.length; i++) {
-          const sound = sounds[i]
-          const ripples = createPixiRipples(SOUND_MARKER_RIPPLE_CONFIG, i * 0.3)
-
-          // Add ripple graphics to stage
-          for (const ripple of ripples) {
-            app.stage.addChild(ripple.graphics)
+        for (const marker of markersRef.current) {
+          if (!filtersRef.current.includes(marker.sound.category)) {
+            continue
           }
 
-          const dot = new Graphics()
-          app.stage.addChild(dot)
+          // TODO use a hashmap for projected sound marker coordinates (to not project unnecessarily)
+          const projected = currentMap.project(marker.sound.coordinate)
+          const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
+          const distance = Math.hypot(x - projected.x, y - projected.y)
+          if (distance <= radius) {
+            nearest = marker.sound
+            break
+          }
+        }
 
-          markers.push({
-            sound,
-            ripples,
-            dot,
-            screenPosition: { x: 0, y: 0 },
-            currentRadius: BASE_SOUND_RADIUS,
-            currentColor: hexToRgb(CATEGORY_COLORS[sound.category]),
-            glowAlpha: 0,
+        hoveredSoundRef.current = nearest
+      }
+
+      const clearHover = () => {
+        hoveredSoundRef.current = null
+      }
+
+      const handleClick = (event: MouseEvent) => {
+        const currentMap = mapRef.current?.getMap()
+        if (!currentMap) return
+
+        const rect = mapCanvas.getBoundingClientRect()
+        const x = event.clientX - rect.left
+        const y = event.clientY - rect.top
+
+        for (const marker of markersRef.current) {
+          if (!filtersRef.current.includes(marker.sound.category)) {
+            continue
+          }
+
+          const projected = currentMap.project(marker.sound.coordinate)
+          const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
+          const distance = Math.hypot(x - projected.x, y - projected.y)
+
+          if (distance <= radius) {
+            onSoundClickRef.current(marker.sound)
+            return
+          }
+        }
+      }
+
+      const handleMapDragStart = () => {
+        mapCanvas.style.cursor = "grabbing"
+      }
+
+      const handleMapDragEnd = () => {
+        mapCanvas.style.cursor = "pointer"
+      }
+
+      mapCanvas.style.cursor = "pointer"
+      mapCanvas.addEventListener("click", handleClick)
+      mapCanvas.addEventListener("pointermove", updateHover)
+      mapCanvas.addEventListener("pointerleave", clearHover)
+      mapInstance.on("dragstart", handleMapDragStart)
+      mapInstance.on("dragend", handleMapDragEnd)
+
+      const mapContainer = mapInstance.getContainer()
+      await app.init({
+        backgroundAlpha: 0,
+        antialias: true,
+        resolution: 1,
+        autoDensity: false,
+        width: mapContainer.clientWidth,
+        height: mapContainer.clientHeight,
+      })
+
+      if (!app.canvas) {
+        throw new Error("Pixi application failed to initialize canvas.")
+      }
+
+      app.canvas.className = pixiCanvas
+      container.appendChild(app.canvas)
+
+      const layer = new Container()
+      app.stage.addChild(layer)
+
+      lastRenderedSoundRevisionRef.current = -1
+      soundRevisionRef.current += 1
+
+      return {
+        app,
+        layer,
+        cleanupEvents: () => {
+          mapCanvas.removeEventListener("click", handleClick)
+          mapCanvas.removeEventListener("pointermove", updateHover)
+          mapCanvas.removeEventListener("pointerleave", clearHover)
+          mapInstance.off("dragstart", handleMapDragStart)
+          mapInstance.off("dragend", handleMapDragEnd)
+          mapCanvas.style.cursor = previousCursor
+          hoveredSoundRef.current = null
+        },
+      }
+    },
+    [mapRef],
+  )
+
+  const onTick = useCallback(
+    (state: OverlayState, mapInstance: mapboxgl.Map, ticker: Ticker) => {
+      const { app, layer } = state
+      const currentMap = mapRef.current?.getMap() ?? mapInstance
+
+      syncPixiRendererSize(app, currentMap)
+
+      if (soundRevisionRef.current !== lastRenderedSoundRevisionRef.current) {
+        reconcileMarkers(layer, soundsRef.current)
+        lastRenderedSoundRevisionRef.current = soundRevisionRef.current
+      }
+
+      const deltaTime = ticker.deltaTime / 60
+      const deltaMs = ticker.deltaMS ?? deltaTime * 1000
+      const currentZoom = currentMap.getZoom()
+      const zoomScale = computeZoomScale(currentZoom)
+      const smoothingFactor = Math.min(
+        1,
+        deltaMs / SOUND_TRANSITION_DURATION_MS,
+      )
+
+      for (const marker of markersRef.current) {
+        if (!filtersRef.current.includes(marker.sound.category)) {
+          for (const ripple of marker.ripples) {
+            ripple.graphics.clear()
+          }
+          marker.dot.clear()
+          continue
+        }
+
+        const point = currentMap.project(marker.sound.coordinate)
+
+        const categoryRadiusScale =
+          CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
+        const isHovered = hoveredSoundRef.current?.title === marker.sound.title
+        const isPlaying = playingSoundRef.current?.title === marker.sound.title
+        const hoverScale = isHovered ? 1.25 : 1
+        const playingScale = isPlaying
+          ? 1 + Math.sin(performance.now() / 300) * 0.15
+          : 1
+
+        const targetRadius = scaleAndClampRadius(
+          BASE_SOUND_RADIUS,
+          zoomScale,
+          categoryRadiusScale * hoverScale * playingScale,
+          MIN_MARKER_RADIUS,
+          MAX_MARKER_RADIUS,
+        )
+
+        marker.currentRadius = smoothValue(
+          marker.currentRadius,
+          targetRadius,
+          deltaMs,
+          SOUND_TRANSITION_DURATION_MS,
+        )
+
+        const targetColor = (
+          isHovered
+            ? mapColorTheme.soundHoverColors
+            : mapColorTheme.soundBaseColors
+        )[marker.sound.category]
+        marker.currentColor = interpolateColorNumber(
+          marker.currentColor,
+          targetColor,
+          smoothingFactor,
+        )
+        const strokeColorValue = marker.currentColor
+        const strokeAlpha = isHovered ? 1 : 0.85
+        const targetGlowAlpha = isHovered ? SOUND_GLOW_OPACITY : 0
+        marker.glowAlpha = smoothValue(
+          marker.glowAlpha,
+          targetGlowAlpha,
+          deltaMs,
+          SOUND_TRANSITION_DURATION_MS,
+        )
+
+        const rippleBaseRadius = scaleAndClampRadius(
+          BASE_SOUND_RADIUS,
+          zoomScale,
+          categoryRadiusScale,
+          MIN_MARKER_RADIUS,
+          MAX_MARKER_RADIUS,
+        )
+
+        const rippleConfig = {
+          ...SOUND_MARKER_RIPPLE_CONFIG,
+          baseRadius: rippleBaseRadius * 2,
+          alphaScale: RIPPLE_ALPHA_SCALE,
+          strokeWidth: RIPPLE_STROKE_WIDTH,
+        }
+
+        for (const ripple of marker.ripples) {
+          updatePixiRipple(
+            ripple,
+            deltaTime,
+            point.x,
+            point.y,
+            currentZoom,
+            rippleConfig,
+            mapColorTheme.peripheralRingColor,
+          )
+        }
+
+        marker.dot.clear()
+        if (marker.glowAlpha > 0.01) {
+          marker.dot.circle(
+            point.x,
+            point.y,
+            marker.currentRadius + SOUND_GLOW_RADIUS,
+          )
+          marker.dot.fill({
+            color: mapColorTheme.soundGlowColors[marker.sound.category],
+            alpha: marker.glowAlpha,
           })
         }
-        markersRef.current = markers
-
-        // Animation loop
-        app.ticker.add((ticker) => {
-          const currentMap = mapRef.current?.getMap()
-          if (!currentMap || !mounted || !app) return
-
-          // Keep renderer in sync with map size
-          syncPixiRendererSize(app, currentMap)
-
-          const deltaTime = ticker.deltaTime / 60
-          const deltaMs = ticker.deltaMS ?? deltaTime * 1000
-          const currentZoom = currentMap.getZoom()
-
-          // Non-linear scale for dots
-          const zoomScale = computeZoomScale(currentZoom)
-          const smoothingFactor = Math.min(
-            1,
-            deltaMs / SOUND_TRANSITION_DURATION_MS,
-          )
-          for (const marker of markersRef.current) {
-            if (!filtersRef.current.includes(marker.sound.category)) {
-              for (const ripple of marker.ripples) {
-                ripple.graphics.clear()
-              }
-              marker.dot.clear()
-              continue
-            }
-
-            const point = currentMap.project(marker.sound.coordinate)
-            marker.screenPosition = point
-
-            const categoryRadiusScale =
-              CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
-            const isHovered =
-              hoveredSoundRef.current?.title === marker.sound.title
-            const isPlaying =
-              playingSoundRef.current?.title === marker.sound.title
-            const hoverScale = isHovered ? 1.25 : 1
-            const playingScale = isPlaying
-              ? 1 + Math.sin(performance.now() / 300) * 0.15
-              : 1
-
-            const targetRadius = scaleAndClampRadius(
-              BASE_SOUND_RADIUS,
-              zoomScale,
-              categoryRadiusScale * hoverScale * playingScale,
-              MIN_MARKER_RADIUS,
-              MAX_MARKER_RADIUS,
-            )
-
-            marker.currentRadius = lerpValue(
-              marker.currentRadius,
-              targetRadius,
-              smoothingFactor,
-            )
-
-            const targetColor = hexToRgb(
-              isHovered
-                ? HOVER_COLORS[marker.sound.category]
-                : CATEGORY_COLORS[marker.sound.category],
-            )
-            marker.currentColor = lerpColor(
-              marker.currentColor,
-              targetColor,
-              smoothingFactor,
-            )
-            const strokeColorValue = rgbToNumber(marker.currentColor)
-            const strokeAlpha = isHovered ? 1 : 0.85
-            const targetGlowAlpha = isHovered ? SOUND_GLOW_OPACITY : 0
-            marker.glowAlpha = lerpValue(
-              marker.glowAlpha,
-              targetGlowAlpha,
-              smoothingFactor,
-            )
-
-            // RIPPLE DRAWING
-            const rippleBaseRadius = scaleAndClampRadius(
-              BASE_SOUND_RADIUS,
-              zoomScale,
-              categoryRadiusScale,
-              MIN_MARKER_RADIUS,
-              MAX_MARKER_RADIUS,
-            )
-            const rippleConfig = {
-              ...SOUND_MARKER_RIPPLE_CONFIG,
-              baseRadius: rippleBaseRadius * 2,
-              alphaScale: RIPPLE_ALPHA_SCALE,
-              strokeWidth: RIPPLE_STROKE_WIDTH,
-            }
-            const rippleColorValue = hexColorToNumber(
-              mapColorTheme.peripheralRingColor,
-            )
-
-            for (const ripple of marker.ripples) {
-              updatePixiRipple(
-                ripple,
-                deltaTime,
-                point.x,
-                point.y,
-                currentZoom,
-                rippleConfig,
-                rippleColorValue,
-              )
-            }
-
-            // DOT DRAWING (non-linear zoom effect)
-            marker.dot.clear()
-            if (marker.glowAlpha > 0.01) {
-              marker.dot.circle(
-                point.x,
-                point.y,
-                marker.currentRadius + SOUND_GLOW_RADIUS,
-              )
-              marker.dot.fill({
-                color: hexColorToNumber(GLOW_COLORS[marker.sound.category]),
-                alpha: marker.glowAlpha,
-              })
-            }
-            marker.dot.circle(point.x, point.y, marker.currentRadius)
-            marker.dot.stroke({
-              width: MARKER_STROKE_WIDTH,
-              color: strokeColorValue,
-              alpha: strokeAlpha,
-            })
-            marker.dot.fill({ color: 0x000000, alpha: 0 })
-          }
+        marker.dot.circle(point.x, point.y, marker.currentRadius)
+        marker.dot.stroke({
+          width: MARKER_STROKE_WIDTH,
+          color: strokeColorValue,
+          alpha: strokeAlpha,
         })
-      } catch (err) {
-        console.error("Failed to initialize Pixi application:", err)
+        marker.dot.fill({ color: 0x000000, alpha: 0 })
+      }
+
+      app.render()
+    },
+    [mapRef, reconcileMarkers],
+  )
+
+  const onDestroy = useCallback(
+    ({ cleanupEvents, layer }: OverlayState) => {
+      cleanupEvents()
+      disposeMarkers(layer)
+      layer.destroy({ children: true })
+    },
+    [disposeMarkers],
+  )
+
+  useEffect(() => {
+    if (!mapReady) {
+      return
+    }
+
+    const container = containerRef.current
+    const mapInstance = mapRef.current?.getMap()
+    if (!container || !mapInstance) {
+      return
+    }
+
+    let cancelled = false
+    let cleanupOverlay: (() => void) | null = null
+
+    const attach = async () => {
+      try {
+        if (cancelled) return
+        cleanupOverlay = await createPixiOverlay({
+          container,
+          init: (app) => init(app, mapInstance),
+          onTick: (state, ticker) => onTick(state, mapInstance, ticker),
+          onDestroy,
+        })
+      } catch (error) {
+        console.error("Failed to initialize Pixi overlay:", error)
       }
     }
 
-    initPixi()
+    void attach()
 
     return () => {
-      mounted = false
-
-      mapCanvas.removeEventListener("click", handleClick)
-      mapCanvas.removeEventListener("pointermove", handlePointerMove)
-      mapCanvas.removeEventListener("pointerleave", handlePointerLeave)
-      map.off("dragstart", handleMapDragStart)
-      map.off("dragend", handleMapDragEnd)
-      mapCanvas.style.cursor = previousCursor
-
-      if (appRef.current) {
-        appRef.current.destroy(true, { children: true })
-        appRef.current = null
-      }
-
-      markersRef.current = []
+      cancelled = true
+      cleanupOverlay?.()
+      cleanupOverlay = null
     }
-  }, [mapRef, sounds])
+  }, [mapReady, mapRef, init, onTick, onDestroy])
 
   return (
     <div

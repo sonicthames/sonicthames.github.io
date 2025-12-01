@@ -27,6 +27,9 @@ interface Props {
   readonly onPlay: (soundTitle: string) => void
 }
 
+/**
+ * Disabled for now until we figure out what to do with it.
+ */
 export const Hover = ({ sound, onClose, onPlay, className }: Props) => {
   return (
     <div className={cn(hoverCard, className)}>

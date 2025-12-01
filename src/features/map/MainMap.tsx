@@ -18,14 +18,12 @@ import { Icon } from "@/icon"
 import { haversineDistanceMeters } from "@/lib/geo"
 import type { GoTo } from "@/lib/map"
 import { mapColorTheme } from "@/theme/mapColors"
-import { Hover } from "./components/Hover/Hover"
 import { Playlist } from "./components/Playlist/Playlist"
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
   debugControls,
   filterButton,
   filtersGroup,
-  hoverFloating,
   logoPosition,
   restoreFogButton,
   revealFogButton,
@@ -381,6 +379,7 @@ interface Props {
 export const MainMap = ({ sounds }: Props) => {
   const location = useLocation()
   const mapRef = useRef<MapRef | null>(null)
+  const [mapReady, setMapReady] = useState(false)
   const fogOverlayRef = useRef<MapFogOverlayHandle | null>(null)
 
   // Parse user position from query params (?lat=51.5&lng=-0.1) or use map center
@@ -739,12 +738,6 @@ export const MainMap = ({ sounds }: Props) => {
 
   const [soundO, setSoundO] = useState(RA.head(sounds))
 
-  const [hoverSoundO, setHoverSoundO] = useState<O.Option<Sound>>(() => O.none)
-
-  const handleHoverClose = useCallback(() => {
-    setHoverSoundO(O.none)
-  }, [])
-
   const setExpanded = useMapStore((s) => s.setExpanded)
 
   // Auto-close playlist when navigating to a different page
@@ -768,10 +761,11 @@ export const MainMap = ({ sounds }: Props) => {
   const filters = useMapStore((s) => s.filters)
 
   // Stable callback prevents SoundMarkersCanvas from reinitializing Pixi on every render
-  const handleSoundClick = useCallback(
-    (s: Sound) => setHoverSoundO(O.some(s)),
-    [],
-  )
+  const handleSoundClick = useCallback((s: Sound) => setSoundO(O.some(s)), [])
+
+  const handleMapLoad = useCallback(() => {
+    setMapReady(true)
+  }, [])
 
   return (
     <MapboxMap
@@ -783,6 +777,7 @@ export const MainMap = ({ sounds }: Props) => {
       onClick={handleMapClick}
       mapboxAccessToken={MAPBOX_TOKEN}
       style={MAPBOX_MAP_STYLE}
+      onLoad={handleMapLoad}
       mapStyle={MAP_STYLE}
     >
       <div className={logoPosition}>
@@ -794,22 +789,13 @@ export const MainMap = ({ sounds }: Props) => {
         filters={filters}
         playingSound={O.toNullable(soundO)}
         onSoundClick={handleSoundClick}
+        mapReady={mapReady}
       />
-      {pipe(
-        hoverSoundO,
-        O.fold(constNull, (sound) => (
-          <Hover
-            className={hoverFloating}
-            onClose={handleHoverClose}
-            onPlay={handlePlay}
-            sound={sound}
-          />
-        )),
-      )}
       <UserPositionCanvas
         ref={userPositionHandleRef}
         mapRef={mapRef}
         positionRef={userPositionRef}
+        mapReady={mapReady}
       />
       <MapFogOverlay
         ref={fogOverlayRef}

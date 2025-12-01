@@ -2,49 +2,25 @@ import type { Category } from "@/domain/sound"
 
 type SoundColorMap = Record<Category, string>
 
-export interface MapColorTheme {
-  readonly soundBaseColors: SoundColorMap
-  readonly soundHoverColors: SoundColorMap
-  readonly soundGlowColors: SoundColorMap
-  readonly hoverTransitionMs: number
-  readonly soundGlowRadius: number
-  readonly soundGlowOpacity: number
-  readonly userAvatarColor: string
-  readonly userAvatarPulseColor: string
-  readonly userAvatarPulseOpacity: number
-  readonly userAvatarPulseRadiusMultiplier: number
-  readonly userAvatarPulseDurationMs: number
-  readonly riverColor: string
-  readonly streetSurfaceColor: string
-  readonly streetLineColor: string
-  readonly peripheralRingColor: string
-  readonly peripheralRingOpacityScale: number
-  readonly peripheralRingStrokeWidth: number
-}
+export const soundBaseColors = {
+  Listen: "#F7C0D6",
+  See: "#D9FFE8",
+  Feel: "#E3D8FF",
+} as const satisfies SoundColorMap
 
-const SOUND_CATEGORIES: readonly Category[] = ["Listen", "See", "Feel"]
+export const soundHoverColors = {
+  Listen: "#FF76A6",
+  See: "#65F4B4",
+  Feel: "#8C6AFF",
+} as const satisfies SoundColorMap
 
-const createSoundMap = (values: readonly string[]): SoundColorMap =>
-  SOUND_CATEGORIES.reduce((acc, category, index) => {
-    acc[category] = values[index]
-    return acc
-  }, {} as SoundColorMap)
+export const soundGlowColors = {
+  Listen: "#FFA8C8",
+  See: "#9CF6D3",
+  Feel: "#B7A1FF",
+} as const satisfies SoundColorMap
 
-const soundBaseColors = createSoundMap([
-  "#F7C0D6", // Listen – pastel rose (slightly deeper)
-  "#D9FFE8", // See – pastel mint
-  "#E3D8FF", // Feel – pastel lavender
-])
-
-const soundHoverColors = createSoundMap([
-  "#FF76A6", // Listen
-  "#65F4B4", // See
-  "#8C6AFF", // Feel
-])
-
-const soundGlowColors = createSoundMap(["#FFA8C8", "#9CF6D3", "#B7A1FF"])
-
-export const defaultMapColorTheme: MapColorTheme = {
+export const defaultMapColorTheme = {
   soundBaseColors,
   soundHoverColors,
   soundGlowColors,
@@ -62,10 +38,6 @@ export const defaultMapColorTheme: MapColorTheme = {
   peripheralRingColor: "#A8B0C2",
   peripheralRingOpacityScale: 0.65,
   peripheralRingStrokeWidth: 2,
-}
+} as const
 
 export const mapColorTheme = defaultMapColorTheme
-
-export const soundBaseColorsTokens = defaultMapColorTheme.soundBaseColors
-export const soundHoverColorsTokens = defaultMapColorTheme.soundHoverColors
-export const soundGlowColorsTokens = defaultMapColorTheme.soundGlowColors
