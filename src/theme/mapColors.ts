@@ -14,6 +14,12 @@ export const soundHoverColors = {
   Feel: "#8C6AFF",
 } as const satisfies SoundColorMap
 
+export const soundActiveColors = {
+  Listen: "#FF2D72",
+  See: "#00E28D",
+  Feel: "#6C3BFF",
+} as const satisfies SoundColorMap
+
 export const soundGlowColors = {
   Listen: "#FFA8C8",
   See: "#9CF6D3",
@@ -23,6 +29,7 @@ export const soundGlowColors = {
 export const defaultMapColorTheme = {
   soundBaseColors,
   soundHoverColors,
+  soundActiveColors,
   soundGlowColors,
   hoverTransitionMs: 200,
   soundGlowRadius: 5,

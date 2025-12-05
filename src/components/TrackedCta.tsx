@@ -12,7 +12,16 @@ export interface TrackedCtaProps extends ButtonProps {
 
 export const TrackedCta = React.forwardRef<HTMLButtonElement, TrackedCtaProps>(
   (
-    { ctaId, label, location = "global", onClick, children, ...buttonProps },
+    {
+      ctaId,
+      label,
+      location = "global",
+      onClick,
+      children,
+      tone,
+      variant,
+      ...buttonProps
+    },
     ref,
   ) => {
     const inferredLabel =
@@ -38,11 +47,14 @@ export const TrackedCta = React.forwardRef<HTMLButtonElement, TrackedCtaProps>(
       }
     }
 
+    const resolvedTone = tone ?? variant ?? "cta"
+
     return (
       <Button
         ref={ref}
         onClick={handleClick}
         {...hoverHandlers}
+        tone={resolvedTone}
         {...buttonProps}
       >
         {children}

@@ -11,7 +11,7 @@ export const hoverCard = style({
   flexDirection: "column",
   borderRadius: tokens.radius.lg,
   border: `1px solid ${tokens.color.border}`,
-  background: tokens.color.primaryLight,
+  background: tokens.color.surface,
   color: tokens.color.text,
   boxShadow: tokens.shadow.md,
   overflow: "hidden",

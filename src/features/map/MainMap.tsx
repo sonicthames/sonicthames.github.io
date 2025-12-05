@@ -10,15 +10,17 @@ import "mapbox-gl/dist/mapbox-gl.css"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MapProps, MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
-import { useLocation } from "react-router-dom"
+import { matchPath, useLocation } from "react-router-dom"
 import { H2, H3 } from "@/components/Typography"
 import type { Category, Sound } from "@/domain/sound"
 import { showDateTime, showInterval } from "@/domain/sound"
 import { Icon } from "@/icon"
 import { haversineDistanceMeters } from "@/lib/geo"
 import type { GoTo } from "@/lib/map"
+import { appRoute } from "@/pages/location"
 import { mapColorTheme } from "@/theme/mapColors"
 import { Playlist } from "./components/Playlist/Playlist"
+import { pauseSharedTicker, resumeSharedTicker } from "./lib/pixiTicker"
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
   debugControls,
@@ -38,7 +40,6 @@ import {
 import type { MapFogOverlayHandle } from "./overlays/Fog/MapFogOverlay"
 import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
 import { SoundMarkersCanvas } from "./overlays/SoundMarkers/SoundMarkersCanvas"
-import type { UserPositionHandle } from "./overlays/UserPosition/UserPositionCanvas"
 import { UserPositionCanvas } from "./overlays/UserPosition/UserPositionCanvas"
 import { usePersistenceStore } from "./persistence"
 import { useMapStore } from "./store"
@@ -139,7 +140,7 @@ const MAP_STYLE: mapboxgl.Style = {
 
 const headerIconSize = "2rem"
 const AVATAR_SPEED_MPS = 400
-const PROXIMITY_THRESHOLD_METERS = 120
+const PROXIMITY_THRESHOLD_METERS = 200
 
 const LngLatDecoder: D.Decoder<unknown, LngLat> = pipe(
   D.tuple(D.number, D.number),
@@ -378,7 +379,32 @@ interface Props {
 
 export const MainMap = ({ sounds }: Props) => {
   const location = useLocation()
+  const isMainRoute = Boolean(
+    matchPath({ path: appRoute("main").path, end: true }, location.pathname),
+  )
+  useEffect(() => {
+    if (isMainRoute) {
+      resumeSharedTicker()
+      return
+    }
+    pauseSharedTicker()
+  }, [isMainRoute])
   const mapRef = useRef<MapRef | null>(null)
+  const projectSoundToViewport = useCallback(
+    (sound: Sound): { readonly x: number; readonly y: number } | null => {
+      const map = mapRef.current?.getMap()
+      if (!map) {
+        return null
+      }
+      const point = map.project([sound.coordinate.lng, sound.coordinate.lat])
+      const rect = map.getContainer().getBoundingClientRect()
+      return {
+        x: rect.left + point.x,
+        y: rect.top + point.y,
+      }
+    },
+    [],
+  )
   const [mapReady, setMapReady] = useState(false)
   const fogOverlayRef = useRef<MapFogOverlayHandle | null>(null)
 
@@ -398,9 +424,14 @@ export const MainMap = ({ sounds }: Props) => {
   }, [location.search])
 
   const userPositionRef = useRef(initialUserPosition)
-  const userPositionHandleRef = useRef<UserPositionHandle | null>(null)
   const [proximitySound, setProximitySound] = useState<Sound | null>(null)
+  const [proximityOrigin, setProximityOrigin] = useState<{
+    readonly x: number
+    readonly y: number
+  } | null>(null)
+  const [hoveredSound, setHoveredSound] = useState<Sound | null>(null)
 
+  const lastProximityCheckRef = useRef<LngLatLike | null>(null)
   const routeStateRef = useRef<RouteState | null>(null)
   const routeDestinationRef = useRef<LngLat | null>(null)
   const routeAnimationFrameRef = useRef<number | null>(null)
@@ -408,7 +439,6 @@ export const MainMap = ({ sounds }: Props) => {
   const directionsAbortControllerRef = useRef<AbortController | null>(null)
   const lastPersistedUserPositionRef = useRef<LngLat | null>(null)
   const lastPersistTimeRef = useRef<number>(0)
-  const lastProximityCheckRef = useRef<LngLatLike | null>(null)
   const proximitySounds = useMemo(
     // Stable list keeps proximity checks predictable and avoids re-filtering per frame
     () => sounds.filter((sound) => sound.playOnProximity),
@@ -423,7 +453,6 @@ export const MainMap = ({ sounds }: Props) => {
     lastFrameTimeRef.current = null
     routeStateRef.current = null
     routeDestinationRef.current = null
-    userPositionHandleRef.current?.fadeIn()
   }, [])
 
   const evaluateProximity = useCallback(
@@ -437,24 +466,6 @@ export const MainMap = ({ sounds }: Props) => {
         return
       }
       lastProximityCheckRef.current = normalized
-
-      // If we're currently traveling on a route, don't open videos until we reach the destination
-      const isMoving = routeStateRef.current !== null
-      const destination = routeDestinationRef.current
-
-      if (isMoving && destination) {
-        // Check if we've reached the destination (within 10 meters)
-        const distanceToDestination = haversineDistanceMeters(
-          normalized,
-          destination,
-        )
-        const hasReachedDestination = distanceToDestination < 10
-
-        // Only evaluate proximity when we've reached the destination
-        if (!hasReachedDestination) {
-          return
-        }
-      }
 
       let nearest: { sound: Sound; distance: number } | null = null
 
@@ -471,16 +482,31 @@ export const MainMap = ({ sounds }: Props) => {
         Number.isFinite(nearest.distance) &&
         nearest.distance <= PROXIMITY_THRESHOLD_METERS
       ) {
+        const origin = projectSoundToViewport(nearest.sound)
+        if (!origin) {
+          setProximitySound(null)
+          setProximityOrigin(null)
+          return
+        }
+        setProximityOrigin(origin)
         setProximitySound((prev) =>
-          prev?.title === nearest?.sound.title ? prev : nearest.sound,
+          prev?.title === nearest.sound.title ? prev : nearest.sound,
         )
         return
       }
 
       setProximitySound(null)
+      setProximityOrigin(null)
     },
-    [proximitySounds],
+    [proximitySounds, projectSoundToViewport],
   )
+
+  useEffect(() => {
+    if (!mapReady) {
+      return
+    }
+    evaluateProximity(userPositionRef.current)
+  }, [evaluateProximity, mapReady])
 
   const updateTrackedUserPosition = useCallback(
     (position: LngLatLike) => {
@@ -565,7 +591,6 @@ export const MainMap = ({ sounds }: Props) => {
         routeDestinationRef.current = null
         routeAnimationFrameRef.current = null
         lastFrameTimeRef.current = null
-        userPositionHandleRef.current?.fadeIn()
         return
       }
 
@@ -591,7 +616,6 @@ export const MainMap = ({ sounds }: Props) => {
         if (destination) {
           updateTrackedUserPosition(destination)
         }
-        userPositionHandleRef.current?.fadeIn()
         routeDestinationRef.current = null
         return
       }
@@ -619,6 +643,8 @@ export const MainMap = ({ sounds }: Props) => {
         return
       }
 
+      setProximitySound(null)
+      setProximityOrigin(null)
       directionsAbortControllerRef.current?.abort()
       const controller = new AbortController()
       directionsAbortControllerRef.current = controller
@@ -676,9 +702,16 @@ export const MainMap = ({ sounds }: Props) => {
       if (event.originalEvent.defaultPrevented) {
         return
       }
+      if (hoveredSound) {
+        void requestDirections([
+          hoveredSound.coordinate.lng,
+          hoveredSound.coordinate.lat,
+        ])
+        return
+      }
       void requestDirections(event.lngLat)
     },
-    [requestDirections],
+    [hoveredSound, requestDirections],
   )
 
   useEffect(() => {
@@ -789,10 +822,10 @@ export const MainMap = ({ sounds }: Props) => {
         filters={filters}
         playingSound={O.toNullable(soundO)}
         onSoundClick={handleSoundClick}
+        onSoundHover={setHoveredSound}
         mapReady={mapReady}
       />
       <UserPositionCanvas
-        ref={userPositionHandleRef}
         mapRef={mapRef}
         positionRef={userPositionRef}
         mapReady={mapReady}
@@ -806,7 +839,11 @@ export const MainMap = ({ sounds }: Props) => {
         sounds={sounds}
         filters={filters}
       />
-      <ProximityVideo sound={proximitySound} mapRef={mapRef} />
+      <ProximityVideo
+        sound={proximitySound}
+        origin={proximityOrigin}
+        allowPlayback={isMainRoute}
+      />
       {import.meta.env.DEV && (
         <div className={debugControls}>
           <button

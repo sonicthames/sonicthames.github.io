@@ -4,6 +4,8 @@ import { visualizer } from "rollup-plugin-visualizer"
 import type { UserConfig } from "vite"
 import { defineConfig } from "vitest/config"
 
+const shouldOpenVisualizer = process.env.BUNDLE_STATS === "true"
+
 export default defineConfig({
   plugins: [
     react({
@@ -13,7 +15,7 @@ export default defineConfig({
     }),
     vanillaExtractPlugin(),
     visualizer({
-      open: true,
+      open: shouldOpenVisualizer,
       gzipSize: true,
       brotliSize: true,
       filename: "dist/stats.html",

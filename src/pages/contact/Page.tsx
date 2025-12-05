@@ -5,13 +5,7 @@ import { Button } from "@/components/ui"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
-import {
-  contactLayout,
-  contactLayoutVariants,
-  form,
-  formInput,
-  formLabel,
-} from "./Page.css"
+import { contactLayout, form, formInput, formLabel } from "./Page.css"
 
 export const ContactPage = () => {
   const deviceType = useDeviceType()
@@ -25,9 +19,7 @@ export const ContactPage = () => {
           deviceType === "desktop" ? { maxWidth: maxPageWidth } : undefined
         }
       >
-        <div
-          className={`${contactLayout} ${contactLayoutVariants[deviceType]}`}
-        >
+        <div className={contactLayout}>
           <div>
             <H1>Send us a message</H1>
             <p className={text.body}>
@@ -43,7 +35,7 @@ export const ContactPage = () => {
           >
             <input type="hidden" name="subject" value="Send us your thoughts" />
             <div>
-              <label htmlFor="name" className={formLabel}>
+              <label htmlFor={`name-${uid}`} className={formLabel}>
                 Name
               </label>
               <input
@@ -54,7 +46,7 @@ export const ContactPage = () => {
               />
             </div>
             <div>
-              <label htmlFor="email" className={formLabel}>
+              <label htmlFor={`email-${uid}`} className={formLabel}>
                 Email
               </label>
               <input
@@ -65,7 +57,7 @@ export const ContactPage = () => {
               />
             </div>
             <div>
-              <label htmlFor="body" className={formLabel}>
+              <label htmlFor={`body-${uid}`} className={formLabel}>
                 Message
               </label>
               <textarea

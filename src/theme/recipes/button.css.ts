@@ -3,16 +3,15 @@ import { recipe } from "@vanilla-extract/recipes"
 
 export const buttonRecipe = recipe({
   base: {
-    display: "inline-flex",
     alignItems: "center",
-    justifyContent: "center",
-    fontWeight: tokens.font.weight.medium,
-    borderRadius: tokens.radius.md,
-    transition: `background ${tokens.motion.fast}, color ${tokens.motion.fast}, box-shadow ${tokens.motion.fast}`,
-    cursor: "pointer",
     border: "1px solid transparent",
-    textDecoration: "none",
+    cursor: "pointer",
+    display: "inline-flex",
+    fontWeight: tokens.font.weight.medium,
     gap: tokens.space.sm,
+    justifyContent: "center",
+    textDecoration: "none",
+    transition: `background ${tokens.motion.fast}, color ${tokens.motion.fast}, box-shadow ${tokens.motion.fast}`,
     selectors: {
       "&:disabled": {
         cursor: "not-allowed",
@@ -32,6 +31,17 @@ export const buttonRecipe = recipe({
         selectors: {
           "&:hover:not(:disabled)": {
             background: tokens.color.brand.accent,
+          },
+        },
+      },
+      cta: {
+        background: tokens.color.contrast.light,
+        color: tokens.color.contrast.dark,
+        borderColor: tokens.color.contrast.dark,
+        borderRadius: "0",
+        selectors: {
+          "&:hover:not(:disabled)": {
+            background: tokens.color.surface,
           },
         },
       },

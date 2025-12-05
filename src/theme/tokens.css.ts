@@ -11,9 +11,6 @@ export const tokens = createThemeContract({
     fgRgb: null,
     accentRgb: null,
     borderRgb: null,
-    primaryRgb: null,
-    primaryDarkRgb: null,
-    primaryLightRgb: null,
     actionRgb: null,
     actionDarkRgb: null,
     actionLightRgb: null,
@@ -23,9 +20,6 @@ export const tokens = createThemeContract({
     fg: null,
     accent: null,
     border: null,
-    primary: null,
-    primaryDark: null,
-    primaryLight: null,
     action: null,
     actionDark: null,
     actionLight: null,
@@ -42,11 +36,15 @@ export const tokens = createThemeContract({
       focus: null,
     },
 
-    // Overlays (using primaryDark as base)
+    // Overlays (using bg as base)
     overlay: {
       base: null,
       light: null,
       medium: null,
+    },
+    contrast: {
+      light: null,
+      dark: null,
     },
 
     // Brand colors (for new components)
@@ -97,6 +95,11 @@ export const tokens = createThemeContract({
     fast: null,
     normal: null,
     slow: null,
+  },
+  effect: {
+    blur: {
+      md: null,
+    },
   },
   font: {
     family: null,

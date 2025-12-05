@@ -6,17 +6,20 @@ import { tokens } from "@theme/tokens.css"
 import { style, styleVariants } from "@vanilla-extract/css"
 
 export const pageRoot = style({
+  color: tokens.color.contrast.light,
   display: "flex",
   flex: "1 1 0%",
   flexDirection: "column",
-  position: "relative",
-  background: tokens.color.bg,
-  color: tokens.color.fg,
   overflowY: "auto",
+  position: "relative",
 })
 
 export const pageMain = style({
   flex: "1 1 0%",
+})
+
+export const contentContainer = style({
+  paddingBottom: tokens.space["2xl"],
 })
 
 const mobilePadding = {
@@ -33,15 +36,6 @@ export const pageMainVariants = styleVariants({
     marginRight: "auto",
     width: "100%",
   },
-})
-
-/**
- * Common content container styles
- */
-export const contentContainer = style({
-  display: "flex",
-  flexDirection: "column",
-  gap: tokens.space.lg,
 })
 
 export const textAction = style({

@@ -68,10 +68,10 @@ export const filterButton = styleVariants({
   inactive: [
     filterButtonBase,
     {
-      color: tokens.color.primary,
+      color: tokens.color.contrast.light,
       selectors: {
         "&:hover": {
-          background: `rgba(${tokens.color.primaryRgb}, 0.1)`,
+          background: tokens.color.overlay.light,
         },
       },
     },
@@ -80,7 +80,7 @@ export const filterButton = styleVariants({
     filterButtonBase,
     {
       background: tokens.color.action,
-      color: "#fff",
+      color: tokens.color.contrast.light,
     },
   ],
 })
@@ -88,28 +88,28 @@ export const filterButton = styleVariants({
 export const closeButton = style({
   border: "none",
   background: "transparent",
-  color: tokens.color.primary,
+  color: tokens.color.contrast.light,
   borderRadius: tokens.radius.sm,
   padding: tokens.space.sm,
   transition: "background-color 150ms ease-in-out",
   cursor: "pointer",
   selectors: {
     "&:hover": {
-      background: `rgba(${tokens.color.primaryRgb}, 0.1)`,
+      background: tokens.color.overlay.light,
     },
   },
 })
 
 export const youtubeLink = style({
   textDecoration: "none",
-  border: `1px solid ${tokens.color.primary}`,
-  color: tokens.color.primary,
+  border: `1px solid ${tokens.color.contrast.light}`,
+  color: tokens.color.contrast.light,
   padding: `${tokens.space.xs} ${tokens.space.md}`,
   borderRadius: tokens.radius.sm,
   transition: "background-color 150ms ease-in-out, color 150ms ease-in-out",
   selectors: {
     "&:hover": {
-      background: `rgba(${tokens.color.primaryRgb}, 0.05)`,
+      background: tokens.color.overlay.light,
     },
   },
 })
@@ -167,7 +167,7 @@ export const restoreFogButton = style({
   // Legacy positioning removed; uses shared debug container
   padding: "8px 16px",
   backgroundColor: "rgba(0, 0, 0, 0.7)",
-  color: "white",
+  color: tokens.color.contrast.light,
   border: "1px solid rgba(255, 255, 255, 0.3)",
   borderRadius: "4px",
   cursor: "pointer",
@@ -185,7 +185,7 @@ export const revealFogButton = style({
   // Legacy positioning removed; uses shared debug container
   padding: "8px 16px",
   backgroundColor: "rgba(255, 255, 255, 0.2)",
-  color: "white",
+  color: tokens.color.contrast.light,
   border: "1px solid rgba(255, 255, 255, 0.3)",
   borderRadius: "4px",
   cursor: "pointer",

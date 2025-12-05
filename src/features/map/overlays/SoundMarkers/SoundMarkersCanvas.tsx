@@ -22,6 +22,7 @@ interface Props {
   readonly sounds: ReadonlyArray<Sound>
   readonly filters: readonly Category[]
   readonly onSoundClick: (sound: Sound) => void
+  readonly onSoundHover?: (sound: Sound | null) => void
   readonly playingSound: Sound | null
   readonly mapReady: boolean
 }
@@ -95,6 +96,7 @@ export const SoundMarkersCanvas = ({
   sounds,
   filters,
   onSoundClick,
+  onSoundHover,
   playingSound,
   mapReady,
 }: Props) => {
@@ -102,19 +104,16 @@ export const SoundMarkersCanvas = ({
   const markersRef = useRef<SoundMarker[]>([])
   const hoveredSoundRef = useRef<Sound | null>(null)
   const onSoundClickRef = useRef(onSoundClick)
+  const onSoundHoverRef = useRef(onSoundHover)
   const filtersRef = useRef(filters)
   const playingSoundRef = useRef<Sound | null>(playingSound)
   const soundsRef = useRef(sounds)
   const soundRevisionRef = useRef(0)
   const lastRenderedSoundRevisionRef = useRef(-1)
   onSoundClickRef.current = onSoundClick
+  onSoundHoverRef.current = onSoundHover
   filtersRef.current = filters
   playingSoundRef.current = playingSound
-  const prevSounds = soundsRef.current
-  if (prevSounds !== sounds) {
-    soundRevisionRef.current += 1
-  }
-  soundsRef.current = sounds
 
   const disposeMarkers = useCallback((layer?: Container) => {
     for (const marker of markersRef.current) {
@@ -156,6 +155,11 @@ export const SoundMarkersCanvas = ({
     [],
   )
 
+  useEffect(() => {
+    soundRevisionRef.current += 1
+    soundsRef.current = sounds
+  }, [sounds])
+
   const init = useCallback(
     async (app: Application, mapInstance: mapboxgl.Map) => {
       const container = containerRef.current
@@ -170,6 +174,7 @@ export const SoundMarkersCanvas = ({
         const currentMap = mapRef.current?.getMap()
         if (!currentMap) {
           hoveredSoundRef.current = null
+          onSoundHoverRef.current?.(null)
           return
         }
 
@@ -194,10 +199,12 @@ export const SoundMarkersCanvas = ({
         }
 
         hoveredSoundRef.current = nearest
+        onSoundHoverRef.current?.(nearest)
       }
 
       const clearHover = () => {
         hoveredSoundRef.current = null
+        onSoundHoverRef.current?.(null)
       }
 
       const handleClick = (event: MouseEvent) => {
@@ -335,11 +342,15 @@ export const SoundMarkersCanvas = ({
           SOUND_TRANSITION_DURATION_MS,
         )
 
-        const targetColor = (
-          isHovered
-            ? mapColorTheme.soundHoverColors
-            : mapColorTheme.soundBaseColors
-        )[marker.sound.category]
+        const baseColor = mapColorTheme.soundBaseColors[marker.sound.category]
+        const hoverColor = mapColorTheme.soundHoverColors[marker.sound.category]
+        const activeColor =
+          mapColorTheme.soundActiveColors[marker.sound.category]
+        const targetColor = isPlaying
+          ? activeColor
+          : isHovered
+            ? hoverColor
+            : baseColor
         marker.currentColor = interpolateColorNumber(
           marker.currentColor,
           targetColor,
@@ -378,7 +389,7 @@ export const SoundMarkersCanvas = ({
             point.y,
             currentZoom,
             rippleConfig,
-            mapColorTheme.peripheralRingColor,
+            isPlaying ? activeColor : mapColorTheme.peripheralRingColor,
           )
         }
 

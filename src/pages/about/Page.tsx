@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom"
 import { TrackedCta } from "@/components/TrackedCta"
+import { H1, H2 } from "@/components/Typography"
 import { Link } from "@/components/ui"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
@@ -10,7 +11,7 @@ import {
   pageRoot,
   textAction,
 } from "../common/layout.css"
-import { ctaContainer, inlineLink } from "./Page.css"
+import { ctaContainer } from "./Page.css"
 
 /**
  */
@@ -32,7 +33,7 @@ export const AboutPage = () => {
         }
       >
         <div className={contentContainer}>
-          <h1>About</h1>
+          <H1>About</H1>
           <p>
             Sonic Thames has been Inspired by exploring the river upstream at
             the height of the pandemic.
@@ -41,7 +42,7 @@ export const AboutPage = () => {
             To be there, grab the whole moment and place it here – for you, all
             world to see.
           </p>
-          <h4>Binaural 3D (use headphones)</h4>
+          <H2>Binaural 3D (use headphones)</H2>
           <p>
             Recording technique that offers a more natural and realistic sound
             experience when listened via headphones. It provides a sense of
@@ -58,30 +59,29 @@ export const AboutPage = () => {
             an interactive map.
           </p>
           <p>
-            Listen – This category is comprised of sound and image recorded at
-            the same time, continually in a fixed position in space. The editing
-            is kept to a bare minimum to represent the source faithfully.
+            <strong>Listen</strong> – This category is comprised of sound and
+            image recorded at the same time, continually in a fixed position in
+            space. The editing is kept to a bare minimum to represent the source
+            faithfully.
           </p>
           <p>
-            See - Sound and video could be recorded in different directions in a
-            broader area, allowing the place to be represented in different
-            directions or with more details for an improved sense of place. Some
-            editing of the materials can be performed to compose the soundscape
-            of the location.
+            <strong>See</strong> - Sound and video could be recorded in
+            different directions in a broader area, allowing the place to be
+            represented in different directions or with more details for an
+            improved sense of place. Some editing of the materials can be
+            performed to compose the soundscape of the location.
           </p>
           <p>
-            Feel - The third category is more dynamic than the ones above since
-            they were recorded moving along a stretch of the riverside. Two
-            different pieces are being produced that fit this category, a sound
-            walk and a sound cycle. The result is an immersive experience with
-            both the work you can see and hear and how it is experienced in one
-            location.
+            <strong>Feel</strong> - The third category is more dynamic than the
+            ones above since they were recorded moving along a stretch of the
+            riverside. Two different pieces are being produced that fit this
+            category, a sound walk and a sound cycle. The result is an immersive
+            experience with both the work you can see and hear and how it is
+            experienced in one location.
           </p>
           <p>
             {"All work produced is being placed online at "}
-            <Link to="/" className={inlineLink}>
-              sonicthames.org.uk
-            </Link>
+            <Link to="/">sonicthames.org.uk</Link>
             {" and our "}
             <a
               href="https://www.youtube.com/channel/UCqkDGMVIu4slWH1z90XIdyQ"
@@ -108,7 +108,6 @@ export const AboutPage = () => {
               ctaId="about_explore_map"
               label="Explore the Sonic Thames map"
               location="about_page"
-              variant="primary"
               onClick={handleExploreClick}
             >
               Explore the map

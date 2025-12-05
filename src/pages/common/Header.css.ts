@@ -8,7 +8,7 @@ export const headerRoot = style({
   position: "sticky",
   top: 0,
   zIndex: tokens.z.header,
-  color: "#fff",
+  color: tokens.color.contrast.light,
   fontWeight: tokens.font.weight.bold,
   fontSize: tokens.font.size.xl,
   textTransform: "uppercase",
@@ -22,6 +22,7 @@ export const headerInner = style({
   justifyContent: "flex-end",
   gap: tokens.space.lg,
   padding: tokens.space.lg,
+  backgroundImage: `linear-gradient(180deg, ${tokens.color.contrast.dark} 0%, rgba(0, 0, 0, 0) 100%)`,
 })
 
 export const nav = style({
@@ -49,8 +50,7 @@ export const pageHeader = style({
   position: "sticky",
   top: 0,
   zIndex: tokens.z.header,
-  background: tokens.color.primaryDark,
-  color: "#fff",
+  color: tokens.color.contrast.light,
   textTransform: "uppercase",
   fontWeight: tokens.font.weight.bold,
   fontSize: tokens.font.size.xl,

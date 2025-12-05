@@ -10,3 +10,15 @@ export const addToSharedTicker = (
   sharedTicker.add(handler)
   return () => sharedTicker.remove(handler)
 }
+
+export const pauseSharedTicker = () => {
+  if (sharedTicker.started) {
+    sharedTicker.stop()
+  }
+}
+
+export const resumeSharedTicker = () => {
+  if (!sharedTicker.started) {
+    sharedTicker.start()
+  }
+}

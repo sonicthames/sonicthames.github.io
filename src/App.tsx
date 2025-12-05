@@ -1,9 +1,4 @@
-import {
-  drawer,
-  drawerBackdrop,
-  drawerPanel,
-  sidePanel,
-} from "@ui/components/map.css"
+import { drawer, drawerPanel, sidePanel } from "@ui/components/map.css"
 import * as E from "fp-ts/Either"
 import { identity, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
@@ -131,10 +126,7 @@ const AppContent = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
         </div>
         <div className={drawer({ open: showDrawer })}>
           {showDrawer ? (
-            <>
-              <div className={drawerBackdrop} />
-              <div className={drawerPanel}>{renderRoutes(wrapWithPage)}</div>
-            </>
+            <div className={drawerPanel}>{renderRoutes(wrapWithPage)}</div>
           ) : (
             <div className={sidePanel}>{renderRoutes(wrapWithPage)}</div>
           )}

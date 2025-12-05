@@ -2,8 +2,7 @@ import { tokens } from "@theme/tokens.css"
 import { style, styleVariants } from "@vanilla-extract/css"
 
 const baseText = style({
-  color: tokens.color.text,
-  margin: 0,
+  color: "inherit",
   fontFamily: tokens.font.family,
 })
 

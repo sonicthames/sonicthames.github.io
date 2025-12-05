@@ -2,30 +2,13 @@
  * Contact page styles - co-located with Page.tsx
  */
 import { tokens } from "@theme/tokens.css"
-import { style, styleVariants } from "@vanilla-extract/css"
+import { style } from "@vanilla-extract/css"
 
 export const contactLayout = style({
   marginTop: tokens.space["2xl"],
-})
-
-export const contactLayoutVariants = styleVariants({
-  mobile: {
-    flexDirection: "column",
-  },
-  portrait: {
-    flexDirection: "column",
-  },
-  desktop: {
-    flexDirection: "row",
-  },
-})
-
-export const contactLayoutItem = style({
-  selectors: {
-    [`${contactLayout}.${contactLayoutVariants.desktop} > &`]: {
-      flex: "1 1 50%",
-    },
-  },
+  display: "flex",
+  flexDirection: "column",
+  gap: tokens.space.xl,
 })
 
 export const form = style({
@@ -39,19 +22,18 @@ export const formLabel = style({
   fontSize: tokens.font.size.sm,
   fontWeight: tokens.font.weight.medium,
   marginBottom: tokens.space.xs,
-  color: tokens.color.text,
+  color: tokens.color.contrast.light,
 })
 
 export const formInput = style({
-  width: "100%",
-  padding: tokens.space.md,
-  border: `1px solid ${tokens.color.border}`,
-  borderRadius: tokens.radius.md,
   background: tokens.color.bg,
+  border: `1px solid ${tokens.color.border}`,
   color: tokens.color.text,
-  fontSize: tokens.font.size.md,
   fontFamily: tokens.font.family,
+  fontSize: tokens.font.size.md,
+  padding: tokens.space.md,
   transition: `box-shadow ${tokens.motion.fast}`,
+  width: "100%",
   selectors: {
     "&:focus": {
       outline: "none",

@@ -12,9 +12,6 @@ export const darkThemeClass = createTheme(tokens, {
     fgRgb: "229 231 235",
     accentRgb: "129 140 248",
     borderRgb: "55 65 81",
-    primaryRgb: "31 41 55",
-    primaryDarkRgb: "17 24 39",
-    primaryLightRgb: "55 65 81",
     actionRgb: "129 140 248",
     actionDarkRgb: "79 70 229",
     actionLightRgb: "165 180 252",
@@ -24,16 +21,13 @@ export const darkThemeClass = createTheme(tokens, {
     fg: rgba("229 231 235"),
     accent: rgba("129 140 248"),
     border: rgba("55 65 81"),
-    primary: rgba("31 41 55"),
-    primaryDark: rgba("17 24 39"),
-    primaryLight: rgba("55 65 81"),
     action: rgba("129 140 248"),
     actionDark: rgba("79 70 229"),
     actionLight: rgba("165 180 252"),
 
     // Semantic aliases
     text: rgba("229 231 235"),
-    muted: rgba("142 146 163"),
+    muted: rgba("200 205 220"),
     surface: rgba("12 10 20", 0.95),
     surfaceAlt: rgba("18 15 28", 0.97),
 
@@ -48,6 +42,10 @@ export const darkThemeClass = createTheme(tokens, {
       base: rgba("12 10 20", 0.7),
       light: rgba("12 10 20", 0.5),
       medium: rgba("12 10 20", 0.85),
+    },
+    contrast: {
+      light: "#ffffff",
+      dark: "#000000",
     },
 
     // Brand colors
@@ -98,6 +96,11 @@ export const darkThemeClass = createTheme(tokens, {
     fast: "120ms",
     normal: "200ms",
     slow: "360ms",
+  },
+  effect: {
+    blur: {
+      md: "blur(12px)",
+    },
   },
   font: {
     family:

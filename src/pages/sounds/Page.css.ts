@@ -25,8 +25,8 @@ export const grid = style({
 
 export const card = style({
   height: "100%",
-  background: tokens.color.primaryLight, // FIXED: solid background, no transparency
-  boxShadow: "0 10px 30px rgba(0,0,0,0.18)", // FIXED: exact original shadow
+  background: tokens.color.surface,
+  boxShadow: "0 10px 30px rgba(0,0,0,0.18)",
   color: tokens.color.text,
   overflow: "hidden",
   display: "flex",
@@ -64,7 +64,7 @@ export const cardDescription = style([
   text.body,
   {
     fontStyle: "italic",
-    color: tokens.color.primary,
+    color: tokens.color.text,
   },
 ])
 

@@ -2,17 +2,12 @@
  * Drawer and panel styles using composable recipes.
  * All values now match original Tailwind exactly via token corrections.
  */
-import {
-  backdropRecipe,
-  drawerContainer,
-  panelRecipe,
-} from "@theme/recipes/layout.css"
+import { drawerContainer, panelRecipe } from "@theme/recipes/layout.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 
 // Re-export with legacy names for backward compatibility
 export const drawer = drawerContainer
-export const drawerBackdrop = backdropRecipe({ tone: "dark45", blur: "md" })
 export const drawerPanel = panelRecipe({ kind: "drawer" })
 export const sidePanel = panelRecipe({ kind: "side" })
 

@@ -3,8 +3,6 @@ import { darkThemeClass } from "./darkTheme.css"
 import { lightThemeClass } from "./lightTheme.css"
 import { tokens } from "./tokens.css"
 
-export const vars = tokens
-
 const tailwindBridge = {
   "--color-bg": tokens.color.bg,
   "--color-fg": tokens.color.text,
@@ -12,9 +10,6 @@ const tailwindBridge = {
   "--color-fg-subtle": tokens.color.muted,
   "--color-accent": tokens.color.accent,
   "--color-border": tokens.color.border,
-  "--color-primary": tokens.color.primary,
-  "--color-primary-dark": tokens.color.primaryDark,
-  "--color-primary-light": tokens.color.primaryLight,
   "--color-action": tokens.color.action,
   "--color-action-dark": tokens.color.actionDark,
   "--color-action-light": tokens.color.actionLight,
@@ -23,6 +18,8 @@ const tailwindBridge = {
   "--color-overlay": tokens.color.overlay.base,
   "--color-overlay-light": tokens.color.overlay.light,
   "--color-overlay-medium": tokens.color.overlay.medium,
+  "--color-contrast-light": tokens.color.contrast.light,
+  "--color-contrast-dark": tokens.color.contrast.dark,
   "--radius-sm": tokens.radius.sm,
   "--radius-md": tokens.radius.md,
   "--radius-lg": tokens.radius.lg,
