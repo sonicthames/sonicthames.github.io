@@ -3,6 +3,9 @@ pre-commit:
   commands:
     lint:
       run: pnpm lint
+    actionlint:
+      run: command -v actionlint >/dev/null 2>&1 && actionlint || echo "actionlint not installed — skipping (run 'proto install' to enable)"
+      glob: ".github/workflows/*.yml"
 
 pre-push:
   commands:

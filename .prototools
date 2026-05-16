@@ -1,6 +1,8 @@
-node = "25.0.0"
-pnpm = "10.19.0"
+node = "24.14.1"
+pnpm = "11.1.1"
 lefthook = "2.0.2"
+actionlint = "1.7.7"
 
 [plugins.tools]
-lefthook = "https://raw.githubusercontent.com/ageha734/proto-plugins/refs/heads/master/toml/lefthook.toml"
+actionlint = "https://raw.githubusercontent.com/Phault/proto-toml-plugins/9808cc412785ac59ec1b0d61bd1bee152f6f6b56/actionlint/plugin.toml"
+lefthook = "https://raw.githubusercontent.com/ageha734/proto-plugins/2013696cb58d15041175399ddaf8aa9ff4034c54/toml/lefthook.toml"

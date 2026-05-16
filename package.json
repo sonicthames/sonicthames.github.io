@@ -94,7 +94,9 @@
     "serve": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "test:visual": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "playwright:install": "playwright install --with-deps chromium"
   },
   "browserslist": {
     "production": [">0.2%", "not dead", "not op_mini all"],
@@ -104,5 +106,5 @@
       "last 1 safari version"
     ]
   },
-  "packageManager": "pnpm@10.19.0"
+  "packageManager": "pnpm@11.1.1"
 }
