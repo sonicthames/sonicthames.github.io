@@ -1,6 +1,5 @@
 import type { LngLat, LngLatBounds } from "mapbox-gl"
 import {
-  forwardRef,
   useCallback,
   useEffect,
   useImperativeHandle,
@@ -105,480 +104,475 @@ const serializeRevealsForPersistence = (entries: readonly RevealPoint[]) =>
     lat: entry.lat,
   }))
 
-export const MapFogOverlay = forwardRef<
-  MapFogOverlayHandle,
-  MapFogOverlayProps
->(
-  (
-    {
-      mapRef,
-      movementBounds,
-      intensity = 0.85,
-      revealSize = 30,
-      enabled = true,
-      sounds = [],
-      filters = [],
-    },
-    ref,
-  ) => {
-    // === REFS FOR CANVAS AND RENDERING ===
-    // Using refs (not state) to avoid triggering re-renders on every frame
-    const containerRef = useRef<HTMLDivElement>(null)
-    const canvasRef = useRef<HTMLCanvasElement | null>(null)
-    const animationFrameRef = useRef<number | null>(null)
-    const resizeObserverRef = useRef<ResizeObserver | null>(null)
+export const MapFogOverlay = ({
+  mapRef,
+  movementBounds,
+  intensity = 0.85,
+  revealSize = 30,
+  enabled = true,
+  sounds = [],
+  filters = [],
+  ref,
+}: MapFogOverlayProps & {
+  ref?: React.RefObject<MapFogOverlayHandle | null>
+}) => {
+  // === REFS FOR CANVAS AND RENDERING ===
+  // Using refs (not state) to avoid triggering re-renders on every frame
+  const containerRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
+  const resizeObserverRef = useRef<ResizeObserver | null>(null)
 
-    // === TEXTURE CACHE ===
-    // Mutable cache for pre-rendered reveal textures (performance optimization)
-    const textureCacheRef = useRef(createTextureCache())
+  // === TEXTURE CACHE ===
+  // Mutable cache for pre-rendered reveal textures (performance optimization)
+  const textureCacheRef = useRef(createTextureCache())
 
-    // === MARKER POSITION TRACKING ===
-    // Track the last marker position to detect movement
-    const lastMarkerPosRef = useRef<LngLat | null>(null)
+  // === MARKER POSITION TRACKING ===
+  // Track the last marker position to detect movement
+  const lastMarkerPosRef = useRef<LngLat | null>(null)
 
-    // === CAMERA BOUNDS TRACKING ===
-    // Track visible viewport bounds for outer fog boundary
-    const [cameraBounds, setCameraBounds] = useState<LngLatBounds | null>(null)
+  // === CAMERA BOUNDS TRACKING ===
+  // Track visible viewport bounds for outer fog boundary
+  const [cameraBounds, setCameraBounds] = useState<LngLatBounds | null>(null)
 
-    // === VIEWPORT SIZE ===
-    // Store as state so canvas can resize when viewport changes
-    const [size, setSize] = useState({ width: 0, height: 0 })
-    const updateSize = useCallback(() => {
-      const container = containerRef.current
-      if (!container) return
+  // === VIEWPORT SIZE ===
+  // Store as state so canvas can resize when viewport changes
+  const [size, setSize] = useState({ width: 0, height: 0 })
+  const updateSize = useCallback(() => {
+    const container = containerRef.current
+    if (!container) return
 
-      const rect = container.getBoundingClientRect()
-      // Only update if size actually changed (prevents infinite loops)
-      setSize((prev) => {
-        if (prev.width === rect.width && prev.height === rect.height) {
-          return prev
+    const rect = container.getBoundingClientRect()
+    // Only update if size actually changed (prevents infinite loops)
+    setSize((prev) => {
+      if (prev.width === rect.width && prev.height === rect.height) {
+        return prev
+      }
+      return {
+        width: rect.width,
+        height: rect.height,
+      }
+    })
+  }, [])
+
+  // === REVEAL PERSISTENCE ===
+  // Revealed grid cells (capped to prevent unbounded growth)
+  const gridRef = useRef<FogGrid | null>(null)
+  const revealsRef = useRef<Map<number, RevealPoint>>(new Map())
+  const revealOrderRef = useRef<number[]>([])
+  const revealedBitmapRef = useRef<Uint8Array | null>(null)
+  const dirtyKeysRef = useRef<Set<number>>(new Set())
+  const revealsBufferRef = useRef<RevealPoint[]>([])
+  const visibleRevealsBufferRef = useRef<RevealPoint[]>([])
+  const screenRevealsBufferRef = useRef<RevealScreenSpace[]>([])
+  // Timeout for debounced localStorage writes (avoid blocking on every mouse move)
+  const maxRevealCellsRef = useRef<number | null>(null)
+
+  const persistReveals = useCallback(() => {
+    if (dirtyKeysRef.current.size === 0) return
+
+    const maxCells = maxRevealCellsRef.current
+    const limit =
+      maxCells && maxCells > 0 ? maxCells : revealOrderRef.current.length
+    const orderedKeys = revealOrderRef.current.slice(-limit)
+    const persistedEntries = orderedKeys
+      .map((key) => revealsRef.current.get(key))
+      .filter((entry): entry is RevealPoint => Boolean(entry))
+    usePersistenceStore
+      .getState()
+      .setFogReveals(serializeRevealsForPersistence(persistedEntries))
+    dirtyKeysRef.current.clear()
+  }, [])
+  // Memoized Mapbox map accessor
+  const getMap = useCallback(() => mapRef.current?.getMap(), [mapRef])
+  const ensureGrid = useCallback((): FogGrid | null => {
+    if (gridRef.current) {
+      return gridRef.current
+    }
+
+    const map = getMap()
+    const bounds = movementBounds ?? map?.getBounds()
+    if (!bounds) return null
+
+    const metrics = computeCellMetrics(bounds)
+    const grid = createFogGrid(bounds, metrics.cellSize, metrics.visualRadius)
+    gridRef.current = grid
+    revealedBitmapRef.current = new Uint8Array(grid.width * grid.height)
+    maxRevealCellsRef.current = grid.width * grid.height
+    return grid
+  }, [getMap, movementBounds])
+  const addReveals = useCallback(
+    (cells: readonly RevealPoint[]) => {
+      if (cells.length === 0) return
+
+      const revealMap = revealsRef.current
+      const order = revealOrderRef.current
+      const bitmap = revealedBitmapRef.current
+      let added = false
+
+      for (const cell of cells) {
+        if (bitmap && bitmap[cell.key] === 1) continue
+        if (revealMap.has(cell.key)) continue
+        revealMap.set(cell.key, cell)
+        order.push(cell.key)
+        if (bitmap) {
+          bitmap[cell.key] = 1
         }
-        return {
-          width: rect.width,
-          height: rect.height,
-        }
-      })
-    }, [])
+        dirtyKeysRef.current.add(cell.key)
+        added = true
+      }
 
-    // === REVEAL PERSISTENCE ===
-    // Revealed grid cells (capped to prevent unbounded growth)
-    const gridRef = useRef<FogGrid | null>(null)
-    const revealsRef = useRef<Map<number, RevealPoint>>(new Map())
-    const revealOrderRef = useRef<number[]>([])
-    const revealedBitmapRef = useRef<Uint8Array | null>(null)
-    const dirtyKeysRef = useRef<Set<number>>(new Set())
-    const revealsBufferRef = useRef<RevealPoint[]>([])
-    const visibleRevealsBufferRef = useRef<RevealPoint[]>([])
-    const screenRevealsBufferRef = useRef<RevealScreenSpace[]>([])
-    // Timeout for debounced localStorage writes (avoid blocking on every mouse move)
-    const maxRevealCellsRef = useRef<number | null>(null)
-
-    const persistReveals = useCallback(() => {
-      if (dirtyKeysRef.current.size === 0) return
+      if (!added) return
 
       const maxCells = maxRevealCellsRef.current
-      const limit =
-        maxCells && maxCells > 0 ? maxCells : revealOrderRef.current.length
-      const orderedKeys = revealOrderRef.current.slice(-limit)
-      const persistedEntries = orderedKeys
-        .map((key) => revealsRef.current.get(key))
-        .filter((entry): entry is RevealPoint => Boolean(entry))
-      usePersistenceStore
-        .getState()
-        .setFogReveals(serializeRevealsForPersistence(persistedEntries))
-      dirtyKeysRef.current.clear()
-    }, [])
-    // Memoized Mapbox map accessor
-    const getMap = useCallback(() => mapRef.current?.getMap(), [mapRef])
-    const ensureGrid = useCallback((): FogGrid | null => {
-      if (gridRef.current) {
-        return gridRef.current
+      while (maxCells && maxCells > 0 && order.length > maxCells) {
+        const oldest = order.shift()
+        if (!oldest) break
+        revealMap.delete(oldest)
+        if (bitmap) {
+          bitmap[oldest] = 0
+        }
+        dirtyKeysRef.current.add(oldest)
       }
 
-      const map = getMap()
-      const bounds = movementBounds ?? map?.getBounds()
-      if (!bounds) return null
+      persistReveals()
+    },
+    [persistReveals],
+  )
 
-      const metrics = computeCellMetrics(bounds)
-      const grid = createFogGrid(bounds, metrics.cellSize, metrics.visualRadius)
-      gridRef.current = grid
-      revealedBitmapRef.current = new Uint8Array(grid.width * grid.height)
-      maxRevealCellsRef.current = grid.width * grid.height
-      return grid
-    }, [getMap, movementBounds])
-    const addReveals = useCallback(
-      (cells: readonly RevealPoint[]) => {
-        if (cells.length === 0) return
+  // === EFFECT: RESIZE OBSERVER ===
+  /**
+   * Watch container size changes and update canvas dimensions.
+   * Needed for responsive behavior when window resizes or map container changes.
+   * Stores observer ref to prevent memory leaks on strict mode double-mounting.
+   */
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
 
-        const revealMap = revealsRef.current
-        const order = revealOrderRef.current
-        const bitmap = revealedBitmapRef.current
-        let added = false
+    updateSize()
+    const observer = new ResizeObserver(updateSize)
+    resizeObserverRef.current = observer
+    observer.observe(container)
 
-        for (const cell of cells) {
-          if (bitmap && bitmap[cell.key] === 1) continue
-          if (revealMap.has(cell.key)) continue
-          revealMap.set(cell.key, cell)
-          order.push(cell.key)
-          if (bitmap) {
-            bitmap[cell.key] = 1
-          }
-          dirtyKeysRef.current.add(cell.key)
-          added = true
-        }
+    return () => {
+      observer.disconnect()
+      resizeObserverRef.current = null
+    }
+  }, [updateSize])
 
-        if (!added) return
+  // === EFFECT: LOAD PERSISTED REVEALS ===
+  /**
+   * Restore persisted reveals once a grid can be created.
+   * Legacy points are snapped to the grid so geographic coverage stays stable.
+   */
+  useEffect(() => {
+    const grid = ensureGrid()
+    if (!grid) return
 
-        const maxCells = maxRevealCellsRef.current
-        while (maxCells && maxCells > 0 && order.length > maxCells) {
-          const oldest = order.shift()
-          if (!oldest) break
-          revealMap.delete(oldest)
-          if (bitmap) {
-            bitmap[oldest] = 0
-          }
-          dirtyKeysRef.current.add(oldest)
-        }
+    const storedReveals = usePersistenceStore.getState().fogReveals
+    const persistLimit =
+      maxRevealCellsRef.current && maxRevealCellsRef.current > 0
+        ? maxRevealCellsRef.current
+        : storedReveals.length
+    const loaded = storedReveals.slice(-persistLimit)
 
-        persistReveals()
-      },
-      [persistReveals],
+    const resolved = resolvePersistedReveals(
+      grid,
+      loaded,
+      grid.visualCellRadiusMeters,
+      movementBounds,
     )
 
-    // === EFFECT: RESIZE OBSERVER ===
-    /**
-     * Watch container size changes and update canvas dimensions.
-     * Needed for responsive behavior when window resizes or map container changes.
-     * Stores observer ref to prevent memory leaks on strict mode double-mounting.
-     */
-    useEffect(() => {
-      const container = containerRef.current
-      if (!container) return
+    const nextMap = new Map<number, RevealPoint>()
+    const order: number[] = []
 
-      updateSize()
-      const observer = new ResizeObserver(updateSize)
-      resizeObserverRef.current = observer
-      observer.observe(container)
-
-      return () => {
-        observer.disconnect()
-        resizeObserverRef.current = null
+    for (const reveal of resolved) {
+      if (nextMap.has(reveal.key)) continue
+      nextMap.set(reveal.key, reveal)
+      order.push(reveal.key)
+      if (revealedBitmapRef.current) {
+        revealedBitmapRef.current[reveal.key] = 1
       }
-    }, [updateSize])
+    }
 
-    // === EFFECT: LOAD PERSISTED REVEALS ===
-    /**
-     * Restore persisted reveals once a grid can be created.
-     * Legacy points are snapped to the grid so geographic coverage stays stable.
-     */
-    useEffect(() => {
+    revealOrderRef.current = order
+    revealsRef.current = nextMap
+  }, [ensureGrid, movementBounds])
+
+  const revealAtPosition = useCallback(
+    (position: LngLat) => {
+      const map = getMap()
+      if (!map) return
+
       const grid = ensureGrid()
       if (!grid) return
 
-      const storedReveals = usePersistenceStore.getState().fogReveals
-      const persistLimit =
-        maxRevealCellsRef.current && maxRevealCellsRef.current > 0
-          ? maxRevealCellsRef.current
-          : storedReveals.length
-      const loaded = storedReveals.slice(-persistLimit)
+      const screenPosition = map.project(position)
+      const comparison = map.unproject([
+        screenPosition.x + revealSize,
+        screenPosition.y,
+      ])
+      const revealRadiusMeters = position.distanceTo(comparison)
 
-      const resolved = resolvePersistedReveals(
+      const cells = collectCellsInRadius(
         grid,
-        loaded,
+        position,
+        revealRadiusMeters,
         grid.visualCellRadiusMeters,
         movementBounds,
       )
 
-      const nextMap = new Map<number, RevealPoint>()
-      const order: number[] = []
+      addReveals(cells)
+      lastMarkerPosRef.current = position
+    },
+    [addReveals, ensureGrid, getMap, movementBounds, revealSize],
+  )
 
-      for (const reveal of resolved) {
-        if (nextMap.has(reveal.key)) continue
-        nextMap.set(reveal.key, reveal)
-        order.push(reveal.key)
+  // === IMPERATIVE HANDLE: EXPOSE RESTORE FOG FUNCTION ===
+  /**
+   * Expose restoreFog function to parent component for debug use.
+   * Clears all reveals from memory and localStorage, resetting to initial fog state.
+   */
+  useImperativeHandle(
+    ref,
+    () => ({
+      restoreFog: () => {
+        revealsRef.current = new Map()
+        revealOrderRef.current = []
         if (revealedBitmapRef.current) {
-          revealedBitmapRef.current[reveal.key] = 1
+          revealedBitmapRef.current.fill(0)
         }
-      }
-
-      revealOrderRef.current = order
-      revealsRef.current = nextMap
-    }, [ensureGrid, movementBounds])
-
-    const revealAtPosition = useCallback(
-      (position: LngLat) => {
-        const map = getMap()
-        if (!map) return
-
+        dirtyKeysRef.current.clear()
+        lastMarkerPosRef.current = null
+        usePersistenceStore.getState().clearFogReveals()
+      },
+      revealMap: () => {
         const grid = ensureGrid()
         if (!grid) return
 
-        const screenPosition = map.project(position)
-        const comparison = map.unproject([
-          screenPosition.x + revealSize,
-          screenPosition.y,
-        ])
-        const revealRadiusMeters = position.distanceTo(comparison)
+        const map = getMap()
+        const bounds = movementBounds ?? map?.getBounds()
+        if (!bounds) return
 
-        const cells = collectCellsInRadius(
+        const cells = collectCellsInBounds(
           grid,
-          position,
-          revealRadiusMeters,
+          bounds,
           grid.visualCellRadiusMeters,
-          movementBounds,
         )
 
+        revealsRef.current = new Map()
+        revealOrderRef.current = []
+        if (revealedBitmapRef.current) {
+          revealedBitmapRef.current.fill(0)
+        }
+        dirtyKeysRef.current.clear()
         addReveals(cells)
-        lastMarkerPosRef.current = position
+        lastMarkerPosRef.current = bounds.getCenter()
       },
-      [addReveals, ensureGrid, getMap, movementBounds, revealSize],
-    )
+      trackUserPosition: (position: LngLat) => {
+        revealAtPosition(position)
+      },
+    }),
+    [addReveals, ensureGrid, getMap, movementBounds, revealAtPosition],
+  )
 
-    // === IMPERATIVE HANDLE: EXPOSE RESTORE FOG FUNCTION ===
-    /**
-     * Expose restoreFog function to parent component for debug use.
-     * Clears all reveals from memory and localStorage, resetting to initial fog state.
-     */
-    useImperativeHandle(
-      ref,
-      () => ({
-        restoreFog: () => {
-          revealsRef.current = new Map()
-          revealOrderRef.current = []
-          if (revealedBitmapRef.current) {
-            revealedBitmapRef.current.fill(0)
+  // === EFFECT: MAP CHANGE TRACKING ===
+  /**
+   * Update canvas size and camera bounds when map resizes or moves.
+   * Mapbox may resize its container during pan/zoom operations.
+   * Camera bounds define the outer fog boundary (visible viewport).
+   */
+  useEffect(() => {
+    const map = mapRef.current?.getMap()
+    if (!map) return
+
+    const updateBounds = () => {
+      const bounds = map.getBounds()
+      if (bounds) {
+        setCameraBounds(bounds)
+      }
+    }
+
+    // Initialize bounds
+    updateBounds()
+
+    // Update on map interactions
+    map.on("resize", updateSize)
+    map.on("move", updateBounds)
+    map.on("zoom", updateBounds)
+
+    return () => {
+      map.off("resize", updateSize)
+      map.off("move", updateBounds)
+      map.off("zoom", updateBounds)
+    }
+  }, [mapRef, updateSize])
+
+  // === EFFECT: RENDER LOOP ===
+  /**
+   * Main rendering loop - draws fog and reveals at 60fps.
+   *
+   * Rendering Strategy:
+   * 1. Fill entire canvas with opaque black fog (1.0 opacity)
+   * 2. Draw semi-transparent marker hints (0.5 opacity) with ripple animation
+   * 3. Use "destination-out" composite mode to punch transparent holes
+   * 4. Draw persistent reveals (from marker movement trail)
+   *
+   * Why destination-out:
+   * - This composite mode erases pixels from the fog layer
+   * - Allows smooth radial gradient falloff at reveal edges
+   * - More efficient than redrawing entire fog with complex masks
+   *
+   * Device Pixel Ratio Handling:
+   * - Canvas internal size scaled by DPR for sharp rendering on retina displays
+   * - CSS size stays in logical pixels for correct layout
+   * - Transform matrix scaled to match DPR for correct coordinate space
+   */
+  useEffect(() => {
+    if (!enabled) return
+    const canvas = canvasRef.current
+    if (!canvas || size.width === 0 || size.height === 0) return
+
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+
+    const drawFrame = () => {
+      const { width, height } = size
+
+      // Handle retina displays - scale internal canvas resolution
+      syncCanvasSize(canvas, ctx, width, height)
+
+      // STEP 1: Fill entire canvas with opaque fog (no clearRect needed - we fill the entire canvas)
+      ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(1, intensity)})`
+      ctx.fillRect(0, 0, width, height)
+
+      const applyReveal = () => {
+        const map = getMap()
+        if (!map) return
+
+        // STEP 2: Draw marker hints through the fog
+        // Ripple effect animation to guide users to sound locations
+        ctx.globalCompositeOperation = "source-over"
+
+        const time = performance.now()
+        const currentZoom = map.getZoom()
+
+        for (const sound of sounds) {
+          // Skip filtered-out markers
+          if (filters.length > 0 && !filters.includes(sound.category)) {
+            continue
           }
-          dirtyKeysRef.current.clear()
-          lastMarkerPosRef.current = null
-          usePersistenceStore.getState().clearFogReveals()
-        },
-        revealMap: () => {
-          const grid = ensureGrid()
-          if (!grid) return
 
-          const map = getMap()
-          const bounds = movementBounds ?? map?.getBounds()
-          if (!bounds) return
+          const screen = map.project(sound.coordinate)
 
-          const cells = collectCellsInBounds(
-            grid,
-            bounds,
-            grid.visualCellRadiusMeters,
+          // Draw ripple hints to guide users toward obscured sounds
+          for (
+            let rippleIndex = 0;
+            rippleIndex < FOG_RIPPLE_COUNT;
+            rippleIndex += 1
+          ) {
+            drawCanvasRipple(
+              ctx,
+              screen.x,
+              screen.y,
+              time,
+              rippleIndex,
+              RIPPLE_CYCLE_MS,
+              currentZoom,
+              FOG_RIPPLE_CONFIG,
+            )
+          }
+        }
+
+        // STEP 3: Draw persistent reveals (optimized with viewport culling + texture cache)
+        // Using geographic coordinates so they stay in place during pan/zoom
+        const allReveals = revealsBufferRef.current
+        allReveals.length = 0
+        revealsRef.current.forEach((reveal) => {
+          allReveals.push(reveal)
+        })
+        if (allReveals.length > 0) {
+          // Optimization 1: Cull reveals outside viewport
+          const viewport: ViewportBounds = { width, height }
+          const visibleReveals = cullRevealsToViewport(
+            allReveals,
+            map,
+            viewport,
+            currentZoom,
+            visibleRevealsBufferRef.current,
           )
 
-          revealsRef.current = new Map()
-          revealOrderRef.current = []
-          if (revealedBitmapRef.current) {
-            revealedBitmapRef.current.fill(0)
-          }
-          dirtyKeysRef.current.clear()
-          addReveals(cells)
-          lastMarkerPosRef.current = bounds.getCenter()
-        },
-        trackUserPosition: (position: LngLat) => {
-          revealAtPosition(position)
-        },
-      }),
-      [addReveals, ensureGrid, getMap, movementBounds, revealAtPosition],
-    )
-
-    // === EFFECT: MAP CHANGE TRACKING ===
-    /**
-     * Update canvas size and camera bounds when map resizes or moves.
-     * Mapbox may resize its container during pan/zoom operations.
-     * Camera bounds define the outer fog boundary (visible viewport).
-     */
-    useEffect(() => {
-      const map = mapRef.current?.getMap()
-      if (!map) return
-
-      const updateBounds = () => {
-        const bounds = map.getBounds()
-        if (bounds) {
-          setCameraBounds(bounds)
-        }
-      }
-
-      // Initialize bounds
-      updateBounds()
-
-      // Update on map interactions
-      map.on("resize", updateSize)
-      map.on("move", updateBounds)
-      map.on("zoom", updateBounds)
-
-      return () => {
-        map.off("resize", updateSize)
-        map.off("move", updateBounds)
-        map.off("zoom", updateBounds)
-      }
-    }, [mapRef, updateSize])
-
-    // === EFFECT: RENDER LOOP ===
-    /**
-     * Main rendering loop - draws fog and reveals at 60fps.
-     *
-     * Rendering Strategy:
-     * 1. Fill entire canvas with opaque black fog (1.0 opacity)
-     * 2. Draw semi-transparent marker hints (0.5 opacity) with ripple animation
-     * 3. Use "destination-out" composite mode to punch transparent holes
-     * 4. Draw persistent reveals (from marker movement trail)
-     *
-     * Why destination-out:
-     * - This composite mode erases pixels from the fog layer
-     * - Allows smooth radial gradient falloff at reveal edges
-     * - More efficient than redrawing entire fog with complex masks
-     *
-     * Device Pixel Ratio Handling:
-     * - Canvas internal size scaled by DPR for sharp rendering on retina displays
-     * - CSS size stays in logical pixels for correct layout
-     * - Transform matrix scaled to match DPR for correct coordinate space
-     */
-    useEffect(() => {
-      if (!enabled) return
-      const canvas = canvasRef.current
-      if (!canvas || size.width === 0 || size.height === 0) return
-
-      const ctx = canvas.getContext("2d")
-      if (!ctx) return
-
-      const drawFrame = () => {
-        const { width, height } = size
-
-        // Handle retina displays - scale internal canvas resolution
-        syncCanvasSize(canvas, ctx, width, height)
-
-        // STEP 1: Fill entire canvas with opaque fog (no clearRect needed - we fill the entire canvas)
-        ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(1, intensity)})`
-        ctx.fillRect(0, 0, width, height)
-
-        const applyReveal = () => {
-          const map = getMap()
-          if (!map) return
-
-          // STEP 2: Draw marker hints through the fog
-          // Ripple effect animation to guide users to sound locations
-          ctx.globalCompositeOperation = "source-over"
-
-          const time = performance.now()
-          const currentZoom = map.getZoom()
-
-          for (const sound of sounds) {
-            // Skip filtered-out markers
-            if (filters.length > 0 && !filters.includes(sound.category)) {
-              continue
-            }
-
-            const screen = map.project(sound.coordinate)
-
-            // Draw ripple hints to guide users toward obscured sounds
-            for (
-              let rippleIndex = 0;
-              rippleIndex < FOG_RIPPLE_COUNT;
-              rippleIndex += 1
-            ) {
-              drawCanvasRipple(
-                ctx,
-                screen.x,
-                screen.y,
-                time,
-                rippleIndex,
-                RIPPLE_CYCLE_MS,
-                currentZoom,
-                FOG_RIPPLE_CONFIG,
-              )
-            }
-          }
-
-          // STEP 3: Draw persistent reveals (optimized with viewport culling + texture cache)
-          // Using geographic coordinates so they stay in place during pan/zoom
-          const allReveals = revealsBufferRef.current
-          allReveals.length = 0
-          revealsRef.current.forEach((reveal) => {
-            allReveals.push(reveal)
-          })
-          if (allReveals.length > 0) {
-            // Optimization 1: Cull reveals outside viewport
-            const viewport: ViewportBounds = { width, height }
-            const visibleReveals = cullRevealsToViewport(
-              allReveals,
+          if (visibleReveals.length > 0) {
+            // Optimization 2: Project to screen space once
+            const screenReveals = projectRevealsToScreen(
+              visibleReveals,
               map,
-              viewport,
               currentZoom,
-              visibleRevealsBufferRef.current,
+              screenRevealsBufferRef.current,
             )
 
-            if (visibleReveals.length > 0) {
-              // Optimization 2: Project to screen space once
-              const screenReveals = projectRevealsToScreen(
-                visibleReveals,
-                map,
-                currentZoom,
-                screenRevealsBufferRef.current,
-              )
-
-              // Optimization 3: Render using cached textures
-              drawReveals(ctx, textureCacheRef.current, screenReveals)
-            }
-          }
-
-          // STEP 4: Draw outer fog boundary (areas outside movement bounds)
-          // This keeps areas beyond the allowed movement zone obscured
-          if (cameraBounds) {
-            ctx.globalCompositeOperation = "source-over"
-            drawOuterFogBoundary(
-              ctx,
-              map,
-              movementBounds,
-              width,
-              height,
-              intensity,
-            )
+            // Optimization 3: Render using cached textures
+            drawReveals(ctx, textureCacheRef.current, screenReveals)
           }
         }
 
-        applyReveal()
-
-        // Continue animation loop
-        animationFrameRef.current = requestAnimationFrame(drawFrame)
-      }
-
-      drawFrame()
-
-      return () => {
-        if (animationFrameRef.current) {
-          cancelAnimationFrame(animationFrameRef.current)
-          animationFrameRef.current = null
+        // STEP 4: Draw outer fog boundary (areas outside movement bounds)
+        // This keeps areas beyond the allowed movement zone obscured
+        if (cameraBounds) {
+          ctx.globalCompositeOperation = "source-over"
+          drawOuterFogBoundary(
+            ctx,
+            map,
+            movementBounds,
+            width,
+            height,
+            intensity,
+          )
         }
       }
-    }, [
-      size,
-      intensity,
-      enabled,
-      getMap,
-      sounds,
-      filters,
-      cameraBounds,
-      movementBounds,
-    ])
 
-    // === EFFECT: CLEANUP ===
-    /**
-     * Cancel pending localStorage writes on unmount.
-     * Prevents memory leaks from dangling requestAnimationFrame callbacks.
-     */
-    if (!enabled) return null
+      applyReveal()
 
-    return (
-      <div
-        ref={containerRef}
-        className={fogOverlayContainer}
-        data-testid="map-fog-overlay"
-      >
-        <canvas ref={canvasRef} className={fogCanvas} />
-      </div>
-    )
-  },
-)
+      // Continue animation loop
+      animationFrameRef.current = requestAnimationFrame(drawFrame)
+    }
+
+    drawFrame()
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
+    }
+  }, [
+    size,
+    intensity,
+    enabled,
+    getMap,
+    sounds,
+    filters,
+    cameraBounds,
+    movementBounds,
+  ])
+
+  // === EFFECT: CLEANUP ===
+  /**
+   * Cancel pending localStorage writes on unmount.
+   * Prevents memory leaks from dangling requestAnimationFrame callbacks.
+   */
+  if (!enabled) return null
+
+  return (
+    <div
+      ref={containerRef}
+      className={fogOverlayContainer}
+      data-testid="map-fog-overlay"
+    >
+      <canvas ref={canvasRef} className={fogCanvas} />
+    </div>
+  )
+}
 
 MapFogOverlay.displayName = "MapFogOverlay"

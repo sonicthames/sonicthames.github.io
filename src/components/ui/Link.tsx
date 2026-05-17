@@ -1,4 +1,4 @@
-import * as React from "react"
+import type * as React from "react"
 import type { LinkProps as RouterLinkProps } from "react-router-dom"
 import { Link as RouterLink } from "react-router-dom"
 import { cn } from "@/lib/utils"
@@ -11,19 +11,24 @@ export interface LinkProps extends Omit<RouterLinkProps, "to"> {
   children: React.ReactNode
 }
 
-export const Link = React.forwardRef<HTMLAnchorElement, LinkProps>(
-  ({ className, variant = "default", to, children, ...props }, ref) => {
-    return (
-      <RouterLink
-        to={to}
-        className={cn(linkRecipe({ variant }), className)}
-        ref={ref}
-        {...props}
-      >
-        {children}
-      </RouterLink>
-    )
-  },
-)
+export const Link = ({
+  className,
+  variant = "default",
+  to,
+  children,
+  ref,
+  ...props
+}: LinkProps & { ref?: React.RefObject<HTMLAnchorElement | null> }) => {
+  return (
+    <RouterLink
+      to={to}
+      className={cn(linkRecipe({ variant }), className)}
+      ref={ref}
+      {...props}
+    >
+      {children}
+    </RouterLink>
+  )
+}
 
 Link.displayName = "Link"

@@ -1,8 +1,8 @@
-import type { ReportCallback } from "web-vitals"
+import type { MetricType } from "web-vitals"
 
-const reportWebVitals = (onPerfEntry?: ReportCallback) => {
+const reportWebVitals = (onPerfEntry?: (metric: MetricType) => void) => {
   if (typeof onPerfEntry === "function") {
-    import("web-vitals").then(({ onCLS, onFCP, onINP, onLCP, onTTFB }) => {
+    void import("web-vitals").then(({ onCLS, onFCP, onINP, onLCP, onTTFB }) => {
       onCLS(onPerfEntry)
       onFCP(onPerfEntry)
       onINP(onPerfEntry)

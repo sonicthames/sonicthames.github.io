@@ -131,5 +131,11 @@ dist
 /playwright-report/
 /test-results/
 
+# Storybook
+/storybook-static
+
+# Claude Code
+.claude/
+
 # Local development data
 /local

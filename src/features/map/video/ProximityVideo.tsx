@@ -248,6 +248,7 @@ export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
           </div>
           <div className={videoSectionDescription}>
             {displayedSound.description.map((line, index) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static description paragraphs
               <p key={`${displayedSound.videoSrc}-${index}`}>{line}</p>
             ))}
           </div>

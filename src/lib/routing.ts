@@ -14,11 +14,12 @@ type HasParams<Path extends string> = Path extends `${string}:${string}`
   : false
 
 /** Exact key equality helper (no extras / no missing keys). */
-type ExactKeys<A, B> = Exclude<keyof A, keyof B> extends never
-  ? Exclude<keyof B, keyof A> extends never
-    ? A
+type ExactKeys<A, B> =
+  Exclude<keyof A, keyof B> extends never
+    ? Exclude<keyof B, keyof A> extends never
+      ? A
+      : never
     : never
-  : never
 
 /** showInstances must exist only when the fragment declares params. Keys must be exact. */
 export type ShowInstances<P extends string> = ExactKeys<
@@ -33,14 +34,15 @@ export type FragmentShowInstances<P> = P extends string
   : EmptyObject
 
 /** AppRoutes: each entry has `fragments` which is either null (leaf) or a nested map. */
-type NormalizeRoute<TValue, P extends string> = TValue extends Readonly<{
-  readonly fragments: infer W
-}>
-  ? Readonly<FragmentShowInstances<P>> &
-      Omit<TValue, "fragments"> & {
-        readonly fragments: W extends null ? null : AppRoutes<W>
-      }
-  : never
+type NormalizeRoute<TValue, P extends string> =
+  TValue extends Readonly<{
+    readonly fragments: infer W
+  }>
+    ? Readonly<FragmentShowInstances<P>> &
+        Omit<TValue, "fragments"> & {
+          readonly fragments: W extends null ? null : AppRoutes<W>
+        }
+    : never
 
 export type AppRoutes<T> = {
   readonly [P in Extract<keyof T, string>]-?: NormalizeRoute<T[P], P>

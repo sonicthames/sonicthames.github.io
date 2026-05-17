@@ -87,8 +87,22 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
 
-  visual-tests:
-    name: Visual Tests (Playwright)
+  storybook-build:
+    name: Storybook Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm storybook:build
+
+  playwright:
+    name: Playwright (a11y + visual)
     runs-on: ubuntu-latest
     timeout-minutes: 15
     needs: [lint, typecheck]
@@ -126,14 +140,14 @@ jobs:
         if: steps.pw_cache.outputs.cache-hit == 'true'
         run: pnpm exec playwright install-deps chromium
 
-      - name: Run visual tests
+      - name: Run Playwright tests
         run: pnpm test:visual
 
       - name: Upload artifacts on failure
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: visual-test-artifacts
+          name: playwright-artifacts
           path: |
             test-results
             playwright-report

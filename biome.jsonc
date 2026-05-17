@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.2/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -7,7 +7,10 @@
       }
     }
   },
-  "files": { "ignoreUnknown": true },
+  "files": {
+    "ignoreUnknown": true,
+    "includes": ["**/*", "!.claude"]
+  },
   "formatter": {
     "enabled": true,
     "formatWithErrors": false,
@@ -41,19 +44,45 @@
   "html": { "formatter": { "selfCloseVoidElements": "always" } },
   "linter": {
     "enabled": true,
+    "domains": {
+      "react": "all",
+      "project": "all",
+      "types": "all"
+    },
     "rules": {
       "recommended": true,
       "correctness": {
         "noUnusedImports": "error",
-        "noUnusedVariables": "error"
+        "noUnusedVariables": "error",
+        "noGlobalDirnameFilename": "error",
+        "useImportExtensions": "off",
+        // Biome cannot resolve TS path aliases (@/, @theme/, @ui/)
+        "noUndeclaredDependencies": "off",
+        "noUnresolvedImports": "off"
       },
       "suspicious": {
         "noExplicitAny": "error",
+        "noConstantBinaryExpressions": "error",
+        "noUnusedExpressions": "error",
+        "noVar": "error",
+        "useErrorMessage": "error",
         "noUnknownAtRules": {
           "level": "error",
           "options": {
             "ignore": ["tailwind", "apply"]
           }
+        }
+      },
+      "nursery": {
+        "noFloatingPromises": "error",
+        "noMisusedPromises": "error"
+      },
+      "complexity": {
+        "noUselessCatch": "error",
+        "useLiteralKeys": "off",
+        "noExcessiveCognitiveComplexity": {
+          "level": "warn",
+          "options": { "maxAllowedComplexity": 15 }
         }
       },
       "style": {
@@ -62,10 +91,46 @@
           "level": "error",
           "options": { "style": "separatedType" }
         },
+        "useExportType": "error",
+        "useNodejsImportProtocol": "error",
+        "useThrowOnlyError": "error",
         "useNamingConvention": "off",
-        "noNonNullAssertion": "warn"
+        "useDefaultParameterLast": "error",
+        "noNonNullAssertion": "error",
+        "noParameterAssign": "error",
+        "noUselessElse": "error",
+        "noNestedTernary": "off",
+        "noEnum": "error"
+      },
+      "security": {
+        "noSecrets": "off"
+      },
+      "performance": {
+        "noDelete": "error"
       }
     }
   },
-  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true }
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "overrides": [
+    {
+      "includes": ["**/*.css.ts"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useFilenamingConvention": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/icon/generated/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "useComponentExportOnlyModules": "off"
+          }
+        }
+      }
+    }
+  ]
 }

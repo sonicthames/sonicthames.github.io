@@ -194,4 +194,4 @@ async function discoverMcpServers() {
   }
 }
 
-discoverMcpServers()
+void discoverMcpServers()

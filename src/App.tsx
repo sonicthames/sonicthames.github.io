@@ -19,7 +19,7 @@ import {
   appMapLayer,
   pageRoot,
 } from "@/pages/common/layout.css"
-import rawData from "./data.json"
+import rawData from "./data.json" with { type: "json" }
 import type { Sound } from "./domain/sound"
 import { D_Data } from "./domain/sound"
 import { MainMap } from "./features/map"
