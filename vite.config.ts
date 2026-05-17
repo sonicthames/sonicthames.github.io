@@ -36,6 +36,16 @@ export default defineConfig({
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["playwright/**", "node_modules/**"],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          mapbox: ["mapbox-gl", "react-map-gl/mapbox"],
+          pixi: ["pixi.js", "@pixi/react"],
+        },
+      },
+    },
+  },
   resolve: {
     alias: {
       "@": "/src",

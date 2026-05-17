@@ -23,7 +23,6 @@ import { PROXIMITY_VIDEO_TRANSITION_DURATION_MS } from "./proximityVideoConstant
 const DOCK_WIDTH = 240
 const DOCK_HEIGHT = 135
 const DOCK_MARGIN = 24
-const IFRAME_IDLE_SRC = "about:blank"
 
 interface Origin {
   readonly x: number
@@ -177,15 +176,6 @@ export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
     return () => cancelFrame(frame)
   }, [allowPlayback, displayedSound, isVisible])
 
-  useEffect(
-    () => () => {
-      if (iframeRef.current) {
-        iframeRef.current.src = IFRAME_IDLE_SRC
-      }
-    },
-    [],
-  )
-
   if (!displayedSound || !activeOrigin) {
     return null
   }
@@ -223,7 +213,7 @@ export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
   })
   const iframeSrc = shouldPlay
     ? `https://www.youtube.com/embed/${displayedSound.videoSrc}?${params.toString()}`
-    : IFRAME_IDLE_SRC
+    : null
 
   return (
     <ViewTransition name="proximity-video">
@@ -232,14 +222,16 @@ export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
         className={proximityVideo}
         style={proximityVideoStyle}
       >
-        <iframe
-          ref={iframeRef}
-          title={`proximity preview: ${displayedSound.title}`}
-          className={proximityVideoFrame}
-          src={iframeSrc}
-          allow="autoplay; encrypted-media"
-          loading="lazy"
-        />
+        {iframeSrc && (
+          <iframe
+            ref={iframeRef}
+            title={`proximity preview: ${displayedSound.title}`}
+            className={proximityVideoFrame}
+            src={iframeSrc}
+            allow="autoplay; encrypted-media"
+            loading="lazy"
+          />
+        )}
         <section className={videoSection}>
           <div className={videoHeader}>
             <span className={cn(headerTitle, videoSectionTitle)}>

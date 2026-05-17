@@ -4,7 +4,7 @@ import { identity, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import type { ReactElement } from "react"
-import { useEffect } from "react"
+import { lazy, Suspense, useEffect } from "react"
 import {
   matchPath,
   Navigate,
@@ -23,15 +23,26 @@ import rawData from "./data.json" with { type: "json" }
 import type { Sound } from "./domain/sound"
 import { D_Data } from "./domain/sound"
 import { MainMap } from "./features/map"
-import { AboutPage } from "./pages/about/Page"
 import { ErrorBoundary } from "./pages/common/ErrorBoundary"
 import { Header } from "./pages/common/Header"
-import { ContactPage } from "./pages/contact/Page"
 import { CrashPage } from "./pages/crash/Page"
 import { appRoute, soundId } from "./pages/location"
-import { NotFoundPage } from "./pages/not-found/Page"
-import { SoundPage } from "./pages/sound/Page"
-import { SoundsPage } from "./pages/sounds/Page"
+
+const AboutPage = lazy(() =>
+  import("./pages/about/Page").then((m) => ({ default: m.AboutPage })),
+)
+const ContactPage = lazy(() =>
+  import("./pages/contact/Page").then((m) => ({ default: m.ContactPage })),
+)
+const SoundPage = lazy(() =>
+  import("./pages/sound/Page").then((m) => ({ default: m.SoundPage })),
+)
+const SoundsPage = lazy(() =>
+  import("./pages/sounds/Page").then((m) => ({ default: m.SoundsPage })),
+)
+const NotFoundPage = lazy(() =>
+  import("./pages/not-found/Page").then((m) => ({ default: m.NotFoundPage })),
+)
 
 const shouldShowDrawer = (pathname: string) => {
   return !matchPath({ path: appRoute("main").path, end: true }, pathname)
@@ -63,56 +74,58 @@ const AppContent = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
   )
 
   const renderRoutes = (wrapper: (node: ReactElement) => ReactElement) => (
-    <Routes>
-      <Route path={appRoute("main").path} element={null} />
-      <Route path={appRoute("about").path} element={wrapper(<AboutPage />)} />
-      <Route
-        path={appRoute("listen").path}
-        element={wrapper(
-          <SoundsPage
-            category="Listen"
-            sounds={pipe(
-              sounds,
-              RA.filter((x) => x.category === "Listen"),
-            )}
-          />,
-        )}
-      />
-      <Route
-        path={appRoute("see").path}
-        element={wrapper(
-          <SoundsPage
-            category="See"
-            sounds={pipe(
-              sounds,
-              RA.filter((x) => x.category === "See"),
-            )}
-          />,
-        )}
-      />
-      <Route
-        path={appRoute("feel").path}
-        element={wrapper(
-          <SoundsPage
-            category="Feel"
-            sounds={pipe(
-              sounds,
-              RA.filter((x) => x.category === "Feel"),
-            )}
-          />,
-        )}
-      />
-      <Route
-        path={appRoute("sound", ":sound").path}
-        element={wrapper(<SoundRoute sounds={sounds} />)}
-      />
-      <Route
-        path={appRoute("contact").path}
-        element={wrapper(<ContactPage />)}
-      />
-      <Route path="/" element={<RootRedirect />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+    <Suspense>
+      <Routes>
+        <Route path={appRoute("main").path} element={null} />
+        <Route path={appRoute("about").path} element={wrapper(<AboutPage />)} />
+        <Route
+          path={appRoute("listen").path}
+          element={wrapper(
+            <SoundsPage
+              category="Listen"
+              sounds={pipe(
+                sounds,
+                RA.filter((x) => x.category === "Listen"),
+              )}
+            />,
+          )}
+        />
+        <Route
+          path={appRoute("see").path}
+          element={wrapper(
+            <SoundsPage
+              category="See"
+              sounds={pipe(
+                sounds,
+                RA.filter((x) => x.category === "See"),
+              )}
+            />,
+          )}
+        />
+        <Route
+          path={appRoute("feel").path}
+          element={wrapper(
+            <SoundsPage
+              category="Feel"
+              sounds={pipe(
+                sounds,
+                RA.filter((x) => x.category === "Feel"),
+              )}
+            />,
+          )}
+        />
+        <Route
+          path={appRoute("sound", ":sound").path}
+          element={wrapper(<SoundRoute sounds={sounds} />)}
+        />
+        <Route
+          path={appRoute("contact").path}
+          element={wrapper(<ContactPage />)}
+        />
+        <Route path="/" element={<RootRedirect />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </Suspense>
   )
 
   return (

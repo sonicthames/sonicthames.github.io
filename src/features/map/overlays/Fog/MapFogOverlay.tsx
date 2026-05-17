@@ -532,7 +532,9 @@ export const MapFogOverlay = ({
         }
       }
 
-      applyReveal()
+      if (!document.hidden) {
+        applyReveal()
+      }
 
       // Continue animation loop
       animationFrameRef.current = requestAnimationFrame(drawFrame)
