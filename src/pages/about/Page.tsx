@@ -20,7 +20,7 @@ export const AboutPage = () => {
   const navigate = useNavigate()
 
   const handleExploreClick = () => {
-    navigate("/")
+    void navigate("/")
   }
 
   return (

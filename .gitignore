@@ -137,5 +137,8 @@ dist
 # Claude Code
 .claude/
 
+# Temporary working files
+/tmp
+
 # Local development data
 /local
