@@ -42,6 +42,39 @@ class MockLngLatBounds {
     this.sw = southWest
     this.ne = northEast
   }
+
+  getSouthWest(): MockLngLat {
+    return this.sw
+  }
+
+  getNorthEast(): MockLngLat {
+    return this.ne
+  }
+}
+
+class MockMercatorCoordinate {
+  lng: number
+  lat: number
+  x: number
+  y: number
+  z: number
+
+  constructor(lng: number, lat: number, z = 0) {
+    this.lng = lng
+    this.lat = lat
+    // Simple mercator projection approximation
+    this.x = lng * 0.017453292519943295 * 6378137
+    this.y = Math.log(Math.tan(Math.PI / 4 + (lat * Math.PI) / 360)) * 6378137
+    this.z = z
+  }
+
+  static fromLngLat({ lng, lat }: { lng: number; lat: number }) {
+    return new MockMercatorCoordinate(lng, lat)
+  }
+
+  meterInMercatorCoordinateUnits() {
+    return 1
+  }
 }
 
 vi.mock("mapbox-gl", () => {
@@ -50,10 +83,12 @@ vi.mock("mapbox-gl", () => {
     default: {
       LngLat: MockLngLat,
       LngLatBounds: MockLngLatBounds,
+      MercatorCoordinate: MockMercatorCoordinate,
       accessToken: "",
     },
     LngLat: MockLngLat,
     LngLatBounds: MockLngLatBounds,
+    MercatorCoordinate: MockMercatorCoordinate,
   }
 })
 
@@ -105,4 +140,14 @@ if (typeof window.ResizeObserver !== "function") {
     disconnect() {}
   }
   window.ResizeObserver = MockResizeObserver as typeof ResizeObserver
+}
+
+// Mock fetch to prevent actual network requests (especially to YouTube)
+if (typeof window.fetch !== "function") {
+  window.fetch = async () => {
+    return new Response(JSON.stringify({}), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    })
+  }
 }

@@ -109,6 +109,39 @@ export const resolveRevealPoint = (
   }
 }
 
+const tryCollectCell = (
+  grid: FogGrid,
+  col: number,
+  row: number,
+  centerCoord: MercatorCoordinate,
+  revealRadiusUnits: number,
+  cellRadiusUnits: number,
+  cellRadiusMeters: number,
+  bounds: LngLatBounds | undefined,
+): RevealPoint | undefined => {
+  const key = cellIndex(grid, col, row)
+  if (key === -1) return undefined
+
+  const cellCenterX = grid.origin.x + (col + 0.5) * grid.cellSizeUnits
+  const cellCenterY = grid.origin.y + (row + 0.5) * grid.cellSizeUnits
+  const distanceUnits = Math.hypot(
+    cellCenterX - centerCoord.x,
+    cellCenterY - centerCoord.y,
+  )
+
+  if (distanceUnits > revealRadiusUnits + cellRadiusUnits) {
+    return undefined
+  }
+
+  const resolved = resolveRevealPoint(grid, col, row, cellRadiusMeters)
+  if (!resolved) return undefined
+  if (bounds && !bounds.contains({ lng: resolved.lng, lat: resolved.lat })) {
+    return undefined
+  }
+
+  return resolved
+}
+
 export const collectCellsInRadius = (
   grid: FogGrid,
   center: { lng: number; lat: number },
@@ -132,30 +165,19 @@ export const collectCellsInRadius = (
     for (let colOffset = -maxOffset; colOffset <= maxOffset; colOffset++) {
       const col = centerCell.col + colOffset
       const row = centerCell.row + rowOffset
-      const key = cellIndex(grid, col, row)
-      if (key === -1) continue
-
-      const cellCenterX = grid.origin.x + (col + 0.5) * grid.cellSizeUnits
-      const cellCenterY = grid.origin.y + (row + 0.5) * grid.cellSizeUnits
-      const distanceUnits = Math.hypot(
-        cellCenterX - centerCoord.x,
-        cellCenterY - centerCoord.y,
+      const cell = tryCollectCell(
+        grid,
+        col,
+        row,
+        centerCoord,
+        revealRadiusUnits,
+        cellRadiusUnits,
+        cellRadiusMeters,
+        bounds,
       )
-
-      if (distanceUnits > revealRadiusUnits + cellRadiusUnits) {
-        continue
+      if (cell) {
+        cells.push(cell)
       }
-
-      const resolved = resolveRevealPoint(grid, col, row, cellRadiusMeters)
-      if (!resolved) continue
-      if (
-        bounds &&
-        !bounds.contains({ lng: resolved.lng, lat: resolved.lat })
-      ) {
-        continue
-      }
-
-      cells.push(resolved)
     }
   }
 

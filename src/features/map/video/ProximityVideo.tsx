@@ -64,6 +64,52 @@ const cancelFrame = (frame: number | null) => {
   window.cancelAnimationFrame(frame)
 }
 
+type ProximityState = {
+  readonly sound: Sound | null
+  readonly origin: Origin | null
+  readonly displayedSound: Sound | null
+  readonly pendingRef: { current: PendingSound | null }
+}
+
+type ProximityActions = {
+  readonly setActiveOrigin: (origin: Origin) => void
+  readonly setDisplayedSound: (sound: Sound | null) => void
+  readonly setVisibility: (value: boolean) => void
+}
+
+const updateProximity = (
+  state: ProximityState,
+  actions: ProximityActions,
+): void => {
+  const { sound, origin, displayedSound, pendingRef } = state
+  const { setActiveOrigin, setDisplayedSound, setVisibility } = actions
+
+  if (!sound || !origin) {
+    pendingRef.current = null
+    if (displayedSound) {
+      setVisibility(false)
+    }
+    return
+  }
+
+  if (!displayedSound) {
+    setActiveOrigin(origin)
+    setDisplayedSound(sound)
+    setVisibility(true)
+    return
+  }
+
+  if (displayedSound.title === sound.title) {
+    setActiveOrigin(origin)
+    return
+  }
+
+  const queued = { sound, origin } as const
+  pendingRef.current = queued
+  setActiveOrigin(origin)
+  setVisibility(false)
+}
+
 export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
   const [displayedSound, setDisplayedSound] = useState<Sound | null>(null)
   const [activeOrigin, setActiveOrigin] = useState<Origin | null>(null)
@@ -87,35 +133,13 @@ export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
 
   useEffect(() => {
     let cancelled = false
+
     const frame = scheduleFrame(() => {
-      if (cancelled) {
-        return
-      }
-
-      if (!sound || !origin) {
-        pendingRef.current = null
-        if (displayedSound) {
-          setVisibility(false)
-        }
-        return
-      }
-
-      if (!displayedSound) {
-        setActiveOrigin(origin)
-        setDisplayedSound(sound)
-        setVisibility(true)
-        return
-      }
-
-      if (displayedSound.title === sound.title) {
-        setActiveOrigin(origin)
-        return
-      }
-
-      const queued = { sound, origin }
-      pendingRef.current = queued
-      setActiveOrigin(origin)
-      setVisibility(false)
+      if (cancelled) return
+      updateProximity(
+        { sound, origin, displayedSound, pendingRef },
+        { setActiveOrigin, setDisplayedSound, setVisibility },
+      )
     })
 
     return () => {

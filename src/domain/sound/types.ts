@@ -92,6 +92,27 @@ export function showDateTime(x: DateTime): string {
   return x.toFormat("dd LLL yyyy")
 }
 
+const formatDate = (value: DateTime | null) =>
+  value != null ? value.toFormat("dd LLL yyyy") : undefined
+const formatTime = (value: DateTime | null) =>
+  value != null ? value.toFormat("HH:mm") : undefined
+const joinParts = (...parts: ReadonlyArray<string | undefined>) =>
+  parts.filter((part): part is string => Boolean(part?.trim())).join(" ")
+
+const formatSameDay = (
+  startDate: string | undefined,
+  endDate: string | undefined,
+  startTime: string | undefined,
+  endTime: string | undefined,
+): string => {
+  const dateLabel = startDate ?? endDate
+  const fromLabel = startTime ?? "?"
+  const toLabel = endTime ?? "?"
+  const prefix =
+    dateLabel && dateLabel.trim().length > 0 ? `${dateLabel}, ` : ""
+  return `${prefix}from ${fromLabel} to ${toLabel}`.trim()
+}
+
 export function showInterval(x: Interval): string {
   const { start, end } = x as unknown as {
     readonly start: DateTime | null
@@ -102,25 +123,14 @@ export function showInterval(x: Interval): string {
     return "N/A"
   }
 
-  const formatDate = (value: DateTime | null) =>
-    value != null ? value.toFormat("dd LLL yyyy") : undefined
-  const formatTime = (value: DateTime | null) =>
-    value != null ? value.toFormat("HH:mm") : undefined
   const startDate = formatDate(start)
   const startTime = formatTime(start)
   const endDate = formatDate(end)
   const endTime = formatTime(end)
-  const joinParts = (...parts: ReadonlyArray<string | undefined>) =>
-    parts.filter((part): part is string => Boolean(part?.trim())).join(" ")
 
   if (start != null && end != null) {
     if (start.hasSame(end, "day")) {
-      const dateLabel = startDate ?? endDate
-      const fromLabel = startTime ?? "?"
-      const toLabel = endTime ?? "?"
-      const prefix =
-        dateLabel && dateLabel.trim().length > 0 ? `${dateLabel}, ` : ""
-      return `${prefix}from ${fromLabel} to ${toLabel}`.trim()
+      return formatSameDay(startDate, endDate, startTime, endTime)
     }
     return `${joinParts(startDate, startTime)} - ${joinParts(endDate, endTime)}`.trim()
   }
