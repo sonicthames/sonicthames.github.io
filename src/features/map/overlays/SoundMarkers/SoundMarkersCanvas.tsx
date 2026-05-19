@@ -91,6 +91,113 @@ const disposeSoundMarker = (marker: SoundMarker) => {
   marker.dot.destroy()
 }
 
+const updateMarkerGraphics = (
+  marker: SoundMarker,
+  point: { readonly x: number; readonly y: number },
+  currentZoom: number,
+  deltaTime: number,
+  deltaMs: number,
+  zoomScale: number,
+  smoothingFactor: number,
+  hoveredTitle: string | undefined,
+  playingTitle: string | undefined,
+): void => {
+  const categoryRadiusScale = CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
+  const isHovered = hoveredTitle === marker.sound.title
+  const isPlaying = playingTitle === marker.sound.title
+  const hoverScale = isHovered ? 1.25 : 1
+  const playingScale = isPlaying
+    ? 1 + Math.sin(performance.now() / 300) * 0.15
+    : 1
+
+  const targetRadius = scaleAndClampRadius(
+    BASE_SOUND_RADIUS,
+    zoomScale,
+    categoryRadiusScale * hoverScale * playingScale,
+    MIN_MARKER_RADIUS,
+    MAX_MARKER_RADIUS,
+  )
+
+  marker.currentRadius = smoothValue(
+    marker.currentRadius,
+    targetRadius,
+    deltaMs,
+    SOUND_TRANSITION_DURATION_MS,
+  )
+
+  const baseColor = mapColorTheme.soundBaseColors[marker.sound.category]
+  const hoverColor = mapColorTheme.soundHoverColors[marker.sound.category]
+  const activeColor = mapColorTheme.soundActiveColors[marker.sound.category]
+  const targetColor = isPlaying
+    ? activeColor
+    : isHovered
+      ? hoverColor
+      : baseColor
+
+  marker.currentColor = interpolateColorNumber(
+    marker.currentColor,
+    targetColor,
+    smoothingFactor,
+  )
+
+  const strokeColorValue = marker.currentColor
+  const strokeAlpha = isHovered ? 1 : 0.85
+  const targetGlowAlpha = isHovered ? SOUND_GLOW_OPACITY : 0
+  marker.glowAlpha = smoothValue(
+    marker.glowAlpha,
+    targetGlowAlpha,
+    deltaMs,
+    SOUND_TRANSITION_DURATION_MS,
+  )
+
+  const rippleBaseRadius = scaleAndClampRadius(
+    BASE_SOUND_RADIUS,
+    zoomScale,
+    categoryRadiusScale,
+    MIN_MARKER_RADIUS,
+    MAX_MARKER_RADIUS,
+  )
+
+  const rippleConfig = {
+    ...SOUND_MARKER_RIPPLE_CONFIG,
+    baseRadius: rippleBaseRadius * 2,
+    alphaScale: RIPPLE_ALPHA_SCALE,
+    strokeWidth: RIPPLE_STROKE_WIDTH,
+  }
+
+  for (const ripple of marker.ripples) {
+    updatePixiRipple(
+      ripple,
+      deltaTime,
+      point.x,
+      point.y,
+      currentZoom,
+      rippleConfig,
+      isPlaying ? activeColor : mapColorTheme.peripheralRingColor,
+    )
+  }
+
+  marker.dot.clear()
+  if (marker.glowAlpha > 0.01) {
+    marker.dot.circle(
+      point.x,
+      point.y,
+      marker.currentRadius + SOUND_GLOW_RADIUS,
+    )
+    marker.dot.fill({
+      color: mapColorTheme.soundGlowColors[marker.sound.category],
+      alpha: marker.glowAlpha,
+    })
+  }
+  marker.dot.circle(point.x, point.y, marker.currentRadius)
+  marker.dot.stroke({
+    width: MARKER_STROKE_WIDTH,
+    color: strokeColorValue,
+    alpha: strokeAlpha,
+  })
+  marker.dot.fill({ color: 0x000000, alpha: 0 })
+}
+
 export const SoundMarkersCanvas = ({
   mapRef,
   sounds,
@@ -306,6 +413,8 @@ export const SoundMarkersCanvas = ({
         1,
         deltaMs / SOUND_TRANSITION_DURATION_MS,
       )
+      const hoveredTitle = hoveredSoundRef.current?.title
+      const playingTitle = playingSoundRef.current?.title
 
       for (const marker of markersRef.current) {
         if (!filtersRef.current.includes(marker.sound.category)) {
@@ -318,100 +427,17 @@ export const SoundMarkersCanvas = ({
 
         const point = currentMap.project(marker.sound.coordinate)
 
-        const categoryRadiusScale =
-          CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
-        const isHovered = hoveredSoundRef.current?.title === marker.sound.title
-        const isPlaying = playingSoundRef.current?.title === marker.sound.title
-        const hoverScale = isHovered ? 1.25 : 1
-        const playingScale = isPlaying
-          ? 1 + Math.sin(performance.now() / 300) * 0.15
-          : 1
-
-        const targetRadius = scaleAndClampRadius(
-          BASE_SOUND_RADIUS,
-          zoomScale,
-          categoryRadiusScale * hoverScale * playingScale,
-          MIN_MARKER_RADIUS,
-          MAX_MARKER_RADIUS,
-        )
-
-        marker.currentRadius = smoothValue(
-          marker.currentRadius,
-          targetRadius,
+        updateMarkerGraphics(
+          marker,
+          point,
+          currentZoom,
+          deltaTime,
           deltaMs,
-          SOUND_TRANSITION_DURATION_MS,
-        )
-
-        const baseColor = mapColorTheme.soundBaseColors[marker.sound.category]
-        const hoverColor = mapColorTheme.soundHoverColors[marker.sound.category]
-        const activeColor =
-          mapColorTheme.soundActiveColors[marker.sound.category]
-        const targetColor = isPlaying
-          ? activeColor
-          : isHovered
-            ? hoverColor
-            : baseColor
-        marker.currentColor = interpolateColorNumber(
-          marker.currentColor,
-          targetColor,
+          zoomScale,
           smoothingFactor,
+          hoveredTitle,
+          playingTitle,
         )
-        const strokeColorValue = marker.currentColor
-        const strokeAlpha = isHovered ? 1 : 0.85
-        const targetGlowAlpha = isHovered ? SOUND_GLOW_OPACITY : 0
-        marker.glowAlpha = smoothValue(
-          marker.glowAlpha,
-          targetGlowAlpha,
-          deltaMs,
-          SOUND_TRANSITION_DURATION_MS,
-        )
-
-        const rippleBaseRadius = scaleAndClampRadius(
-          BASE_SOUND_RADIUS,
-          zoomScale,
-          categoryRadiusScale,
-          MIN_MARKER_RADIUS,
-          MAX_MARKER_RADIUS,
-        )
-
-        const rippleConfig = {
-          ...SOUND_MARKER_RIPPLE_CONFIG,
-          baseRadius: rippleBaseRadius * 2,
-          alphaScale: RIPPLE_ALPHA_SCALE,
-          strokeWidth: RIPPLE_STROKE_WIDTH,
-        }
-
-        for (const ripple of marker.ripples) {
-          updatePixiRipple(
-            ripple,
-            deltaTime,
-            point.x,
-            point.y,
-            currentZoom,
-            rippleConfig,
-            isPlaying ? activeColor : mapColorTheme.peripheralRingColor,
-          )
-        }
-
-        marker.dot.clear()
-        if (marker.glowAlpha > 0.01) {
-          marker.dot.circle(
-            point.x,
-            point.y,
-            marker.currentRadius + SOUND_GLOW_RADIUS,
-          )
-          marker.dot.fill({
-            color: mapColorTheme.soundGlowColors[marker.sound.category],
-            alpha: marker.glowAlpha,
-          })
-        }
-        marker.dot.circle(point.x, point.y, marker.currentRadius)
-        marker.dot.stroke({
-          width: MARKER_STROKE_WIDTH,
-          color: strokeColorValue,
-          alpha: strokeAlpha,
-        })
-        marker.dot.fill({ color: 0x000000, alpha: 0 })
       }
 
       app.render()

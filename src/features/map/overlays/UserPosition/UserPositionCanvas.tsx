@@ -18,6 +18,86 @@ const MAX_USER_RADIUS = 16
 const MIN_USER_RADIUS = 4
 const MOVEMENT_EPSILON = 1e-5
 
+const detectMovement = (
+  current: LngLat,
+  previous: { readonly lat: number; readonly lng: number },
+): boolean =>
+  Math.abs(current.lat - previous.lat) > MOVEMENT_EPSILON ||
+  Math.abs(current.lng - previous.lng) > MOVEMENT_EPSILON
+
+const computeFadeAlpha = (
+  now: number,
+  createdAt: number,
+  maxAlpha: number,
+): number => {
+  const elapsed = now - createdAt
+  const fadeWindow = Math.min(
+    AFTERIMAGE_FADE_DURATION_MS,
+    AFTERIMAGE_LIFETIME_MS,
+  )
+  const fadeStart = AFTERIMAGE_LIFETIME_MS - fadeWindow
+  if (fadeWindow <= 0 || elapsed < fadeStart) {
+    return maxAlpha
+  }
+  const fadeProgress = Math.min(1, (elapsed - fadeStart) / fadeWindow)
+  return Math.max(0, maxAlpha * (1 - fadeProgress))
+}
+
+const spawnAfterimage = (
+  ghostContainer: Container | null,
+  afterimages: Map<Graphics, AfterimageMeta>,
+  coordinate: LngLat,
+  timestamp: number,
+): void => {
+  if (!ghostContainer) return
+  const ghost = new Graphics()
+  ghost.circle(0, 0, 1)
+  ghost.fill({ color: mapColorTheme.userAvatarColor })
+  ghost.alpha = 0
+  ghostContainer.addChild(ghost)
+
+  afterimages.set(ghost, {
+    coordinate,
+    createdAt: timestamp,
+    expiresAt: timestamp + AFTERIMAGE_LIFETIME_MS,
+  })
+
+  if (afterimages.size > MAX_AFTERIMAGES) {
+    const iterator = afterimages.keys()
+    const oldestGhost = iterator.next().value
+    if (oldestGhost) {
+      oldestGhost.parent?.removeChild(oldestGhost)
+      if (!oldestGhost.destroyed) {
+        oldestGhost.destroy()
+      }
+      afterimages.delete(oldestGhost)
+    }
+  }
+}
+
+const updateGhostFadeoutPositions = (
+  afterimages: Map<Graphics, AfterimageMeta>,
+  map: MapboxMapInstance,
+  scaledRadius: number,
+  now: number,
+): void => {
+  const ghosts = Array.from(afterimages.entries())
+  for (const [sprite, meta] of ghosts) {
+    if (now >= meta.expiresAt) {
+      sprite.parent?.removeChild(sprite)
+      if (!sprite.destroyed) {
+        sprite.destroy()
+      }
+      afterimages.delete(sprite)
+      continue
+    }
+    const ghostPoint = map.project(meta.coordinate)
+    sprite.position.set(ghostPoint.x, ghostPoint.y)
+    sprite.scale.set(scaledRadius)
+    sprite.alpha = computeFadeAlpha(now, meta.createdAt, 0.5)
+  }
+}
+
 type AfterimageMeta = {
   readonly coordinate: LngLatLike
   readonly createdAt: number
@@ -58,37 +138,6 @@ export const UserPositionCanvas = ({
   const isMovingRef = useRef(false)
   const avatarRef = useRef<Graphics | null>(null)
   const ghostContainerRef = useRef<Container | null>(null)
-
-  const spawnGhost = useCallback((coordinate: LngLat, timestamp: number) => {
-    const ghostContainer = ghostContainerRef.current
-    if (!ghostContainer) {
-      return
-    }
-
-    const ghost = new Graphics()
-    ghost.circle(0, 0, 1)
-    ghost.fill({ color: mapColorTheme.userAvatarColor })
-    ghost.alpha = 0
-    ghostContainer.addChild(ghost)
-
-    afterimagesRef.current.set(ghost, {
-      coordinate,
-      createdAt: timestamp,
-      expiresAt: timestamp + AFTERIMAGE_LIFETIME_MS,
-    })
-
-    if (afterimagesRef.current.size > MAX_AFTERIMAGES) {
-      const iterator = afterimagesRef.current.keys()
-      const oldestGhost = iterator.next().value
-      if (oldestGhost) {
-        oldestGhost.parent?.removeChild(oldestGhost)
-        if (!oldestGhost.destroyed) {
-          oldestGhost.destroy()
-        }
-        afterimagesRef.current.delete(oldestGhost)
-      }
-    }
-  }, [])
 
   const clearGhosts = useCallback(() => {
     afterimagesRef.current.forEach((_meta, sprite) => {
@@ -155,9 +204,7 @@ export const UserPositionCanvas = ({
     const now = performance.now()
 
     const avatarGraphic = avatarRef.current
-    if (!avatarGraphic) {
-      return
-    }
+    if (!avatarGraphic) return
     avatarGraphic.clear()
     avatarGraphic.circle(0, 0, scaledRadius)
     avatarGraphic.fill({ color: mapColorTheme.userAvatarColor })
@@ -165,55 +212,40 @@ export const UserPositionCanvas = ({
     avatarGraphic.alpha = 1
 
     const prevPosition = prevPositionRef.current ?? positionRef.current
-    const moved =
-      Math.abs(positionRef.current.lat - prevPosition.lat) > MOVEMENT_EPSILON ||
-      Math.abs(positionRef.current.lng - prevPosition.lng) > MOVEMENT_EPSILON
+    const moved = detectMovement(positionRef.current, prevPosition)
     prevPositionRef.current = positionRef.current
 
     if (moved) {
       ghostSpawnTimerRef.current += deltaMs
       if (!isMovingRef.current) {
         isMovingRef.current = true
-        spawnGhost(positionRef.current, now)
+        spawnAfterimage(
+          ghostContainerRef.current,
+          afterimagesRef.current,
+          positionRef.current,
+          now,
+        )
       }
       while (ghostSpawnTimerRef.current >= AFTERIMAGE_INTERVAL_MS) {
         ghostSpawnTimerRef.current -= AFTERIMAGE_INTERVAL_MS
-        spawnGhost(positionRef.current, now)
+        spawnAfterimage(
+          ghostContainerRef.current,
+          afterimagesRef.current,
+          positionRef.current,
+          now,
+        )
       }
     } else {
       ghostSpawnTimerRef.current = 0
-      if (isMovingRef.current) {
-        isMovingRef.current = false
-      }
+      isMovingRef.current = false
     }
 
-    const ghosts = Array.from(afterimagesRef.current.entries())
-    for (const [sprite, meta] of ghosts) {
-      if (now >= meta.expiresAt) {
-        sprite.parent?.removeChild(sprite)
-        if (!sprite.destroyed) {
-          sprite.destroy()
-        }
-        afterimagesRef.current.delete(sprite)
-        continue
-      }
-      const ghostPoint = currentMap.project(meta.coordinate)
-      sprite.position.set(ghostPoint.x, ghostPoint.y)
-      sprite.scale.set(scaledRadius)
-      const elapsed = now - meta.createdAt
-      const fadeWindow = Math.min(
-        AFTERIMAGE_FADE_DURATION_MS,
-        AFTERIMAGE_LIFETIME_MS,
-      )
-      const fadeStart = AFTERIMAGE_LIFETIME_MS - fadeWindow
-      const maxAlpha = 0.5
-      let alpha = maxAlpha
-      if (fadeWindow > 0 && elapsed >= fadeStart) {
-        const fadeProgress = Math.min(1, (elapsed - fadeStart) / fadeWindow)
-        alpha = Math.max(0, maxAlpha * (1 - fadeProgress))
-      }
-      sprite.alpha = alpha
-    }
+    updateGhostFadeoutPositions(
+      afterimagesRef.current,
+      currentMap,
+      scaledRadius,
+      now,
+    )
 
     state.app.render()
   }

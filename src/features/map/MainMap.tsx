@@ -42,6 +42,13 @@ import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
 import { SoundMarkersCanvas } from "./overlays/SoundMarkers/SoundMarkersCanvas"
 import { UserPositionCanvas } from "./overlays/UserPosition/UserPositionCanvas"
 import { usePersistenceStore } from "./persistence"
+import type { RouteState } from "./route"
+import {
+  buildDirectionsApiUrl,
+  buildRouteSegments,
+  routeCloseEnough,
+  stepRouteAnimation,
+} from "./route"
 import { useMapStore } from "./store"
 import { ProximityVideo } from "./video/ProximityVideo"
 
@@ -171,42 +178,31 @@ const DirectionsResponseDecoder = D.struct({
   routes: D.array(DirectionsRouteDecoder),
 })
 
-interface RouteSegment {
-  readonly from: LngLat
-  readonly to: LngLat
-  readonly distance: number
-}
+const fetchAndValidateDirections = async (
+  url: string,
+  signal: AbortSignal,
+): Promise<{ readonly route: RouteGeometry } | null> => {
+  const response = await fetch(url, { signal })
 
-interface RouteState {
-  readonly segments: RouteSegment[]
-  currentSegmentIndex: number
-  distanceAlongSegment: number
-}
-
-const buildRouteSegments = (coordinates: readonly LngLat[]): RouteSegment[] => {
-  if (coordinates.length < 2) {
-    return []
+  if (!response.ok) {
+    throw new Error(`Directions request failed: ${response.status}`)
   }
 
-  const segments: RouteSegment[] = []
-  let previousPoint = coordinates[0]
+  const raw = (await response.json()) as unknown
+  const decoded = pipe(
+    DirectionsResponseDecoder.decode(raw),
+    E.getOrElseW((errors) => {
+      throw new Error(D.draw(errors))
+    }),
+  )
 
-  for (let i = 1; i < coordinates.length; i++) {
-    const nextPoint = coordinates[i]
-    const distance = previousPoint.distanceTo(nextPoint)
-
-    if (distance > 0) {
-      segments.push({
-        from: previousPoint,
-        to: nextPoint,
-        distance,
-      })
-    }
-
-    previousPoint = nextPoint
+  if (decoded.code !== "Ok" || decoded.routes.length === 0) {
+    console.warn("No walking route found for destination.", decoded.code)
+    return null
   }
 
-  return segments
+  const [route] = decoded.routes
+  return { route: route.geometry }
 }
 
 /** @deprecated The old map sidebar/dialog is being retired in favor of a more minimal UI. */
@@ -551,42 +547,22 @@ export const MainMap = ({ sounds }: Props) => {
       const deltaSeconds = Math.max(0, (timestamp - lastFrame) / 1000)
       lastFrameTimeRef.current = timestamp
 
-      let distanceToTravel = AVATAR_SPEED_MPS * deltaSeconds
+      const distanceToTravel = AVATAR_SPEED_MPS * deltaSeconds
+      const { index, distanceAlong, stepPositions, done } = stepRouteAnimation(
+        routeState.segments,
+        routeState.currentSegmentIndex,
+        routeState.distanceAlongSegment,
+        distanceToTravel,
+      )
 
-      while (
-        routeState.currentSegmentIndex < routeState.segments.length &&
-        distanceToTravel > 0
-      ) {
-        const segment = routeState.segments[routeState.currentSegmentIndex]
-        if (!segment) {
-          break
-        }
+      routeState.currentSegmentIndex = index
+      routeState.distanceAlongSegment = distanceAlong
 
-        if (segment.distance === 0) {
-          routeState.currentSegmentIndex += 1
-          routeState.distanceAlongSegment = 0
-          continue
-        }
-
-        const remainingInSegment =
-          segment.distance - routeState.distanceAlongSegment
-
-        if (distanceToTravel < remainingInSegment) {
-          routeState.distanceAlongSegment += distanceToTravel
-          const t = routeState.distanceAlongSegment / segment.distance
-          const lat = segment.from.lat + (segment.to.lat - segment.from.lat) * t
-          const lng = segment.from.lng + (segment.to.lng - segment.from.lng) * t
-          updateTrackedUserPosition(LngLat.convert([lng, lat]))
-          distanceToTravel = 0
-        } else {
-          distanceToTravel -= remainingInSegment
-          routeState.currentSegmentIndex += 1
-          routeState.distanceAlongSegment = 0
-          updateTrackedUserPosition(segment.to)
-        }
+      for (const pos of stepPositions) {
+        updateTrackedUserPosition(LngLat.convert([pos.lng, pos.lat]))
       }
 
-      if (routeState.currentSegmentIndex >= routeState.segments.length) {
+      if (done) {
         routeStateRef.current = null
         routeDestinationRef.current = null
         routeAnimationFrameRef.current = null
@@ -634,15 +610,11 @@ export const MainMap = ({ sounds }: Props) => {
   const requestDirections = useCallback(
     async (destination: LngLatLike) => {
       const origin = userPositionRef.current
-      const normalizedDestination = LngLat.convert(destination)
-      if (
-        !origin ||
-        (Math.abs(origin.lat - normalizedDestination.lat) < 1e-6 &&
-          Math.abs(origin.lng - normalizedDestination.lng) < 1e-6)
-      ) {
+      if (!origin || routeCloseEnough(origin, destination)) {
         return
       }
 
+      const normalizedDestination = LngLat.convert(destination)
       setProximitySound(null)
       setProximityOrigin(null)
       directionsAbortControllerRef.current?.abort()
@@ -651,38 +623,20 @@ export const MainMap = ({ sounds }: Props) => {
       cancelRouteAnimation()
 
       try {
-        const url = new URL(
-          `https://api.mapbox.com/directions/v5/mapbox/walking/${origin.lng},${origin.lat};${normalizedDestination.lng},${normalizedDestination.lat}`,
-        )
-        url.searchParams.set("alternatives", "false")
-        url.searchParams.set("geometries", "geojson")
-        url.searchParams.set("overview", "full")
-        url.searchParams.set("steps", "false")
-        url.searchParams.set("access_token", MAPBOX_TOKEN)
-
-        const response = await fetch(url.toString(), {
-          signal: controller.signal,
-        })
-
-        if (!response.ok) {
-          throw new Error(`Directions request failed: ${response.status}`)
-        }
-
-        const raw = (await response.json()) as unknown
-        const decoded = pipe(
-          DirectionsResponseDecoder.decode(raw),
-          E.getOrElseW((errors) => {
-            throw new Error(D.draw(errors))
-          }),
+        const url = buildDirectionsApiUrl(
+          { lng: origin.lng, lat: origin.lat },
+          normalizedDestination,
+          MAPBOX_TOKEN,
         )
 
-        if (decoded.code !== "Ok" || decoded.routes.length === 0) {
-          console.warn("No walking route found for destination.", decoded.code)
-          return
-        }
+        const result = await fetchAndValidateDirections(
+          url.toString(),
+          controller.signal,
+        )
 
-        const [route] = decoded.routes
-        startRouteAnimation(route.geometry)
+        if (result) {
+          startRouteAnimation(result.route)
+        }
       } catch (error) {
         if (error instanceof DOMException && error.name === "AbortError") {
           return

@@ -1,3 +1,4 @@
+import type mapboxgl from "mapbox-gl"
 import type { LngLat, LngLatBounds } from "mapbox-gl"
 import {
   useCallback,
@@ -27,12 +28,7 @@ import {
   resolvePersistedReveals,
 } from "./spatial"
 import { createTextureCache } from "./texture"
-import type {
-  FogGrid,
-  RevealPoint,
-  RevealScreenSpace,
-  ViewportBounds,
-} from "./types"
+import type { FogGrid, RevealPoint, RevealScreenSpace } from "./types"
 
 /**
  * MapFogOverlay implements a "fog of war" mechanic for the Thames map.
@@ -103,6 +99,94 @@ const serializeRevealsForPersistence = (entries: readonly RevealPoint[]) =>
     lng: entry.lng,
     lat: entry.lat,
   }))
+
+const drawSoundRippleHints = (
+  ctx: CanvasRenderingContext2D,
+  sounds: readonly Sound[],
+  filters: readonly Category[],
+  map: mapboxgl.Map,
+  time: number,
+  zoom: number,
+): void => {
+  for (const sound of sounds) {
+    if (filters.length > 0 && !filters.includes(sound.category)) continue
+    const screen = map.project(sound.coordinate)
+    for (let i = 0; i < FOG_RIPPLE_COUNT; i++) {
+      drawCanvasRipple(
+        ctx,
+        screen.x,
+        screen.y,
+        time,
+        i,
+        RIPPLE_CYCLE_MS,
+        zoom,
+        FOG_RIPPLE_CONFIG,
+      )
+    }
+  }
+}
+
+const drawCulledReveals = (
+  ctx: CanvasRenderingContext2D,
+  reveals: Map<number, RevealPoint>,
+  buf: RevealPoint[],
+  visibleBuf: RevealPoint[],
+  screenBuf: RevealScreenSpace[],
+  textureCache: ReturnType<typeof createTextureCache>,
+  map: mapboxgl.Map,
+  viewport: { readonly width: number; readonly height: number },
+  zoom: number,
+): void => {
+  buf.length = 0
+  reveals.forEach((reveal) => {
+    buf.push(reveal)
+  })
+  if (buf.length === 0) return
+
+  const visible = cullRevealsToViewport(buf, map, viewport, zoom, visibleBuf)
+  if (visible.length === 0) return
+
+  const screen = projectRevealsToScreen(visible, map, zoom, screenBuf)
+  drawReveals(ctx, textureCache, screen)
+}
+
+const addRevealCells = (
+  revealMap: Map<number, RevealPoint>,
+  order: number[],
+  bitmap: Uint8Array | null,
+  dirtyKeys: Set<number>,
+  cells: readonly RevealPoint[],
+): void => {
+  for (const cell of cells) {
+    if (bitmap && bitmap[cell.key] === 1) continue
+    if (revealMap.has(cell.key)) continue
+    revealMap.set(cell.key, cell)
+    order.push(cell.key)
+    if (bitmap) {
+      bitmap[cell.key] = 1
+    }
+    dirtyKeys.add(cell.key)
+  }
+}
+
+const evictExcessRevealCells = (
+  order: number[],
+  revealMap: Map<number, RevealPoint>,
+  bitmap: Uint8Array | null,
+  dirtyKeys: Set<number>,
+  maxCells: number | null,
+): void => {
+  if (!maxCells || maxCells <= 0) return
+  while (order.length > maxCells) {
+    const oldest = order.shift()
+    if (!oldest) break
+    revealMap.delete(oldest)
+    if (bitmap) {
+      bitmap[oldest] = 0
+    }
+    dirtyKeys.add(oldest)
+  }
+}
 
 export const MapFogOverlay = ({
   mapRef,
@@ -201,6 +285,7 @@ export const MapFogOverlay = ({
     maxRevealCellsRef.current = grid.width * grid.height
     return grid
   }, [getMap, movementBounds])
+
   const addReveals = useCallback(
     (cells: readonly RevealPoint[]) => {
       if (cells.length === 0) return
@@ -208,32 +293,11 @@ export const MapFogOverlay = ({
       const revealMap = revealsRef.current
       const order = revealOrderRef.current
       const bitmap = revealedBitmapRef.current
-      let added = false
-
-      for (const cell of cells) {
-        if (bitmap && bitmap[cell.key] === 1) continue
-        if (revealMap.has(cell.key)) continue
-        revealMap.set(cell.key, cell)
-        order.push(cell.key)
-        if (bitmap) {
-          bitmap[cell.key] = 1
-        }
-        dirtyKeysRef.current.add(cell.key)
-        added = true
-      }
-
-      if (!added) return
-
+      const dirtyKeys = dirtyKeysRef.current
       const maxCells = maxRevealCellsRef.current
-      while (maxCells && maxCells > 0 && order.length > maxCells) {
-        const oldest = order.shift()
-        if (!oldest) break
-        revealMap.delete(oldest)
-        if (bitmap) {
-          bitmap[oldest] = 0
-        }
-        dirtyKeysRef.current.add(oldest)
-      }
+
+      addRevealCells(revealMap, order, bitmap, dirtyKeys, cells)
+      evictExcessRevealCells(order, revealMap, bitmap, dirtyKeys, maxCells)
 
       persistReveals()
     },
@@ -451,74 +515,25 @@ export const MapFogOverlay = ({
         const map = getMap()
         if (!map) return
 
-        // STEP 2: Draw marker hints through the fog
-        // Ripple effect animation to guide users to sound locations
         ctx.globalCompositeOperation = "source-over"
 
         const time = performance.now()
-        const currentZoom = map.getZoom()
+        const zoom = map.getZoom()
 
-        for (const sound of sounds) {
-          // Skip filtered-out markers
-          if (filters.length > 0 && !filters.includes(sound.category)) {
-            continue
-          }
+        drawSoundRippleHints(ctx, sounds, filters, map, time, zoom)
 
-          const screen = map.project(sound.coordinate)
+        drawCulledReveals(
+          ctx,
+          revealsRef.current,
+          revealsBufferRef.current,
+          visibleRevealsBufferRef.current,
+          screenRevealsBufferRef.current,
+          textureCacheRef.current,
+          map,
+          { width, height },
+          zoom,
+        )
 
-          // Draw ripple hints to guide users toward obscured sounds
-          for (
-            let rippleIndex = 0;
-            rippleIndex < FOG_RIPPLE_COUNT;
-            rippleIndex += 1
-          ) {
-            drawCanvasRipple(
-              ctx,
-              screen.x,
-              screen.y,
-              time,
-              rippleIndex,
-              RIPPLE_CYCLE_MS,
-              currentZoom,
-              FOG_RIPPLE_CONFIG,
-            )
-          }
-        }
-
-        // STEP 3: Draw persistent reveals (optimized with viewport culling + texture cache)
-        // Using geographic coordinates so they stay in place during pan/zoom
-        const allReveals = revealsBufferRef.current
-        allReveals.length = 0
-        revealsRef.current.forEach((reveal) => {
-          allReveals.push(reveal)
-        })
-        if (allReveals.length > 0) {
-          // Optimization 1: Cull reveals outside viewport
-          const viewport: ViewportBounds = { width, height }
-          const visibleReveals = cullRevealsToViewport(
-            allReveals,
-            map,
-            viewport,
-            currentZoom,
-            visibleRevealsBufferRef.current,
-          )
-
-          if (visibleReveals.length > 0) {
-            // Optimization 2: Project to screen space once
-            const screenReveals = projectRevealsToScreen(
-              visibleReveals,
-              map,
-              currentZoom,
-              screenRevealsBufferRef.current,
-            )
-
-            // Optimization 3: Render using cached textures
-            drawReveals(ctx, textureCacheRef.current, screenReveals)
-          }
-        }
-
-        // STEP 4: Draw outer fog boundary (areas outside movement bounds)
-        // This keeps areas beyond the allowed movement zone obscured
         if (cameraBounds) {
           ctx.globalCompositeOperation = "source-over"
           drawOuterFogBoundary(

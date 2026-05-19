@@ -107,6 +107,51 @@ function formatToolSignature(tool: Tool): string {
   return `${tool.name}(${paramList})`
 }
 
+function printPlaywrightConfig(name: string, server: McpServer): void {
+  if (!name.includes("playwright")) return
+  const isHeadless = server.args.includes("--headless")
+  const viewport = server.args.find((arg) => arg.startsWith("--viewport-size="))
+  const outputDir = server.args.find((arg) => arg.startsWith("--output-dir="))
+
+  console.log(`   Configuration:`)
+  console.log(
+    `     - Mode: ${isHeadless ? "headless" : "headed (visible browser)"}`,
+  )
+  if (viewport) console.log(`     - ${viewport}`)
+  if (outputDir) console.log(`     - ${outputDir}`)
+}
+
+function printToolsByCategory(tools: Tool[]): void {
+  if (tools.length === 0) return
+  console.log(`   Capabilities (${tools.length} tools):`)
+
+  const categories: Record<string, Tool[]> = {}
+  for (const tool of tools) {
+    const category = tool.name.split("_")[0] || "other"
+    if (!categories[category]) {
+      categories[category] = []
+    }
+    categories[category].push(tool)
+  }
+
+  for (const [category, categoryTools] of Object.entries(categories)) {
+    console.log(`     ${category}:`)
+    for (const tool of categoryTools) {
+      const signature = formatToolSignature(tool)
+      const desc = tool.description ? ` - ${tool.description}` : ""
+      console.log(`       • ${signature}${desc}`)
+    }
+  }
+}
+
+function printNoToolsHint(server: McpServer): void {
+  console.log(`   Capabilities:`)
+  console.log(`     See: node_modules/@playwright/mcp/README.md`)
+  console.log(
+    `     Or: ${server.command} ${server.args.slice(0, 2).join(" ")} --help`,
+  )
+}
+
 async function discoverMcpServers() {
   const mcpConfigPath = join(process.cwd(), ".mcp.json")
 
@@ -119,56 +164,15 @@ async function discoverMcpServers() {
       console.log(`📦 ${name}`)
       console.log(`   Command: ${server.command} ${server.args.join(" ")}`)
 
-      // Extract configuration details
-      if (name.includes("playwright")) {
-        const isHeadless = server.args.includes("--headless")
-        const viewport = server.args.find((arg) =>
-          arg.startsWith("--viewport-size="),
-        )
-        const outputDir = server.args.find((arg) =>
-          arg.startsWith("--output-dir="),
-        )
+      printPlaywrightConfig(name, server)
 
-        console.log(`   Configuration:`)
-        console.log(
-          `     - Mode: ${isHeadless ? "headless" : "headed (visible browser)"}`,
-        )
-        if (viewport) console.log(`     - ${viewport}`)
-        if (outputDir) console.log(`     - ${outputDir}`)
-      }
-
-      // Query the server for its actual tools
       console.log(`   Querying server for tools...`)
       const tools = await queryServerTools(name, server)
 
       if (tools.length > 0) {
-        console.log(`   Capabilities (${tools.length} tools):`)
-
-        // Group tools by category (based on name prefix)
-        const categories: Record<string, Tool[]> = {}
-        for (const tool of tools) {
-          const category = tool.name.split("_")[0] || "other"
-          if (!categories[category]) {
-            categories[category] = []
-          }
-          categories[category].push(tool)
-        }
-
-        // Display tools by category
-        for (const [category, categoryTools] of Object.entries(categories)) {
-          console.log(`     ${category}:`)
-          for (const tool of categoryTools) {
-            const signature = formatToolSignature(tool)
-            const desc = tool.description ? ` - ${tool.description}` : ""
-            console.log(`       • ${signature}${desc}`)
-          }
-        }
+        printToolsByCategory(tools)
       } else {
-        console.log(`   Capabilities:`)
-        console.log(`     See: node_modules/@playwright/mcp/README.md`)
-        console.log(
-          `     Or: ${server.command} ${server.args.slice(0, 2).join(" ")} --help`,
-        )
+        printNoToolsHint(server)
       }
 
       console.log("")

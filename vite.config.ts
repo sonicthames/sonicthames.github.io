@@ -35,6 +35,9 @@ export default defineConfig({
     setupFiles: "./src/test/setup.ts",
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
     exclude: ["playwright/**", "node_modules/**"],
+    env: {
+      VITE_MAPBOX_TOKEN: "test-token",
+    },
   },
   build: {
     rollupOptions: {
