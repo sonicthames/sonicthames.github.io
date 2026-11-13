@@ -1,13 +1,20 @@
+# yaml-language-server: $schema=https://lefthook.dev/schema.json
 pre-commit:
   parallel: true
-  commands:
-    lint:
+  jobs:
+    - name: actionlint
+      glob: ".github/workflows/*.{yml,yaml}"
+      run: if command -v actionlint >/dev/null 2>&1; then actionlint {staged_files}; else echo "actionlint not installed; run 'mise install' to enable" >&2; exit 1; fi
+    - name: lint
       run: pnpm lint
-    actionlint:
-      run: command -v actionlint >/dev/null 2>&1 && actionlint || echo "actionlint not installed — skipping (run 'proto install' to enable)"
-      glob: ".github/workflows/*.yml"
+    - name: typecheck
+      run: pnpm typecheck
+    - name: spellcheck
+      run: pnpm spellcheck
+    - name: secret-scan
+      run: if command -v gitleaks >/dev/null 2>&1; then gitleaks git --staged --no-banner --verbose --redact; else echo "gitleaks not installed; run 'mise install' to enable" >&2; exit 1; fi
 
 pre-push:
-  commands:
-    tests:
-      run: ./bin/pre-push.sh
+  jobs:
+    - name: check
+      run: pnpm check

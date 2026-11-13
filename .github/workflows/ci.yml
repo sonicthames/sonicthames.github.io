@@ -5,6 +5,10 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+  schedule:
+    # Keep dependency audits covered without running them on every PR.
+    - cron: "23 4 * * 1"
 
 permissions:
   contents: read
@@ -13,143 +17,144 @@ concurrency:
   group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm lint
-
-  actionlint:
-    name: Actionlint
-    runs-on: ubuntu-latest
+  changes:
+    name: Detect relevant changes
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 5
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      dependency_audit: ${{ steps.filter.outputs.dependency_audit }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - name: Install actionlint
-        run: bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash)
-      - name: Run actionlint
-        run: ./actionlint
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
-  typecheck:
-    name: Type Check
-    runs-on: ubuntu-latest
+      - name: Filter paths
+        id: filter
+        uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        with:
+          filters: .github/ci/paths-filter.yml
+
+  dependency_audit:
+    name: Dependency audit
+    runs-on: blacksmith-4vcpu-ubuntu-2404
+    timeout-minutes: 10
+    needs: [changes]
+    if: >-
+      github.event_name == 'schedule'
+      || github.event_name == 'workflow_dispatch'
+      || needs.changes.outputs.dependency_audit == 'true'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/setup
+
+      # Record an advisory with no fix under auditConfig.ignoreGhsas in
+      # pnpm-workspace.yaml.
+      - name: Run pnpm audit
+        run: pnpm audit --audit-level=moderate
+
+  quality:
+    name: Lint, typecheck & test
+    # The scheduled run exists for the dependency audit only.
+    if: github.event_name != 'schedule'
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/setup
+
+      # pnpm only warns on unmet peers; Renovate bumps can break them.
+      - run: pnpm peers check
+
+      - name: Annotate Biome diagnostics
+        continue-on-error: true
+        run: pnpm lint:biome --reporter=github
+
+      - run: actionlint
+      - run: pnpm lint
       - run: pnpm typecheck
+      - run: pnpm spellcheck
+      - run: pnpm test
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    needs: quality
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
     env:
       VITE_MAPBOX_TOKEN: ${{ secrets.VITE_MAPBOX_TOKEN }}
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/setup
+
       - run: pnpm build
 
-  test:
-    name: Unit Tests
-    runs-on: ubuntu-latest
+  storybook:
+    name: Storybook build
+    needs: quality
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm test
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-  storybook-build:
-    name: Storybook Build
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: ./.github/actions/setup
+
       - run: pnpm storybook:build
 
-  playwright:
-    name: Playwright (a11y + visual)
-    runs-on: ubuntu-latest
+  e2e:
+    name: Playwright
+    needs: quality
+    runs-on: blacksmith-4vcpu-ubuntu-2404
     timeout-minutes: 15
-    needs: [lint, typecheck]
-    env:
-      PLAYWRIGHT_BROWSERS_PATH: ${{ github.workspace }}/.cache/ms-playwright
     steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4
-      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: "24"
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Resolve Playwright version
-        id: playwright_version
-        run: |
-          version=$(node -p "require('./package.json').devDependencies['playwright'].replace(/^[^0-9]*/, '')")
-          echo "version=${version}" >> "$GITHUB_OUTPUT"
-
-      - name: Cache Playwright browsers
-        id: pw_cache
-        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7 # v4
-        with:
-          path: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-          key: ${{ runner.os }}-pw-${{ steps.playwright_version.outputs.version }}-${{ hashFiles('pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pw-
+      - uses: ./.github/actions/setup
 
       - name: Install Playwright browsers
-        if: steps.pw_cache.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
+        run: pnpm exec playwright install chromium --with-deps
 
-      - name: Install Playwright system deps (cache hit)
-        if: steps.pw_cache.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+      - run: pnpm test:e2e
 
-      - name: Run Playwright tests
-        run: pnpm test:visual
-
-      - name: Upload artifacts on failure
+      - name: Upload Playwright report
         if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
-          name: playwright-artifacts
+          name: playwright-report
           path: |
             test-results
             playwright-report
           if-no-files-found: ignore
-          include-hidden-files: true
+          retention-days: 7
+
+  visual:
+    name: Visual regression
+    needs: quality
+    # Baselines are rendered on arm64; see bin/visual-docker.sh.
+    runs-on: blacksmith-4vcpu-ubuntu-2404-arm
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: ./.github/actions/setup
+
+      # Chromium runs in the Playwright Docker image, not on the runner.
+      - run: pnpm test:visual
+
+      - name: Upload visual report
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: visual-report
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: ignore
+          retention-days: 7

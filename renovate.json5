@@ -11,6 +11,7 @@
   "labels": ["dependencies"],
   "prConcurrentLimit": 5,
   "rebaseWhen": "conflicted",
+  "minimumReleaseAge": "3 days",
   "lockFileMaintenance": {
     "enabled": true,
     "schedule": ["before 7am on monday"]
@@ -31,12 +32,27 @@
       "groupSlug": "github-actions-minor-patch"
     },
     {
+      "description": "Group non-major tool updates in mise.toml",
+      "matchManagers": ["mise"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "mise tools",
+      "groupSlug": "mise-tools"
+    },
+    {
+      "description": "Keep the pnpm version in package.json and mise.toml together",
+      "matchPackageNames": ["pnpm"],
+      "groupName": "pnpm"
+    },
+    {
+      "description": "oxc-transform-react must stay inside the peer range @vitejs/plugin-react declares",
+      "matchPackageNames": ["@vitejs/plugin-react", "oxc-transform-react"],
+      "groupName": "react compiler"
+    },
+    {
       "description": "Keep Playwright packages in sync",
-      "matchPackageNames": ["@playwright/test", "playwright", "@playwright/mcp"],
+      "matchPackageNames": ["playwright", "playwright-core"],
       "groupName": "playwright"
     }
   ],
-  "ignorePaths": [
-    "node_modules/**"
-  ]
+  "ignorePaths": ["node_modules/**"]
 }
