@@ -55,10 +55,11 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                     <div className={media}>
                       <iframe
                         title={x.title}
-                        width="320"
-                        height="240"
                         className={iframe}
                         src={`https://www.youtube.com/embed/${x.videoSrc}?rel=0`}
+                        allow="encrypted-media; picture-in-picture; fullscreen"
+                        allowFullScreen
+                        loading="lazy"
                       />
                     </div>
                     <div className={cardBody}>

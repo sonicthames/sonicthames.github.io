@@ -41,6 +41,8 @@ export const media = style({
 
 export const iframe = style({
   width: "100%",
+  height: "auto",
+  aspectRatio: "16 / 9",
   border: "none",
   boxSizing: "border-box",
 })
