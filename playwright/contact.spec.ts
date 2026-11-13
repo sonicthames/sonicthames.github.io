@@ -19,6 +19,24 @@ test.describe("Contact page", () => {
     ).toBeVisible()
   })
 
+  test("puts the name and email into the mailto body", async ({ page }) => {
+    await page.goto("/contact")
+    await page.getByLabel("Name").fill("Ada")
+    await page.getByLabel("Email").fill("ada@example.com")
+    await page.getByLabel("Message").fill("Hello there")
+    await page.getByRole("button", { name: /send message/i }).click()
+
+    const href = await page
+      .getByRole("status")
+      .getByRole("link")
+      .getAttribute("href")
+    const mailto = new URL(href ?? "")
+    expect(mailto.pathname).toBe("sonicthames@gmail.com")
+    expect(mailto.searchParams.get("body")).toBe(
+      "Hello there\n\nFrom: Ada <ada@example.com>",
+    )
+  })
+
   test("submit button uses the light contrast style", async ({ page }) => {
     await page.goto("/contact")
 

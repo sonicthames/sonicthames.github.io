@@ -1,5 +1,6 @@
 import { text } from "@theme/recipes/text.css"
-import { useId } from "react"
+import type { SubmitEvent } from "react"
+import { useId, useState } from "react"
 import { H1 } from "@/components/Typography"
 import { Button } from "@/components/ui"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
@@ -7,9 +8,33 @@ import { PageHeader } from "../common/Header"
 import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
 import { contactLayout, form, formInput, formLabel } from "./Page.css"
 
+const CONTACT_EMAIL = "sonicthames@gmail.com"
+const SUBJECT = "Send us your thoughts"
+
+const field = (data: FormData, name: string) => {
+  const value = data.get(name)
+  return typeof value === "string" ? value.trim() : ""
+}
+
+// A mailto: form submission only carries subject and body, so the name and
+// email have to be written into the body.
+const composeMailto = (data: FormData) => {
+  const body = `${field(data, "message")}\n\nFrom: ${field(data, "name")} <${field(data, "email")}>`
+  return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(body)}`
+}
+
 export const ContactPage = () => {
   const deviceType = useDeviceType()
   const uid = useId()
+  const [mailto, setMailto] = useState<string | null>(null)
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const href = composeMailto(new FormData(event.currentTarget))
+    setMailto(href)
+    window.location.href = href
+  }
+
   return (
     <div className={pageRoot}>
       <PageHeader />
@@ -28,12 +53,7 @@ export const ContactPage = () => {
               feedback, input, suggestions and of course you positive feedback.
             </p>
           </div>
-          <form
-            className={form}
-            action="mailto:sonicthames@gmail.com"
-            encType="multipart/form-data"
-          >
-            <input type="hidden" name="subject" value="Send us your thoughts" />
+          <form className={form} onSubmit={handleSubmit}>
             <div>
               <label htmlFor={`name-${uid}`} className={formLabel}>
                 Name
@@ -42,6 +62,8 @@ export const ContactPage = () => {
                 id={`name-${uid}`}
                 type="text"
                 name="name"
+                autoComplete="name"
+                required
                 className={formInput}
               />
             </div>
@@ -53,6 +75,8 @@ export const ContactPage = () => {
                 id={`email-${uid}`}
                 type="email"
                 name="email"
+                autoComplete="email"
+                required
                 className={formInput}
               />
             </div>
@@ -62,8 +86,9 @@ export const ContactPage = () => {
               </label>
               <textarea
                 id={`body-${uid}`}
-                name="body"
+                name="message"
                 rows={3}
+                required
                 className={formInput}
               />
             </div>
@@ -72,6 +97,15 @@ export const ContactPage = () => {
                 Send Message
               </Button>
             </div>
+            <p role="status" className={text.body}>
+              {mailto === null ? null : (
+                <>
+                  Your email app should open with the message. If it does not,{" "}
+                  <a href={mailto}>open the message here</a> or write to{" "}
+                  {CONTACT_EMAIL}.
+                </>
+              )}
+            </p>
           </form>
         </div>
       </main>
