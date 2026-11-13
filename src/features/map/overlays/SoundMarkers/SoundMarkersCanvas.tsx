@@ -20,9 +20,7 @@ import { canvasContainer, pixiCanvas } from "./SoundMarkersCanvas.css"
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
   readonly sounds: ReadonlyArray<Sound>
-  readonly filters: readonly Category[]
   readonly onSoundClick: (sound: Sound) => void
-  readonly onSoundHover?: (sound: Sound | null) => void
   readonly playingSound: Sound | null
   readonly mapReady: boolean
 }
@@ -201,9 +199,7 @@ const updateMarkerGraphics = (
 export const SoundMarkersCanvas = ({
   mapRef,
   sounds,
-  filters,
   onSoundClick,
-  onSoundHover,
   playingSound,
   mapReady,
 }: Props) => {
@@ -211,16 +207,12 @@ export const SoundMarkersCanvas = ({
   const markersRef = useRef<SoundMarker[]>([])
   const hoveredSoundRef = useRef<Sound | null>(null)
   const onSoundClickRef = useRef(onSoundClick)
-  const onSoundHoverRef = useRef(onSoundHover)
-  const filtersRef = useRef(filters)
   const playingSoundRef = useRef<Sound | null>(playingSound)
   const soundsRef = useRef(sounds)
   const soundRevisionRef = useRef(0)
   const lastRenderedSoundRevisionRef = useRef(-1)
   useLayoutEffect(() => {
     onSoundClickRef.current = onSoundClick
-    onSoundHoverRef.current = onSoundHover
-    filtersRef.current = filters
     playingSoundRef.current = playingSound
   })
 
@@ -282,7 +274,6 @@ export const SoundMarkersCanvas = ({
         const currentMap = mapRef.current?.getMap()
         if (!currentMap) {
           hoveredSoundRef.current = null
-          onSoundHoverRef.current?.(null)
           return
         }
 
@@ -292,10 +283,6 @@ export const SoundMarkersCanvas = ({
         let nearest: Sound | null = null
 
         for (const marker of markersRef.current) {
-          if (!filtersRef.current.includes(marker.sound.category)) {
-            continue
-          }
-
           // TODO use a hashmap for projected sound marker coordinates (to not project unnecessarily)
           const projected = currentMap.project(marker.sound.coordinate)
           const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
@@ -307,12 +294,10 @@ export const SoundMarkersCanvas = ({
         }
 
         hoveredSoundRef.current = nearest
-        onSoundHoverRef.current?.(nearest)
       }
 
       const clearHover = () => {
         hoveredSoundRef.current = null
-        onSoundHoverRef.current?.(null)
       }
 
       const handleClick = (event: MouseEvent) => {
@@ -324,15 +309,13 @@ export const SoundMarkersCanvas = ({
         const y = event.clientY - rect.top
 
         for (const marker of markersRef.current) {
-          if (!filtersRef.current.includes(marker.sound.category)) {
-            continue
-          }
-
           const projected = currentMap.project(marker.sound.coordinate)
           const radius = Math.max(marker.currentRadius, MIN_MARKER_RADIUS)
           const distance = Math.hypot(x - projected.x, y - projected.y)
 
           if (distance <= radius) {
+            // MainMap's map click handler skips prevented clicks.
+            event.preventDefault()
             onSoundClickRef.current(marker.sound)
             return
           }
@@ -418,14 +401,6 @@ export const SoundMarkersCanvas = ({
       const playingTitle = playingSoundRef.current?.title
 
       for (const marker of markersRef.current) {
-        if (!filtersRef.current.includes(marker.sound.category)) {
-          for (const ripple of marker.ripples) {
-            ripple.graphics.clear()
-          }
-          marker.dot.clear()
-          continue
-        }
-
         const point = currentMap.project(marker.sound.coordinate)
 
         updateMarkerGraphics(

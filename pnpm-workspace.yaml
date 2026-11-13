@@ -17,8 +17,3 @@ overrides:
   # the fix for GHSA-3g3m-2fjr-6pw4 and the minimatch release fixing
   # GHSA-g3hv-75wg-m249.
   "@joshwooding/vite-plugin-react-docgen-typescript>glob": 14.0.2
-
-auditConfig:
-  ignoreGhsas:
-    # GHSA-gcqx-w48m-w2h4: deepmerge has no patched release; reached only by @svgr/cli, offline, on this repo's own icon config.
-    - GHSA-gcqx-w48m-w2h4

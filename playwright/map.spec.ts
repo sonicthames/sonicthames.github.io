@@ -1,24 +1,17 @@
 import { expect, test } from "./fixtures"
 
 test.describe("Main map experience", () => {
-  test("renders fog overlay, markers, and playlist", async ({ page }) => {
+  test("renders the map with fog and sound marker overlays", async ({
+    page,
+  }) => {
     await page.goto("/")
 
     await expect(page.getByRole("img", { name: /logo/i })).toBeVisible()
     await expect(page.getByTestId("map-fog-overlay")).toBeVisible()
     await expect(page.getByTestId("sound-markers-layer")).toBeVisible()
-
-    const playlist = page.getByTestId("map-playlist")
-    await expect(playlist).toBeVisible()
-
-    const playlistItems = playlist.locator("li[data-sound-title]")
-    await expect(playlistItems.first()).toBeVisible()
-    expect(await playlistItems.count()).toBeGreaterThan(0)
-    const firstTitle = await playlistItems
-      .first()
-      .getAttribute("data-sound-title")
-    expect(firstTitle).toBeTruthy()
-
     await expect(page.locator("canvas.mapboxgl-canvas").first()).toBeVisible()
+
+    // The two Pixi overlays mount their canvases once Mapbox fires `load`.
+    await expect(page.locator("canvas")).toHaveCount(4)
   })
 })

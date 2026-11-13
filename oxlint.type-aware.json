@@ -4,7 +4,7 @@
   "categories": {
     "correctness": "off"
   },
-  "ignorePatterns": [".claude/**", "src/icon/template.cjs"],
+  "ignorePatterns": [".claude/**"],
   "rules": {
     "typescript/await-thenable": "error",
     "typescript/no-array-delete": "error",

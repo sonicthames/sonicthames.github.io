@@ -8,7 +8,7 @@ import {
   useState,
 } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
-import type { Category, Sound } from "@/domain/sound"
+import type { Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
 import { clampValue, syncCanvasSize } from "../../lib/mapCanvas"
 import {
@@ -59,7 +59,6 @@ interface MapFogOverlayProps {
   readonly revealSize?: number // Pixel radius of reveal circles
   readonly enabled?: boolean
   readonly sounds?: ReadonlyArray<Sound> // Sound markers to show as hints through fog
-  readonly filters?: readonly Category[] // Active category filters
 }
 
 export interface MapFogOverlayHandle {
@@ -103,13 +102,11 @@ const serializeRevealsForPersistence = (entries: readonly RevealPoint[]) =>
 const drawSoundRippleHints = (
   ctx: CanvasRenderingContext2D,
   sounds: readonly Sound[],
-  filters: readonly Category[],
   map: mapboxgl.Map,
   time: number,
   zoom: number,
 ): void => {
   for (const sound of sounds) {
-    if (filters.length > 0 && !filters.includes(sound.category)) continue
     const screen = map.project(sound.coordinate)
     for (let i = 0; i < FOG_RIPPLE_COUNT; i++) {
       drawCanvasRipple(
@@ -195,7 +192,6 @@ export const MapFogOverlay = ({
   revealSize = 30,
   enabled = true,
   sounds = [],
-  filters = [],
   ref,
 }: MapFogOverlayProps & {
   ref?: React.RefObject<MapFogOverlayHandle | null>
@@ -249,7 +245,6 @@ export const MapFogOverlay = ({
   const revealsBufferRef = useRef<RevealPoint[]>([])
   const visibleRevealsBufferRef = useRef<RevealPoint[]>([])
   const screenRevealsBufferRef = useRef<RevealScreenSpace[]>([])
-  // Timeout for debounced localStorage writes (avoid blocking on every mouse move)
   const maxRevealCellsRef = useRef<number | null>(null)
 
   const persistReveals = useCallback(() => {
@@ -517,7 +512,7 @@ export const MapFogOverlay = ({
         const time = performance.now()
         const zoom = map.getZoom()
 
-        drawSoundRippleHints(ctx, sounds, filters, map, time, zoom)
+        drawSoundRippleHints(ctx, sounds, map, time, zoom)
 
         drawCulledReveals(
           ctx,
@@ -560,16 +555,7 @@ export const MapFogOverlay = ({
         animationFrameRef.current = null
       }
     }
-  }, [
-    size,
-    intensity,
-    enabled,
-    getMap,
-    sounds,
-    filters,
-    cameraBounds,
-    movementBounds,
-  ])
+  }, [size, intensity, enabled, getMap, sounds, cameraBounds, movementBounds])
 
   // === EFFECT: CLEANUP ===
   /**

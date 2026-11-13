@@ -28,7 +28,6 @@ With direnv, `direnv allow` puts the tools on `PATH` and loads `.env`; otherwise
 | `pnpm test:e2e`                          | Playwright specs except the visual suite                               |
 | `pnpm test:visual`, `test:visual:update` | Visual suite in Docker; regenerate its baselines                       |
 | `pnpm storybook`                         | Storybook on port 6006                                                 |
-| `pnpm build-icons`                       | Regenerate `src/icon/generated/` from `static/icons/`                  |
 | `pnpm mcp:discover`                      | List the MCP servers in `.mcp.json` and their tools                    |
 | `pnpm run deploy`                        | Publish to GitHub Pages; see [Deployment](#deployment)                 |
 
@@ -61,9 +60,8 @@ Direct dependencies are pinned exactly, and Playwright's version lives in the ca
 src/
 ├── components/ui/    # Shared UI components and their stories
 ├── domain/           # Domain types and io-ts codecs
-├── features/map/     # Map experience: overlays, playlist, video, persistence
+├── features/map/     # Map experience: overlays, video, persistence
 ├── hooks/            # Shared hooks
-├── icon/             # SVGR template and generated icons
 ├── lib/              # Routing, analytics, geo and type helpers
 ├── pages/            # Route pages; route definitions in location.ts
 ├── styles/           # Global styles
@@ -98,7 +96,6 @@ Recordings live in `src/data.json`. The codec in `src/domain/sound/codec.ts` val
 ## Common tasks
 
 - **UI component:** add it to `src/components/ui/` with any variants as a recipe in `src/theme/recipes/`, export it from `index.ts`, and add a story under `__stories__/`.
-- **Icon:** add the SVG to `static/icons/`, run `pnpm build-icons` and expose it in `src/icon/index.tsx`. Never edit `src/icon/generated/` by hand.
 - **Design tokens:** edit `src/theme/tokens.css.ts`, then `lightTheme.css.ts` and `darkTheme.css.ts`.
 - **Tracked CTA:** wrap it in `TrackedCta`. `useHoverAnalytics` records `cta_hover` with dwell time, and `src/lib/analytics.ts` exposes `trackCtaClick` and `trackCtaHover`.
 

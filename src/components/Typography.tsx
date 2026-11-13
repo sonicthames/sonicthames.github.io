@@ -18,9 +18,3 @@ export const H2 = ({ children, className, ...props }: HeadingProps) => (
     {children}
   </h2>
 )
-
-export const H3 = ({ children, className, ...props }: HeadingProps) => (
-  <h3 className={`${heading.h3} ${className || ""}`} {...props}>
-    {children}
-  </h3>
-)

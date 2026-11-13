@@ -172,16 +172,6 @@
           }
         }
       }
-    },
-    {
-      "includes": ["src/icon/generated/**"],
-      "linter": {
-        "rules": {
-          "style": {
-            "useComponentExportOnlyModules": "off"
-          }
-        }
-      }
     }
   ]
 }

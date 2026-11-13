@@ -1,7 +1,5 @@
 import * as E from "fp-ts/Either"
-import { constNull, pipe } from "fp-ts/function"
-import * as O from "fp-ts/Option"
-import * as RA from "fp-ts/ReadonlyArray"
+import { pipe } from "fp-ts/function"
 import * as D from "io-ts/Decoder"
 import type * as mapboxgl from "mapbox-gl"
 import type { LngLatLike } from "mapbox-gl"
@@ -11,31 +9,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MapProps, MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
 import { matchPath, useLocation } from "react-router"
-import { H2, H3 } from "@/components/Typography"
-import type { Category, Sound } from "@/domain/sound"
-import { showDateTime, showInterval } from "@/domain/sound"
-import { Icon } from "@/icon"
+import type { Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
-import type { GoTo } from "@/lib/map"
 import { appRoute } from "@/pages/location"
 import { mapColorTheme } from "@/theme/mapColors"
-import { Playlist } from "./components/Playlist/Playlist"
 import { pauseSharedTicker, resumeSharedTicker } from "./lib/pixiTicker"
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
   debugControls,
-  filterButton,
-  filtersGroup,
   logoPosition,
   restoreFogButton,
   revealFogButton,
-  selectedSound,
-  closeButton as sidebarCloseButton,
-  sidebarHeader,
-  sidebar as sidebarStyle,
-  srOnly,
-  videoFrame,
-  youtubeLink,
 } from "./MainMap.css"
 import type { MapFogOverlayHandle } from "./overlays/Fog/MapFogOverlay"
 import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
@@ -49,7 +33,6 @@ import {
   routeCloseEnough,
   stepRouteAnimation,
 } from "./route"
-import { useMapStore } from "./store"
 import { ProximityVideo } from "./video/ProximityVideo"
 
 const EnvDecoder = D.struct({
@@ -145,7 +128,6 @@ const MAP_STYLE: mapboxgl.StyleSpecification = {
   ],
 }
 
-const headerIconSize = "2rem"
 const AVATAR_SPEED_MPS = 400
 const PROXIMITY_THRESHOLD_METERS = 200
 
@@ -205,172 +187,6 @@ const fetchAndValidateDirections = async (
   return { route: route.geometry }
 }
 
-/** @deprecated The old map sidebar/dialog is being retired in favour of a more minimal UI. */
-const Sidebar = ({
-  onGoTo,
-  onPlay,
-  sounds,
-  soundO,
-}: {
-  readonly onGoTo: (goTo: GoTo) => void
-  readonly onPlay: (soundTitle: string) => void
-  readonly soundO: O.Option<Sound>
-  readonly sounds: ReadonlyArray<Sound>
-}) => {
-  const expanded = useMapStore((s) => s.expanded)
-  const setExpanded = useMapStore((s) => s.setExpanded)
-  const filters = useMapStore((s) => s.filters)
-  const setFilters = useMapStore((s) => s.setFilters)
-
-  return (
-    <aside className={sidebarStyle({ expanded })}>
-      <header className={sidebarHeader}>
-        <H2>Sonic Thames</H2>
-        <div>
-          <fieldset className={filtersGroup}>
-            <legend className={srOnly}>Filters</legend>
-            <button
-              type="button"
-              onClick={() => {
-                const newFilters: readonly Category[] = filters.includes(
-                  "Listen",
-                )
-                  ? filters.filter((f) => f !== "Listen")
-                  : [...filters, "Listen"]
-                setFilters(newFilters)
-              }}
-              title="toggle listen"
-              className={
-                filters.includes("Listen")
-                  ? filterButton.active
-                  : filterButton.inactive
-              }
-            >
-              <Icon
-                name="Listen"
-                width={headerIconSize}
-                height={headerIconSize}
-              />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const newFilters: readonly Category[] = filters.includes("See")
-                  ? filters.filter((f) => f !== "See")
-                  : [...filters, "See"]
-                setFilters(newFilters)
-              }}
-              title="toggle see"
-              className={
-                filters.includes("See")
-                  ? filterButton.active
-                  : filterButton.inactive
-              }
-            >
-              <Icon name="See" width={headerIconSize} height={headerIconSize} />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                const newFilters: readonly Category[] = filters.includes("Feel")
-                  ? filters.filter((f) => f !== "Feel")
-                  : [...filters, "Feel"]
-                setFilters(newFilters)
-              }}
-              title="toggle feel"
-              className={
-                filters.includes("Feel")
-                  ? filterButton.active
-                  : filterButton.inactive
-              }
-            >
-              <Icon
-                name="Feel"
-                width={headerIconSize}
-                height={headerIconSize}
-              />
-            </button>
-          </fieldset>
-        </div>
-        <button
-          type="button"
-          onClick={() => setExpanded(false)}
-          title="close"
-          className={sidebarCloseButton}
-        >
-          <Icon name="Close" width="1.5rem" height="1.5rem" />
-        </button>
-      </header>
-      {pipe(
-        soundO,
-        O.fold(constNull, (sound) => (
-          <div className={selectedSound}>
-            <iframe
-              title={sound.title}
-              width="320"
-              height="240"
-              className={videoFrame}
-              src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
-            />
-            <div>
-              <H3>{sound.title}</H3>
-              <div>
-                <a
-                  className={youtubeLink}
-                  href={`https://www.youtube.com/v/${sound.videoSrc}`}
-                >
-                  view on youtube
-                </a>
-              </div>
-            </div>
-            <div>
-              {pipe(
-                sound.description,
-                RA.map((x) => <div key={x}>{x}</div>),
-              )}
-            </div>
-            {"interval" in sound
-              ? pipe(
-                  sound.interval,
-                  O.fold(constNull, (x) => (
-                    <div>
-                      <strong>Interval: </strong>
-                      <span>{showInterval(x)}</span>
-                    </div>
-                  )),
-                )
-              : pipe(
-                  sound.dateTime,
-                  O.fold(constNull, (x) => (
-                    <div>
-                      <strong>Recorded date: </strong>
-                      <span>{showDateTime(x)}</span>
-                    </div>
-                  )),
-                )}
-            {pipe(
-              sound.location,
-              O.fold(constNull, (location) => (
-                <div>
-                  <strong>Place: </strong>
-                  <span>{location}</span>
-                </div>
-              )),
-            )}
-          </div>
-        )),
-      )}
-      <hr />
-      <Playlist
-        onPlay={onPlay}
-        onGoTo={onGoTo}
-        sounds={sounds}
-        soundO={soundO}
-      />
-    </aside>
-  )
-}
-
 interface Props {
   readonly sounds: ReadonlyArray<Sound>
 }
@@ -427,7 +243,6 @@ export const MainMap = ({ sounds }: Props) => {
     readonly x: number
     readonly y: number
   } | null>(null)
-  const [hoveredSound, setHoveredSound] = useState<Sound | null>(null)
 
   const lastProximityCheckRef = useRef<LngLatLike | null>(null)
   const routeStateRef = useRef<RouteState | null>(null)
@@ -435,8 +250,6 @@ export const MainMap = ({ sounds }: Props) => {
   const routeAnimationFrameRef = useRef<number | null>(null)
   const lastFrameTimeRef = useRef<number | null>(null)
   const directionsAbortControllerRef = useRef<AbortController | null>(null)
-  const lastPersistedUserPositionRef = useRef<LngLat | null>(null)
-  const lastPersistTimeRef = useRef<number>(0)
   const proximitySounds = useMemo(
     // Stable list keeps proximity checks predictable and avoids re-filtering per frame
     () => sounds.filter((sound) => sound.playOnProximity),
@@ -499,41 +312,18 @@ export const MainMap = ({ sounds }: Props) => {
     [proximitySounds, projectSoundToViewport],
   )
 
-  useEffect(() => {
-    if (!mapReady) {
-      return
-    }
-    evaluateProximity(userPositionRef.current)
-  }, [evaluateProximity, mapReady])
-
   const updateTrackedUserPosition = useCallback(
     (position: LngLatLike) => {
       const normalized = LngLat.convert(position)
       userPositionRef.current = normalized
       fogOverlayRef.current?.trackUserPosition(normalized)
       evaluateProximity(normalized)
-      const now =
-        typeof performance !== "undefined" ? performance.now() : Date.now()
-      const lastPersisted = lastPersistedUserPositionRef.current
-      const sinceLastPersist = now - lastPersistTimeRef.current
-      const movedSincePersist = lastPersisted
-        ? haversineDistanceMeters(lastPersisted, normalized)
-        : Infinity
-
-      if (!lastPersisted || sinceLastPersist > 500 || movedSincePersist > 5) {
-        usePersistenceStore
-          .getState()
-          .setLastUserPosition(LngLat.convert(normalized))
-        lastPersistedUserPositionRef.current = normalized
-        lastPersistTimeRef.current = now
-      }
+      usePersistenceStore
+        .getState()
+        .setLastUserPosition({ lng: normalized.lng, lat: normalized.lat })
     },
     [evaluateProximity],
   )
-
-  useEffect(() => {
-    evaluateProximity(userPositionRef.current)
-  }, [evaluateProximity])
 
   const animateRoute = useCallback(
     (startTimestamp: number) => {
@@ -662,43 +452,29 @@ export const MainMap = ({ sounds }: Props) => {
       if (event.originalEvent.defaultPrevented) {
         return
       }
-      if (hoveredSound) {
-        void requestDirections([
-          hoveredSound.coordinate.lng,
-          hoveredSound.coordinate.lat,
-        ])
-        return
-      }
       void requestDirections(event.lngLat)
     },
-    [hoveredSound, requestDirections],
+    [requestDirections],
   )
 
   useEffect(() => {
+    if (!mapReady) {
+      return
+    }
+    cancelRouteAnimation()
     // oxlint-disable-next-line react/set-state-in-effect -- proximity state comes from the map's viewport projection
     updateTrackedUserPosition(initialUserPosition)
-    cancelRouteAnimation()
-
-    // Smoothly fly to the initial user position once map is loaded
-    const map = mapRef.current
-    if (!map) return
-
-    const handleLoad = () => {
-      map.flyTo({
-        center: [initialUserPosition.lng, initialUserPosition.lat],
-        zoom: 15,
-        duration: 2000,
-        essential: true,
-      })
-    }
-
-    const mapInstance = map.getMap()
-    if (mapInstance.isStyleLoaded()) {
-      handleLoad()
-    } else {
-      mapInstance.once("load", handleLoad)
-    }
-  }, [initialUserPosition, cancelRouteAnimation, updateTrackedUserPosition])
+    mapRef.current?.flyTo({
+      center: [initialUserPosition.lng, initialUserPosition.lat],
+      zoom: 15,
+      duration: 2000,
+    })
+  }, [
+    mapReady,
+    initialUserPosition,
+    cancelRouteAnimation,
+    updateTrackedUserPosition,
+  ])
 
   useEffect(() => {
     return () => {
@@ -707,61 +483,18 @@ export const MainMap = ({ sounds }: Props) => {
     }
   }, [cancelRouteAnimation])
 
-  const handleGoTo = useCallback(
-    ({
-      latitude,
-      longitude,
-      zoom,
-      transitionDuration,
-      transitionEasing,
-    }: GoTo) => {
-      const map = mapRef.current
-      if (!map) {
-        return
-      }
-
-      // flyTo tests keys with `in` and merges defaults with Object.assign, so
-      // an explicit undefined becomes a NaN zoom or a missing easing function.
-      map.flyTo({
-        center: [longitude, latitude],
-        ...(zoom === undefined ? {} : { zoom }),
-        ...(transitionDuration === undefined
-          ? {}
-          : { duration: transitionDuration }),
-        ...(transitionEasing === undefined ? {} : { easing: transitionEasing }),
-      })
+  const handleSoundClick = useCallback(
+    (sound: Sound) => {
+      void requestDirections([sound.coordinate.lng, sound.coordinate.lat])
     },
-    [],
+    [requestDirections],
   )
-
-  const [soundO, setSoundO] = useState(RA.head(sounds))
-
-  const setExpanded = useMapStore((s) => s.setExpanded)
-
-  // Auto-close playlist when navigating to a different page
-  useEffect(() => {
-    if (location.pathname !== "/main") {
-      setExpanded(false)
-    }
-  }, [location.pathname, setExpanded])
-
-  const handlePlay = useCallback(
-    (title: string) => {
-      pipe(
-        sounds,
-        RA.findFirst((x) => x.title === title),
-        setSoundO,
-      )
-    },
-    [sounds],
-  )
-
-  const filters = useMapStore((s) => s.filters)
-
-  // Stable callback prevents SoundMarkersCanvas from reinitializing Pixi on every render
-  const handleSoundClick = useCallback((s: Sound) => setSoundO(O.some(s)), [])
 
   const handleMapLoad = useCallback(() => {
+    // The overlays draw in screen space and assume a flat, north-up map.
+    const map = mapRef.current?.getMap()
+    map?.touchZoomRotate.disableRotation()
+    map?.keyboard.disableRotation()
     setMapReady(true)
   }, [])
 
@@ -772,6 +505,10 @@ export const MainMap = ({ sounds }: Props) => {
       minZoom={MIN_ZOOM}
       maxZoom={MAX_ZOOM}
       maxBounds={lngLatBounds}
+      dragRotate={false}
+      pitchWithRotate={false}
+      touchPitch={false}
+      maxPitch={0}
       onClick={handleMapClick}
       mapboxAccessToken={MAPBOX_TOKEN}
       style={MAPBOX_MAP_STYLE}
@@ -784,10 +521,8 @@ export const MainMap = ({ sounds }: Props) => {
       <SoundMarkersCanvas
         mapRef={mapRef}
         sounds={sounds}
-        filters={filters}
-        playingSound={O.toNullable(soundO)}
+        playingSound={proximitySound}
         onSoundClick={handleSoundClick}
-        onSoundHover={setHoveredSound}
         mapReady={mapReady}
       />
       <UserPositionCanvas
@@ -802,7 +537,6 @@ export const MainMap = ({ sounds }: Props) => {
         intensity={1.0}
         enabled
         sounds={sounds}
-        filters={filters}
       />
       <ProximityVideo
         sound={proximitySound}
@@ -830,13 +564,6 @@ export const MainMap = ({ sounds }: Props) => {
           </button>
         </div>
       ) : null}
-      {/* oxlint-disable-next-line typescript/no-deprecated -- kept until the minimal UI replaces it */}
-      <Sidebar
-        onGoTo={handleGoTo}
-        onPlay={handlePlay}
-        sounds={sounds}
-        soundO={soundO}
-      />
     </MapboxMap>
   )
 }
