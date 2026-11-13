@@ -142,3 +142,6 @@ dist
 
 # Local development data
 /local
+
+# Playwright build with a placeholder Mapbox token
+/dist-e2e

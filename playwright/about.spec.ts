@@ -1,4 +1,4 @@
-import { expect, test } from "playwright/test"
+import { expect, test } from "./fixtures"
 
 test.describe("About page styling", () => {
   test("CTA uses the light contrast style", async ({ page }) => {

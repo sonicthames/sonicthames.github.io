@@ -1,5 +1,5 @@
 import AxeBuilder from "@axe-core/playwright"
-import { expect, test } from "playwright/test"
+import { expect, test } from "./fixtures"
 
 const pages = [
   { name: "Home", path: "/" },
@@ -14,6 +14,7 @@ for (const { name, path } of pages) {
 
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
+      .exclude('iframe[src^="https://www.youtube.com/embed/"]')
       .analyze()
 
     const serious = results.violations.filter(

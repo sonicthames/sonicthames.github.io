@@ -1,4 +1,4 @@
-import { expect, test } from "playwright/test"
+import { expect, test } from "./fixtures"
 
 test.describe("Main map experience", () => {
   test("renders fog overlay, markers, and playlist", async ({ page }) => {
