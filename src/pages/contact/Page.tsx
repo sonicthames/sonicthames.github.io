@@ -3,6 +3,7 @@ import type { SubmitEvent } from "react"
 import { useId, useState } from "react"
 import { H1 } from "@/components/Typography"
 import { Button } from "@/components/ui"
+import { link } from "@/styles/recipes.css"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
@@ -101,8 +102,10 @@ export const ContactPage = () => {
               {mailto === null ? null : (
                 <>
                   Your email app should open with the message. If it does not,{" "}
-                  <a href={mailto}>open the message here</a> or write to{" "}
-                  {CONTACT_EMAIL}.
+                  <a href={mailto} className={link()}>
+                    open the message here
+                  </a>{" "}
+                  or write to {CONTACT_EMAIL}.
                 </>
               )}
             </p>

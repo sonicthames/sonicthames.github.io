@@ -2,6 +2,7 @@ import { useNavigate } from "react-router"
 import { TrackedCta } from "@/components/TrackedCta"
 import { H1, H2 } from "@/components/Typography"
 import { Link } from "@/components/ui"
+import { link } from "@/styles/recipes.css"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import {
@@ -9,7 +10,6 @@ import {
   pageMain,
   pageMainVariants,
   pageRoot,
-  textAction,
 } from "../common/layout.css"
 import { ctaContainer } from "./Page.css"
 
@@ -85,7 +85,7 @@ export const AboutPage = () => {
             {" and our "}
             <a
               href="https://www.youtube.com/channel/UCqkDGMVIu4slWH1z90XIdyQ"
-              className={textAction}
+              className={link()}
             >
               YouTube channel
             </a>

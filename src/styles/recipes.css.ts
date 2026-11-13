@@ -47,7 +47,10 @@ export const link = recipe({
   },
   variants: {
     variant: {
-      default: {},
+      // Inline links sit in white body text, so colour alone does not mark them.
+      default: {
+        textDecoration: "underline",
+      },
       inherit: {
         color: "inherit",
         ":visited": {

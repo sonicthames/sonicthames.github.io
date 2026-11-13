@@ -39,16 +39,6 @@ export const pageMainVariants = styleVariants({
   },
 })
 
-export const textAction = style({
-  color: tokens.color.action,
-  transition: `opacity ${tokens.motion.fast}`,
-  selectors: {
-    "&:hover": {
-      opacity: 0.8,
-    },
-  },
-})
-
 /**
  * App-level layout styles
  */
