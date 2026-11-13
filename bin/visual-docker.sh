@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Runs the visual suite on the host against Chromium in the Playwright Docker
 # image, so every machine renders the baselines identically. Arguments go to
-# `playwright test`, e.g. --update-snapshots.
+# `playwright test`, e.g. --update-snapshots. One worker: the software-rendered
+# map makes parallel pages slow enough to time out screenshots.
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -53,4 +54,4 @@ if ! docker logs "$container" 2>&1 | grep -q "Listening on"; then
 fi
 
 PLAYWRIGHT_DOCKER_WS="ws://127.0.0.1:${port}/" \
-  pnpm exec playwright test playwright/visual.spec.ts "$@"
+  pnpm exec playwright test playwright/visual.spec.ts --workers=1 "$@"

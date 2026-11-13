@@ -36,6 +36,7 @@ export default defineConfig({
             exposeNetwork: "<loopback>",
           },
         }),
+    contextOptions: { reducedMotion: "reduce" },
     trace: "on-first-retry",
   },
   webServer: {
