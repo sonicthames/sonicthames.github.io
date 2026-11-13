@@ -11,32 +11,38 @@ export const soundHeader = style({
 
 export const soundArticle = style({
   display: "grid",
-  gridTemplateColumns: "repeat(5, 1fr)",
-  gridTemplateRows: "auto auto",
   gap: tokens.space["2xl"],
-  gridTemplateAreas: `
-    "a a b b b"
-    "d d c c c"
-  `,
+  gridTemplateColumns: "minmax(0, 1fr)",
+  gridTemplateAreas: `"media" "description" "sheet"`,
+  "@media": {
+    "screen and (min-width: 768px)": {
+      alignItems: "start",
+      gridTemplateColumns: "minmax(0, 2fr) minmax(0, 3fr)",
+      gridTemplateAreas: `"media description" "media sheet"`,
+    },
+  },
 })
 
-// Grid area styles
-export const artworkArea = style({
-  gridArea: "a",
+export const mediaArea = style({
+  gridArea: "media",
+  display: "grid",
+  gap: tokens.space.lg,
+})
+
+export const artworkImage = style({
+  width: "100%",
+  maxWidth: "400px",
+  height: "auto",
 })
 
 export const descriptionArea = style({
-  gridArea: "b",
+  gridArea: "description",
 })
 
 export const technicalSheetArea = style({
-  gridArea: "c",
+  gridArea: "sheet",
   border: `1px solid rgb(75, 85, 99)`,
   padding: tokens.space.lg,
-})
-
-export const videoArea = style({
-  gridArea: "d",
 })
 
 // Typography styles for sound page
@@ -62,7 +68,12 @@ export const technicalList = style({
   gap: tokens.space.md,
   gridAutoFlow: "row",
   gridAutoRows: "1fr",
-  gridTemplateColumns: "repeat(2, 1fr)",
+  gridTemplateColumns: "minmax(0, 1fr)",
+  "@media": {
+    "screen and (min-width: 1024px)": {
+      gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    },
+  },
 })
 
 export const technicalListItem = style({
@@ -84,6 +95,8 @@ export const technicalDefinition = style({
 // Video iframe style
 export const videoIframe = style({
   width: "100%",
+  height: "auto",
+  aspectRatio: "16 / 9",
   border: "none",
   boxSizing: "border-box",
 })

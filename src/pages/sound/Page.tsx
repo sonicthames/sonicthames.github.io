@@ -1,15 +1,16 @@
-import { pipe } from "fp-ts/function"
+import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import type { Sound } from "../../domain/sound"
 import { showInterval } from "../../domain/sound"
-import { useDeviceType } from "../../theme/media"
+import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
 import { constNA } from "../common/message"
 import {
-  artworkArea,
+  artworkImage,
   descriptionArea,
+  mediaArea,
   soundArticle,
   soundHeader,
   soundHeading3,
@@ -19,7 +20,6 @@ import {
   technicalListItem,
   technicalSheetArea,
   technicalTerm,
-  videoArea,
   videoIframe,
 } from "./Page.css"
 
@@ -36,19 +36,36 @@ export const SoundPage = ({ sound }: Props) => {
   return (
     <div className={pageRoot}>
       <PageHeader />
-      <main className={`${pageMain} ${pageMainVariants[deviceType]}`}>
+      <main
+        className={`${pageMain} ${pageMainVariants[deviceType]}`}
+        style={
+          deviceType === "desktop" ? { maxWidth: maxPageWidth } : undefined
+        }
+      >
         <header className={soundHeader}>
           <h1 className={soundTitle}>{sound.title}</h1>
         </header>
         <article className={soundArticle}>
-          {/* TODO Make artwork smaller */}
-          <div className={artworkArea}>
-            <img
-              src="/thumbnails/placeholder.jpeg"
-              // src={sound.thumbnailSrc}
-              width="400px"
-              height="400px"
-              alt="artwork"
+          <div className={mediaArea}>
+            {pipe(
+              sound.thumbnailSrc,
+              O.fold(constNull, (src) => (
+                <img
+                  src={src}
+                  width={400}
+                  height={400}
+                  alt={`Artwork for ${sound.title}`}
+                  className={artworkImage}
+                />
+              )),
+            )}
+            <iframe
+              title={sound.title}
+              className={videoIframe}
+              src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
+              allow="encrypted-media; picture-in-picture; fullscreen"
+              allowFullScreen
+              loading="lazy"
             />
           </div>
           <div className={descriptionArea}>
@@ -135,21 +152,7 @@ export const SoundPage = ({ sound }: Props) => {
                   {sound.duration.toFormat("h:mm:ss")}
                 </dd>
               </div>
-              <div className={technicalListItem}>
-                <dt className={technicalTerm}>Weather:</dt>
-                <dd className={technicalDefinition}>PLACEHOLDER</dd>
-              </div>
             </dl>
-          </div>
-          <div className={videoArea}>
-            {/* 426x240 */}
-            <iframe
-              title={sound.title}
-              width="320"
-              height="240"
-              className={videoIframe}
-              src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
-            />
           </div>
         </article>
       </main>
