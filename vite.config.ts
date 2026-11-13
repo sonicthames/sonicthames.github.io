@@ -42,6 +42,14 @@ export default defineConfig({
       output: {
         codeSplitting: {
           groups: [
+            // The map groups pull in their dependencies, which would put React and
+            // Vite's preload helper in the lazily loaded map chunk and make the
+            // entry chunk depend on it.
+            {
+              name: "vendor",
+              test: /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]|vite[\\/]preload-helper/,
+              priority: 1,
+            },
             {
               name: "mapbox",
               test: /[\\/]node_modules[\\/](mapbox-gl|react-map-gl)[\\/]/,

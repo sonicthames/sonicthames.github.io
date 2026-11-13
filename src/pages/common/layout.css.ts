@@ -68,3 +68,14 @@ export const appHeaderLayer = style({
   inset: "0 0 auto 0",
   zIndex: tokens.z.header,
 })
+
+export const mapUnavailable = style({
+  alignItems: "center",
+  color: tokens.color.text,
+  display: "flex",
+  height: "100%",
+  justifyContent: "center",
+  margin: 0,
+  padding: tokens.space.lg,
+  textAlign: "center",
+})

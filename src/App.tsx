@@ -18,16 +18,22 @@ import {
   appContainer,
   appHeaderLayer,
   appMapLayer,
+  mapUnavailable,
 } from "@/pages/common/layout.css"
 import rawData from "./data.json" with { type: "json" }
 import type { Category, Sound } from "./domain/sound"
 import { D_Data } from "./domain/sound"
-import { MainMap } from "./features/map"
+import { trackPageView } from "./lib/analytics"
 import { ErrorBoundary } from "./pages/common/ErrorBoundary"
 import { Header } from "./pages/common/Header"
 import { CrashPage } from "./pages/crash/Page"
 import { appRoute, soundId } from "./pages/location"
 
+// Mapbox and Pixi are most of the bundle; loading them on demand lets an
+// opened page render without waiting for the map.
+const MainMap = lazy(() =>
+  import("./features/map").then((m) => ({ default: m.MainMap })),
+)
 const AboutPage = lazy(() =>
   import("./pages/about/Page").then((m) => ({ default: m.AboutPage })),
 )
@@ -53,6 +59,10 @@ const shouldShowDrawer = (pathname: string) =>
 
 export const App = () => {
   const location = useLocation()
+  // biome-ignore lint/correctness/useExhaustiveDependencies: one page view per navigation
+  useEffect(() => {
+    trackPageView()
+  }, [location.pathname, location.search])
   return (
     <ErrorBoundary
       resetKey={location.pathname}
@@ -139,7 +149,18 @@ const AppContent = () => {
   return (
     <div className={appContainer}>
       <div className={appMapLayer} inert={showDrawer}>
-        <MainMap sounds={sounds} />
+        {/* A failed map chunk stays failed until a reload, so it must not crash the pages. */}
+        <ErrorBoundary
+          fallback={() => (
+            <p className={mapUnavailable}>
+              The map could not load. Reload the page to try again.
+            </p>
+          )}
+        >
+          <Suspense>
+            <MainMap sounds={sounds} />
+          </Suspense>
+        </ErrorBoundary>
       </div>
       <div className={appHeaderLayer} inert={showDrawer}>
         <Header />

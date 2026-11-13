@@ -6,12 +6,32 @@ test.describe("Main map experience", () => {
   }) => {
     await page.goto("/")
 
-    await expect(page.getByRole("img", { name: /logo/i })).toBeVisible()
+    // The map is lazy-loaded, and parsing Mapbox in a busy browser takes a while.
+    await expect(page.getByRole("img", { name: /logo/i })).toBeVisible({
+      timeout: 15_000,
+    })
     await expect(page.getByTestId("map-fog-overlay")).toBeVisible()
     await expect(page.getByTestId("sound-markers-layer")).toBeVisible()
     await expect(page.locator("canvas.mapboxgl-canvas").first()).toBeVisible()
 
     // The two Pixi overlays mount their canvases once Mapbox fires `load`.
     await expect(page.locator("canvas")).toHaveCount(4)
+  })
+
+  test("keeps pages working when the map cannot load", async ({
+    page,
+    runtimeErrors,
+  }) => {
+    await page.route(/\/assets\/map-[^/]*\.js$/, (route) => route.abort())
+    await page.goto("/about")
+
+    await expect(page.getByRole("heading", { name: "About" })).toBeVisible()
+    await page.keyboard.press("Escape")
+    await expect(page.getByText(/the map could not load/i)).toBeVisible()
+
+    expect(runtimeErrors.some((error) => error.includes("Render error"))).toBe(
+      true,
+    )
+    runtimeErrors.splice(0)
   })
 })

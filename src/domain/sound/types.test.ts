@@ -1,9 +1,9 @@
 import type { Option } from "fp-ts/Option"
 import { none, some } from "fp-ts/Option"
 import { DateTime, Duration, Interval } from "luxon"
-import { LngLat } from "mapbox-gl"
 import { describe, expect, it } from "vitest"
 import type {
+  Coordinate,
   HasDateTimeOption,
   HasIntervalOption,
   Sound,
@@ -17,7 +17,7 @@ import {
 } from "./types"
 
 describe("Sound Domain Types", () => {
-  const testLngLat: LngLat = new LngLat(-0.1, 51.5)
+  const testLngLat: Coordinate = { lng: -0.1, lat: 51.5 }
   const testDuration: Duration = Duration.fromObject({ minutes: 5 })
   const testDateTime: DateTime = DateTime.fromISO("2023-06-15T14:30:00")
   const testInterval: Interval = Interval.fromDateTimes(

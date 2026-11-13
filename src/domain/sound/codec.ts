@@ -3,8 +3,12 @@ import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as D from "io-ts/Decoder"
 import { DateTime, Duration, Interval } from "luxon"
-import { LngLat } from "mapbox-gl"
-import type { HasDateTimeOption, HasIntervalOption, SoundBase } from "./types"
+import type {
+  Coordinate,
+  HasDateTimeOption,
+  HasIntervalOption,
+  SoundBase,
+} from "./types"
 
 type IsoValidatable = {
   readonly invalidReason: string | null
@@ -69,16 +73,15 @@ export const D_Category = D.union(
   D.literal("Feel"),
 )
 
-const D_Coordinate: D.Decoder<unknown, LngLat> = pipe(
+const D_Coordinate: D.Decoder<unknown, Coordinate> = pipe(
   D.struct({
     lat: D.number,
     lng: D.number,
   }),
-  D.parse((x) =>
-    E.tryCatch(
-      () => LngLat.convert(x),
-      () => D.error(x, "Invalid coordinate"),
-    ),
+  D.refine(
+    (x): x is Coordinate =>
+      x.lng >= -180 && x.lng <= 180 && x.lat >= -90 && x.lat <= 90,
+    "Coordinate",
   ),
 )
 

@@ -1,6 +1,5 @@
 import type * as O from "fp-ts/Option"
 import type { DateTime, Duration, Interval } from "luxon"
-import type { LngLat } from "mapbox-gl"
 
 // export type Category =
 //   | "Soundscapes"
@@ -52,6 +51,11 @@ import type { LngLat } from "mapbox-gl"
 // }
 export type Category = "Listen" | "See" | "Feel"
 
+export interface Coordinate {
+  readonly lng: number
+  readonly lat: number
+}
+
 export interface SoundBase {
   readonly title: string
   readonly description: readonly string[]
@@ -61,7 +65,7 @@ export interface SoundBase {
   readonly duration: Duration
   readonly location: O.Option<string>
   readonly access: O.Option<string>
-  readonly coordinate: LngLat
+  readonly coordinate: Coordinate
   readonly videoSrc: string
   readonly thumbnailSrc: O.Option<string>
 }
