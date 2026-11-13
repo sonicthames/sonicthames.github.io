@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.4.15/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.6/schema.json",
   "assist": {
     "actions": {
       "source": {
@@ -9,7 +9,7 @@
   },
   "files": {
     "ignoreUnknown": true,
-    "includes": ["**/*", "!.claude"]
+    "includes": ["**/*", "!.claude", "!public", "!**/*.svg"]
   },
   "formatter": {
     "enabled": true,
@@ -42,6 +42,7 @@
     }
   },
   "html": { "formatter": { "selfCloseVoidElements": "always" } },
+  "yaml": { "formatter": { "bracketSpacing": false } },
   "linter": {
     "enabled": true,
     "domains": {
@@ -50,10 +51,12 @@
       "types": "all"
     },
     "rules": {
-      "recommended": true,
+      "preset": "recommended",
       "correctness": {
         "noUnusedImports": "error",
         "noUnusedVariables": "error",
+        "noUnusedFunctionParameters": "error",
+        "noUnusedPrivateClassMembers": "error",
         "noGlobalDirnameFilename": "error",
         "useImportExtensions": "off",
         // Biome cannot resolve TS path aliases (@/, @theme/, @ui/)
@@ -62,6 +65,10 @@
       },
       "suspicious": {
         "noExplicitAny": "error",
+        "noDoubleEquals": {
+          "level": "error",
+          "options": { "ignoreNull": false }
+        },
         "noConstantBinaryExpressions": "error",
         "noUnusedExpressions": "error",
         "noVar": "error",
@@ -81,7 +88,7 @@
         "noUselessCatch": "error",
         "useLiteralKeys": "off",
         "noExcessiveCognitiveComplexity": {
-          "level": "warn",
+          "level": "error",
           "options": { "maxAllowedComplexity": 15 }
         }
       },
@@ -106,12 +113,56 @@
         "noSecrets": "off"
       },
       "performance": {
-        "noDelete": "error"
+        "noDelete": "error",
+        // The React Compiler memoizes inline handlers, so hand-written
+        // useCallback wrappers would be noise.
+        "noJsxPropsBind": "off"
       }
     }
   },
   "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
   "overrides": [
+    {
+      // Node runs these directly as ES modules, without a bundler.
+      "includes": ["scripts/**"],
+      "linter": {
+        "rules": {
+          "correctness": { "useImportExtensions": "error" },
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "fp-ts/*",
+                      "!fp-ts/lib/*",
+                      "io-ts/*",
+                      "!io-ts/lib/*"
+                    ],
+                    "message": "fp-ts and io-ts have no exports map, so Node cannot resolve this subpath; import from lib/*.js instead."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/**/*.{ts,tsx}"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": {
+              "level": "error",
+              "options": { "allow": ["debug", "info", "warn", "error"] }
+            }
+          },
+          "style": { "noProcessEnv": "error" }
+        }
+      }
+    },
     {
       "includes": ["**/*.css.ts"],
       "linter": {
