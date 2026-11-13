@@ -1,5 +1,3 @@
-export type Key = PropertyKey
-
 export type EmptyObject = Record<never, never>
 
 export type PathTree<T> = {
@@ -37,13 +35,4 @@ export type JoinTuple<
 export function joinTuple<S extends string>(separator: S) {
   return <KS extends readonly string[]>(...fragments: KS): JoinTuple<S, KS> =>
     fragments.join(separator) as JoinTuple<S, KS>
-}
-
-/**
- * @param  {Key} key Key expected in the object
- * @param  {T} obj Object that should contain the expected key
- * @returns {boolean} whether key is a keyof obj
- */
-export function isKeyOf<T extends object>(key: Key, obj: T): key is keyof T {
-  return key in obj
 }

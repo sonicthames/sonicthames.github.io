@@ -33,23 +33,6 @@ export const proximityVideoFrame = style({
   width: "100%",
 })
 
-export const theatreBackdrop = style({
-  WebkitBackdropFilter: tokens.effect.blur.md,
-  backdropFilter: tokens.effect.blur.md,
-  backgroundColor: tokens.color.overlay.medium,
-  inset: 0,
-  opacity: 0,
-  pointerEvents: "none",
-  position: "fixed",
-  transition: `opacity ${PROXIMITY_VIDEO_TRANSITION_DURATION_MS}ms ${PROXIMITY_VIDEO_TRANSITION_EASING}`,
-  zIndex: tokens.z.overlay,
-})
-
-export const theatreBackdropVisible = style({
-  opacity: 1,
-  pointerEvents: "auto",
-})
-
 export const videoHeader = style({
   alignItems: "center",
   backgroundColor: tokens.color.bg,
@@ -63,29 +46,6 @@ export const videoHeader = style({
 export const headerTitle = style({
   fontWeight: tokens.font.weight.semibold,
   letterSpacing: "0.01em",
-})
-
-export const headerButton = style({
-  appearance: "none",
-  backgroundColor: tokens.color.action,
-  border: "none",
-  borderRadius: tokens.radius.md,
-  color: tokens.color.fg,
-  cursor: "pointer",
-  fontSize: tokens.font.size.xs,
-  opacity: 0.9,
-  padding: `${tokens.space.xs} ${tokens.space.sm}`,
-  transition: `opacity ${tokens.motion.fast}`,
-  selectors: {
-    "&:hover": {
-      opacity: 1,
-      backgroundColor: tokens.color.actionLight,
-    },
-    "&:focus-visible": {
-      outline: `2px solid ${tokens.color.actionLight}`,
-      outlineOffset: "2px",
-    },
-  },
 })
 
 export const videoSection = style({

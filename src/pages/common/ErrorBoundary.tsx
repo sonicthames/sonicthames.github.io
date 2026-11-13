@@ -17,11 +17,11 @@ export class ErrorBoundary extends React.Component<Props, State> {
     }
   }
 
-  componentDidCatch(error: Error) {
+  override componentDidCatch(error: Error) {
     this.setState({ error })
   }
 
-  render() {
+  override render() {
     return this.state.error !== null
       ? this.props.fallback(this.state.error)
       : this.props.children

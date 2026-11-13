@@ -87,7 +87,7 @@ const cellIndex = (grid: FogGrid, col: number, row: number): number => {
   return (row - grid.startRow) * grid.width + (col - grid.startCol)
 }
 
-export const resolveRevealPoint = (
+const resolveRevealPoint = (
   grid: FogGrid,
   col: number,
   row: number,
@@ -238,7 +238,7 @@ export const collectCellsInBounds = (
  *
  * Performance: O(1) bounding box check
  */
-export const isRevealVisible = (
+const isRevealVisible = (
   reveal: RevealPoint,
   map: MapboxMap,
   viewport: ViewportBounds,
@@ -262,7 +262,7 @@ export const isRevealVisible = (
  * Pure function using imperative loop for performance.
  *
  * Performance: O(n) where n = total reveals
- * Typical speedup: 2-3× by skipping off-screen rendering
+ * Typical speed-up: 2-3× by skipping off-screen rendering
  */
 export const cullRevealsToViewport = (
   reveals: readonly RevealPoint[],
@@ -274,8 +274,7 @@ export const cullRevealsToViewport = (
   // Imperative loop for performance (faster than .filter for large arrays)
   out.length = 0
 
-  for (let i = 0; i < reveals.length; i++) {
-    const reveal = reveals[i]
+  for (const reveal of reveals) {
     if (isRevealVisible(reveal, map, viewport, currentZoom)) {
       out.push(reveal)
     }
@@ -318,6 +317,7 @@ export const projectRevealsToScreen = (
 
   for (let i = 0; i < reveals.length; i++) {
     const reveal = reveals[i]
+    if (reveal === undefined) continue
     const screen = map.project(reveal)
     const radiusPixels = renderRadiusPixels(reveal, currentZoom)
 

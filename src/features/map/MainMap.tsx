@@ -3,14 +3,14 @@ import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import * as D from "io-ts/Decoder"
-import type mapboxgl from "mapbox-gl"
+import type * as mapboxgl from "mapbox-gl"
 import type { LngLatLike } from "mapbox-gl"
 import { LngLat, LngLatBounds } from "mapbox-gl"
 import "mapbox-gl/dist/mapbox-gl.css"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MapProps, MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
-import { matchPath, useLocation } from "react-router-dom"
+import { matchPath, useLocation } from "react-router"
 import { H2, H3 } from "@/components/Typography"
 import type { Category, Sound } from "@/domain/sound"
 import { showDateTime, showInterval } from "@/domain/sound"
@@ -103,7 +103,7 @@ const readLastUserPosition = (): LngLat | null => {
   return LngLat.convert([stored.lng, stored.lat])
 }
 
-const MAP_STYLE: mapboxgl.Style = {
+const MAP_STYLE: mapboxgl.StyleSpecification = {
   version: 8,
   name: "Test",
   sources: {
@@ -196,16 +196,16 @@ const fetchAndValidateDirections = async (
     }),
   )
 
-  if (decoded.code !== "Ok" || decoded.routes.length === 0) {
+  const [route] = decoded.routes
+  if (decoded.code !== "Ok" || route === undefined) {
     console.warn("No walking route found for destination.", decoded.code)
     return null
   }
 
-  const [route] = decoded.routes
   return { route: route.geometry }
 }
 
-/** @deprecated The old map sidebar/dialog is being retired in favor of a more minimal UI. */
+/** @deprecated The old map sidebar/dialog is being retired in favour of a more minimal UI. */
 const Sidebar = ({
   onGoTo,
   onPlay,
@@ -232,10 +232,12 @@ const Sidebar = ({
             <button
               type="button"
               onClick={() => {
-                const newFilters = filters.includes("Listen")
+                const newFilters: readonly Category[] = filters.includes(
+                  "Listen",
+                )
                   ? filters.filter((f) => f !== "Listen")
                   : [...filters, "Listen"]
-                setFilters(newFilters as readonly Category[])
+                setFilters(newFilters)
               }}
               title="toggle listen"
               className={
@@ -253,10 +255,10 @@ const Sidebar = ({
             <button
               type="button"
               onClick={() => {
-                const newFilters = filters.includes("See")
+                const newFilters: readonly Category[] = filters.includes("See")
                   ? filters.filter((f) => f !== "See")
                   : [...filters, "See"]
-                setFilters(newFilters as readonly Category[])
+                setFilters(newFilters)
               }}
               title="toggle see"
               className={
@@ -270,10 +272,10 @@ const Sidebar = ({
             <button
               type="button"
               onClick={() => {
-                const newFilters = filters.includes("Feel")
+                const newFilters: readonly Category[] = filters.includes("Feel")
                   ? filters.filter((f) => f !== "Feel")
                   : [...filters, "Feel"]
-                setFilters(newFilters as readonly Category[])
+                setFilters(newFilters)
               }}
               title="toggle feel"
               className={
@@ -534,43 +536,49 @@ export const MainMap = ({ sounds }: Props) => {
   }, [evaluateProximity])
 
   const animateRoute = useCallback(
-    (timestamp: number) => {
-      const routeState = routeStateRef.current
-      if (!routeState) {
-        routeAnimationFrameRef.current = null
-        lastFrameTimeRef.current = null
-        return
+    (startTimestamp: number) => {
+      const step = (timestamp: number) => {
+        const routeState = routeStateRef.current
+        if (!routeState) {
+          routeAnimationFrameRef.current = null
+          lastFrameTimeRef.current = null
+          return
+        }
+
+        const lastFrame =
+          lastFrameTimeRef.current === null
+            ? timestamp
+            : lastFrameTimeRef.current
+        const deltaSeconds = Math.max(0, (timestamp - lastFrame) / 1000)
+        lastFrameTimeRef.current = timestamp
+
+        const distanceToTravel = AVATAR_SPEED_MPS * deltaSeconds
+        const { index, distanceAlong, stepPositions, done } =
+          stepRouteAnimation(
+            routeState.segments,
+            routeState.currentSegmentIndex,
+            routeState.distanceAlongSegment,
+            distanceToTravel,
+          )
+
+        routeState.currentSegmentIndex = index
+        routeState.distanceAlongSegment = distanceAlong
+
+        for (const pos of stepPositions) {
+          updateTrackedUserPosition(LngLat.convert([pos.lng, pos.lat]))
+        }
+
+        if (done) {
+          routeStateRef.current = null
+          routeDestinationRef.current = null
+          routeAnimationFrameRef.current = null
+          lastFrameTimeRef.current = null
+          return
+        }
+
+        routeAnimationFrameRef.current = requestAnimationFrame(step)
       }
-
-      const lastFrame =
-        lastFrameTimeRef.current === null ? timestamp : lastFrameTimeRef.current
-      const deltaSeconds = Math.max(0, (timestamp - lastFrame) / 1000)
-      lastFrameTimeRef.current = timestamp
-
-      const distanceToTravel = AVATAR_SPEED_MPS * deltaSeconds
-      const { index, distanceAlong, stepPositions, done } = stepRouteAnimation(
-        routeState.segments,
-        routeState.currentSegmentIndex,
-        routeState.distanceAlongSegment,
-        distanceToTravel,
-      )
-
-      routeState.currentSegmentIndex = index
-      routeState.distanceAlongSegment = distanceAlong
-
-      for (const pos of stepPositions) {
-        updateTrackedUserPosition(LngLat.convert([pos.lng, pos.lat]))
-      }
-
-      if (done) {
-        routeStateRef.current = null
-        routeDestinationRef.current = null
-        routeAnimationFrameRef.current = null
-        lastFrameTimeRef.current = null
-        return
-      }
-
-      routeAnimationFrameRef.current = requestAnimationFrame(animateRoute)
+      step(startTimestamp)
     },
     [updateTrackedUserPosition],
   )
@@ -610,7 +618,7 @@ export const MainMap = ({ sounds }: Props) => {
   const requestDirections = useCallback(
     async (destination: LngLatLike) => {
       const origin = userPositionRef.current
-      if (!origin || routeCloseEnough(origin, destination)) {
+      if (routeCloseEnough(origin, destination)) {
         return
       }
 
@@ -638,21 +646,19 @@ export const MainMap = ({ sounds }: Props) => {
           startRouteAnimation(result.route)
         }
       } catch (error) {
-        if (error instanceof DOMException && error.name === "AbortError") {
-          return
+        if (!(error instanceof DOMException && error.name === "AbortError")) {
+          console.error("Failed to fetch walking directions", error)
         }
-        console.error("Failed to fetch walking directions", error)
-      } finally {
-        if (directionsAbortControllerRef.current === controller) {
-          directionsAbortControllerRef.current = null
-        }
+      }
+      if (directionsAbortControllerRef.current === controller) {
+        directionsAbortControllerRef.current = null
       }
     },
     [cancelRouteAnimation, startRouteAnimation],
   )
 
   const handleMapClick = useCallback(
-    (event: mapboxgl.MapLayerMouseEvent) => {
+    (event: mapboxgl.MapMouseEvent) => {
       if (event.originalEvent.defaultPrevented) {
         return
       }
@@ -669,6 +675,7 @@ export const MainMap = ({ sounds }: Props) => {
   )
 
   useEffect(() => {
+    // oxlint-disable-next-line react/set-state-in-effect -- proximity state comes from the map's viewport projection
     updateTrackedUserPosition(initialUserPosition)
     cancelRouteAnimation()
 
@@ -713,11 +720,15 @@ export const MainMap = ({ sounds }: Props) => {
         return
       }
 
+      // flyTo tests keys with `in` and merges defaults with Object.assign, so
+      // an explicit undefined becomes a NaN zoom or a missing easing function.
       map.flyTo({
         center: [longitude, latitude],
-        zoom,
-        duration: transitionDuration,
-        easing: transitionEasing,
+        ...(zoom === undefined ? {} : { zoom }),
+        ...(transitionDuration === undefined
+          ? {}
+          : { duration: transitionDuration }),
+        ...(transitionEasing === undefined ? {} : { easing: transitionEasing }),
       })
     },
     [],
@@ -798,7 +809,7 @@ export const MainMap = ({ sounds }: Props) => {
         origin={proximityOrigin}
         allowPlayback={isMainRoute}
       />
-      {import.meta.env.DEV && (
+      {import.meta.env.DEV ? (
         <div className={debugControls}>
           <button
             type="button"
@@ -818,7 +829,8 @@ export const MainMap = ({ sounds }: Props) => {
             Reveal Map
           </button>
         </div>
-      )}
+      ) : null}
+      {/* oxlint-disable-next-line typescript/no-deprecated -- kept until the minimal UI replaces it */}
       <Sidebar
         onGoTo={handleGoTo}
         onPlay={handlePlay}

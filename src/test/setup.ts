@@ -20,12 +20,11 @@ class MockLngLat {
     if (value instanceof MockLngLat) {
       return value
     }
-    if (Array.isArray(value)) {
-      const [lng, lat] = value
-      return new MockLngLat(lng, lat)
+    if ("lng" in value) {
+      return new MockLngLat(value.lng, value.lat)
     }
-    const obj = value as { readonly lng: number; readonly lat: number }
-    return new MockLngLat(obj.lng, obj.lat)
+    const [lng, lat] = value
+    return new MockLngLat(lng, lat)
   }
 
   distanceTo(other: MockLngLat): number {
@@ -113,7 +112,9 @@ if (typeof window.matchMedia !== "function") {
     onchange: null,
     addEventListener: () => {},
     removeEventListener: () => {},
+    // oxlint-disable-next-line typescript/no-deprecated -- MediaQueryList still declares it
     addListener: () => {},
+    // oxlint-disable-next-line typescript/no-deprecated -- MediaQueryList still declares it
     removeListener: () => {},
     dispatchEvent: () => false,
   })
@@ -139,7 +140,7 @@ if (typeof window.ResizeObserver !== "function") {
     unobserve() {}
     disconnect() {}
   }
-  window.ResizeObserver = MockResizeObserver as typeof ResizeObserver
+  window.ResizeObserver = MockResizeObserver
 }
 
 // Mock fetch to prevent actual network requests (especially to YouTube)

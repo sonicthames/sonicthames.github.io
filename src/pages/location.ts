@@ -29,7 +29,7 @@ const routesDefinition = {
 } as const
 export type Routes = typeof routesDefinition
 
-export const appRoutes: AppRoutes<Routes> = routesDefinition
+const appRoutes: AppRoutes<Routes> = routesDefinition
 
 export const appRoute = routePath(appRoutes)
 

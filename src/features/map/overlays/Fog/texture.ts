@@ -100,22 +100,3 @@ const createRevealTexture = (radiusPixels: number): OffscreenCanvas => {
 
   return canvas
 }
-
-/**
- * Clear all cached textures.
- * Use when zoom level changes significantly or to free memory.
- */
-export const clearTextureCache = (cache: TextureCache): void => {
-  cache.clear()
-}
-
-/**
- * Get cache statistics for monitoring.
- * Pure function.
- */
-export const getTextureCacheStats = (
-  cache: TextureCache,
-): { size: number; maxSize: number } => ({
-  size: cache.size,
-  maxSize: MAX_CACHE_SIZE,
-})

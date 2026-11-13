@@ -1,4 +1,4 @@
-import type mapboxgl from "mapbox-gl"
+import type * as mapboxgl from "mapbox-gl"
 import type { LngLatBounds } from "mapbox-gl"
 import type { TextureCache } from "./texture"
 import { getCachedRevealTexture } from "./texture"
@@ -12,7 +12,7 @@ import type { RevealScreenSpace } from "./types"
  * @param textureCache - Texture cache for pre-rendered circles
  * @param reveal - Screen-space reveal position and size
  */
-export const drawRevealWithTexture = (
+const drawRevealWithTexture = (
   ctx: CanvasRenderingContext2D,
   textureCache: TextureCache,
   reveal: RevealScreenSpace,
@@ -47,8 +47,8 @@ export const drawReveals = (
   ctx.globalCompositeOperation = "destination-out"
 
   // Imperative loop for performance
-  for (let i = 0; i < reveals.length; i++) {
-    drawRevealWithTexture(ctx, textureCache, reveals[i])
+  for (const reveal of reveals) {
+    drawRevealWithTexture(ctx, textureCache, reveal)
   }
 
   // Reset composite mode
@@ -99,37 +99,4 @@ export const drawOuterFogBoundary = (
 
   // Restore context state
   ctx.restore()
-}
-
-/**
- * Fallback: Draw a single reveal circle with radial gradient (no caching).
- * Used when OffscreenCanvas is unavailable or for testing.
- *
- * This is the original implementation - kept for compatibility.
- */
-export const drawRevealCircleFallback = (
-  ctx: CanvasRenderingContext2D,
-  centerX: number,
-  centerY: number,
-  radius: number,
-): void => {
-  if (radius <= 0) return
-
-  // Create radial gradient from center to edge
-  const gradient = ctx.createRadialGradient(
-    centerX,
-    centerY,
-    0, // Inner radius (center point)
-    centerX,
-    centerY,
-    radius, // Outer radius
-  )
-  gradient.addColorStop(0, "rgba(0,0,0,1)") // Fully opaque at center
-  gradient.addColorStop(0.6, "rgba(0,0,0,0.9)") // Still mostly opaque at 60%
-  gradient.addColorStop(1, "rgba(0,0,0,0)") // Fully transparent at edge
-
-  ctx.fillStyle = gradient
-  ctx.beginPath()
-  ctx.arc(centerX, centerY, radius, 0, Math.PI * 2)
-  ctx.fill()
 }

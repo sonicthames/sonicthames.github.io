@@ -1,4 +1,4 @@
-import { z } from "zod"
+import * as z from "zod/mini"
 import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 import type { PersistedReveal } from "@/features/map/overlays/Fog/types"
@@ -8,17 +8,17 @@ import type { PersistedReveal } from "@/features/map/overlays/Fog/types"
  */
 
 const LngLatSchema = z.object({
-  lng: z.number().finite(),
-  lat: z.number().finite(),
+  lng: z.number(),
+  lat: z.number(),
 })
 
 const PersistedRevealSchema = z.object({
-  lng: z.number().finite(),
-  lat: z.number().finite(),
+  lng: z.number(),
+  lat: z.number(),
 })
 
 const PersistedStateSchema = z.object({
-  lastUserPosition: LngLatSchema.nullable(),
+  lastUserPosition: z.nullable(LngLatSchema),
   fogReveals: z.array(PersistedRevealSchema),
 })
 
@@ -101,21 +101,3 @@ export const usePersistenceStore = create<PersistenceStore>()(
     },
   ),
 )
-
-/**
- * Convenience hooks for specific slices of persisted state
- */
-export const useLastUserPosition = () =>
-  usePersistenceStore((state) => state.lastUserPosition)
-
-export const useSetLastUserPosition = () =>
-  usePersistenceStore((state) => state.setLastUserPosition)
-
-export const useFogReveals = () =>
-  usePersistenceStore((state) => state.fogReveals)
-
-export const useSetFogReveals = () =>
-  usePersistenceStore((state) => state.setFogReveals)
-
-export const useClearFogReveals = () =>
-  usePersistenceStore((state) => state.clearFogReveals)

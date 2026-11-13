@@ -6,20 +6,20 @@ import { raw_spacing } from "./spacing"
 export const maxPageWidth = 1200
 export const mobilePageWidth = 768
 
-export function isUserAgentMobile(): boolean {
+function isUserAgentMobile(): boolean {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|BB|PlayBook|IEMobile|Windows Phone|Kindle|Silk|Opera Mini|Mobile/i.test(
     navigator.userAgent,
   )
 }
 
-export function useIsUnderPortraitWidth(): boolean {
+function useIsUnderPortraitWidth(): boolean {
   return useMediaQuery({
     // TODO calculate
     query: `(max-width: ${maxPageWidth + 2 * raw_spacing.default}px)`,
   })
 }
 
-export function useIsUnderMobileWidth(): boolean {
+function useIsUnderMobileWidth(): boolean {
   return useMediaQuery({
     query: `(max-width: ${mobilePageWidth}px)`,
   })

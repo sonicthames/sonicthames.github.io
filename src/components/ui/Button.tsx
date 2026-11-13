@@ -9,22 +9,19 @@ export interface ButtonProps
   tone?: ButtonRecipeVariants["tone"]
   size?: ButtonRecipeVariants["size"]
   fullWidth?: ButtonRecipeVariants["fullWidth"]
-  /**
-   * @deprecated use `tone` instead.
-   */
-  variant?: ButtonRecipeVariants["tone"]
 }
 
 export const Button = ({
   className,
   tone,
-  variant,
   size,
   fullWidth,
   ref,
   ...props
-}: ButtonProps & { ref?: React.RefObject<HTMLButtonElement | null> }) => {
-  const resolvedTone = tone ?? variant ?? "primary"
+}: ButtonProps & {
+  ref?: React.RefObject<HTMLButtonElement | null> | undefined
+}) => {
+  const resolvedTone = tone ?? "primary"
   return (
     <button
       className={cn(

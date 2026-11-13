@@ -1,17 +1,10 @@
 import * as E from "fp-ts/Either"
 import { pipe } from "fp-ts/function"
-import { DateTime, Duration, Interval } from "luxon"
+import { DateTime, Interval } from "luxon"
 import { describe, expect, it } from "vitest"
 import { D_Category, D_Data, D_Sound } from "./codec"
 
 describe("Sound Domain Codecs", () => {
-  const _testDuration: Duration = Duration.fromObject({ minutes: 5 })
-  const _testDateTime: DateTime = DateTime.fromISO("2023-06-15T14:30:00")
-  const _testInterval: Interval = Interval.fromDateTimes(
-    DateTime.fromISO("2023-06-15T14:00:00"),
-    DateTime.fromISO("2023-06-15T15:00:00"),
-  )
-
   describe("D_Category", () => {
     it("should decode valid categories", () => {
       expect(E.isRight(D_Category.decode("Listen"))).toBe(true)

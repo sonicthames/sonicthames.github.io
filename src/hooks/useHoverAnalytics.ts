@@ -5,8 +5,8 @@ const MIN_DWELL_MS = 120
 
 export interface HoverAnalyticsOptions {
   readonly ctaId: string
-  readonly label?: string
-  readonly location?: string
+  readonly label?: string | undefined
+  readonly location?: string | undefined
   readonly minDwellMs?: number
 }
 
@@ -26,7 +26,7 @@ export const useHoverAnalytics = ({
     const startedAt = enterTimestampRef.current
     enterTimestampRef.current = null
 
-    if (startedAt == null) {
+    if (startedAt === null) {
       return
     }
 

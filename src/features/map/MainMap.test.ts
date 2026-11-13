@@ -33,8 +33,8 @@ describe("stepRouteAnimation", () => {
     expect(result.index).toBe(0)
     expect(result.distanceAlong).toBe(30)
     expect(result.stepPositions).toHaveLength(1)
-    expect(result.stepPositions[0].lng).toBeCloseTo(3)
-    expect(result.stepPositions[0].lat).toBeCloseTo(0)
+    expect(result.stepPositions[0]?.lng).toBeCloseTo(3)
+    expect(result.stepPositions[0]?.lat).toBeCloseTo(0)
   })
 
   it("reaches segment boundary when travel equals segment distance", () => {
@@ -43,8 +43,8 @@ describe("stepRouteAnimation", () => {
     expect(result.done).toBe(true)
     expect(result.index).toBe(1)
     expect(result.stepPositions).toHaveLength(1)
-    expect(result.stepPositions[0].lng).toBeCloseTo(10)
-    expect(result.stepPositions[0].lat).toBeCloseTo(0)
+    expect(result.stepPositions[0]?.lng).toBeCloseTo(10)
+    expect(result.stepPositions[0]?.lat).toBeCloseTo(0)
   })
 
   it("skips zero-distance segments", () => {
@@ -70,8 +70,8 @@ describe("stepRouteAnimation", () => {
     expect(result.done).toBe(true)
     expect(result.index).toBe(2)
     expect(result.stepPositions).toHaveLength(2)
-    expect(result.stepPositions[0].lng).toBeCloseTo(5)
-    expect(result.stepPositions[1].lng).toBeCloseTo(10)
+    expect(result.stepPositions[0]?.lng).toBeCloseTo(5)
+    expect(result.stepPositions[1]?.lng).toBeCloseTo(10)
   })
 
   it("lands mid-segment after traversing earlier segments", () => {
@@ -85,8 +85,8 @@ describe("stepRouteAnimation", () => {
     expect(result.index).toBe(1)
     expect(result.distanceAlong).toBe(30)
     expect(result.stepPositions).toHaveLength(2)
-    expect(result.stepPositions[0].lng).toBeCloseTo(5)
-    expect(result.stepPositions[1].lng).toBeCloseTo(8)
+    expect(result.stepPositions[0]?.lng).toBeCloseTo(5)
+    expect(result.stepPositions[1]?.lng).toBeCloseTo(8)
   })
 
   it("starts from mid-segment when given a non-zero distanceAlong", () => {
@@ -97,7 +97,7 @@ describe("stepRouteAnimation", () => {
     expect(result.index).toBe(0)
     expect(result.distanceAlong).toBe(70)
     expect(result.stepPositions).toHaveLength(1)
-    expect(result.stepPositions[0].lng).toBeCloseTo(7)
+    expect(result.stepPositions[0]?.lng).toBeCloseTo(7)
   })
 
   it("handles start at index beyond segment list", () => {
@@ -117,9 +117,9 @@ describe("buildRouteSegments", () => {
   it("creates a single segment for two distinct points", () => {
     const segs = buildRouteSegments([ll(0, 0), ll(10, 0)])
     expect(segs).toHaveLength(1)
-    expect(segs[0].from.lng).toBe(0)
-    expect(segs[0].to.lng).toBe(10)
-    expect(segs[0].distance).toBeGreaterThan(0)
+    expect(segs[0]?.from.lng).toBe(0)
+    expect(segs[0]?.to.lng).toBe(10)
+    expect(segs[0]?.distance).toBeGreaterThan(0)
   })
 
   it("filters out zero-distance segments", () => {
@@ -130,10 +130,10 @@ describe("buildRouteSegments", () => {
   it("builds segments for multiple points", () => {
     const segs = buildRouteSegments([ll(0, 0), ll(5, 0), ll(10, 0)])
     expect(segs).toHaveLength(2)
-    expect(segs[0].from.lng).toBe(0)
-    expect(segs[0].to.lng).toBe(5)
-    expect(segs[1].from.lng).toBe(5)
-    expect(segs[1].to.lng).toBe(10)
+    expect(segs[0]?.from.lng).toBe(0)
+    expect(segs[0]?.to.lng).toBe(5)
+    expect(segs[1]?.from.lng).toBe(5)
+    expect(segs[1]?.to.lng).toBe(10)
   })
 })
 

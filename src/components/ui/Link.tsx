@@ -1,6 +1,6 @@
 import type * as React from "react"
-import type { LinkProps as RouterLinkProps } from "react-router-dom"
-import { Link as RouterLink } from "react-router-dom"
+import type { LinkProps as RouterLinkProps } from "react-router"
+import { Link as RouterLink } from "react-router"
 import { cn } from "@/lib/utils"
 import { link as linkRecipe } from "@/styles/recipes.css"
 

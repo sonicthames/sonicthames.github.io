@@ -1,4 +1,4 @@
-import type mapboxgl from "mapbox-gl"
+import type * as mapboxgl from "mapbox-gl"
 
 /**
  * Persisted grid cell index for fog-of-war reveals.
@@ -57,15 +57,4 @@ export type RevealScreenSpace = {
 export type ViewportBounds = {
   readonly width: number
   readonly height: number
-}
-
-/**
- * Configuration for fog rendering
- */
-export type FogConfig = {
-  readonly intensity: number // 0-1, controls fog opacity
-  readonly fixedRevealRadiusMeters: number // Fixed reveal radius in meters
-  readonly maxReveals: number // Maximum number of reveals to store
-  readonly persistDebounceMs: number // Debounce time for localStorage writes
-  readonly revealDistanceThreshold: number // Threshold for adding new reveals (multiplier of revealSize)
 }

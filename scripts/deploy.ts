@@ -1,9 +1,9 @@
 import { execSync } from "node:child_process"
 import path from "node:path"
 import process from "node:process"
-import * as E from "fp-ts/Either"
-import { pipe } from "fp-ts/function"
-import * as D from "io-ts/Decoder"
+import * as E from "fp-ts/lib/Either.js"
+import { pipe } from "fp-ts/lib/function.js"
+import * as D from "io-ts/lib/Decoder.js"
 import { loadEnv } from "vite"
 
 const EnvDecoder = D.struct({
@@ -21,17 +21,17 @@ const loadedEnv = loadEnv("production", path.resolve(root), "")
 
 const candidateEnv = {
   VITE_MAPBOX_TOKEN:
-    process.env.VITE_MAPBOX_TOKEN ??
-    loadedEnv.VITE_MAPBOX_TOKEN ??
-    process.env.MAPBOX_TOKEN ??
-    loadedEnv.MAPBOX_TOKEN ??
-    process.env.MAPBOX_ACCESS_TOKEN ??
-    loadedEnv.MAPBOX_ACCESS_TOKEN,
+    process.env["VITE_MAPBOX_TOKEN"] ??
+    loadedEnv["VITE_MAPBOX_TOKEN"] ??
+    process.env["MAPBOX_TOKEN"] ??
+    loadedEnv["MAPBOX_TOKEN"] ??
+    process.env["MAPBOX_ACCESS_TOKEN"] ??
+    loadedEnv["MAPBOX_ACCESS_TOKEN"],
 }
 
 const decodedEnv = pipe(
   EnvDecoder.decode(candidateEnv),
-  E.getOrElse((errors) => {
+  E.getOrElseW((errors) => {
     throw new Error(
       [
         "Unable to deploy: missing required environment variables.",
@@ -52,7 +52,7 @@ const run = (command: string) => {
 }
 
 try {
-  process.env.VITE_MAPBOX_TOKEN = decodedEnv.VITE_MAPBOX_TOKEN
+  process.env["VITE_MAPBOX_TOKEN"] = decodedEnv.VITE_MAPBOX_TOKEN
   run("pnpm run build")
   run("pnpm exec gh-pages -d dist --dotfiles")
   console.info("Deployment completed successfully.")

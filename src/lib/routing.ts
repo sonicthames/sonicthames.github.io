@@ -1,12 +1,11 @@
 import type { Show } from "fp-ts/Show"
-import type { ParamParseKey, PathParam } from "react-router"
+import type { ParamParseKey } from "react-router"
 import { generatePath } from "react-router"
 import type { EmptyObject, JoinTuple } from "./typescript"
 import { joinTuple } from "./typescript"
 
 /** Join path fragments like ["a","b"] -> "a/b" and "/a/b" helpers */
 export type RelativePath<FS extends readonly string[]> = JoinTuple<"/", FS>
-export type AbsolutePath<FS extends readonly string[]> = `/${RelativePath<FS>}`
 
 /** Whether a path pattern has any `:param` segments. */
 type HasParams<Path extends string> = Path extends `${string}:${string}`
@@ -100,9 +99,13 @@ export type ToRouteSegment<
   B extends string = "/",
 > = RouteSegment<T, FS, B> & {
   readonly to: (
-    _: Record<PathParam<`/${RelativePath<FS>}`>, string | null>,
+    _: GeneratePathParams<`/${RelativePath<FS>}`>,
   ) => ResolvedRouteSegment<T>
 }
+
+type GeneratePathParams<P extends string> = NonNullable<
+  Parameters<typeof generatePath<P>>[1]
+>
 
 /**
  * Build a typed route helper bound to a routes tree.
@@ -119,8 +122,7 @@ export const routePath =
 
     // Runtime walk into the remainder; types are enforced at call site via Path<T>/RouteNode<T,FS>.
     let remainder: unknown = routes
-    for (let i = 0; i < fragments.length; i += 1) {
-      const k = fragments[i]
+    for (const k of fragments) {
       if (
         remainder !== null &&
         typeof remainder === "object" &&

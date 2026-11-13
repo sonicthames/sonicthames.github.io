@@ -48,10 +48,6 @@ export const soundTitle = style({
   fontWeight: 400, // font-normal
 })
 
-export const soundHeading2 = style({
-  color: "rgb(90, 112, 6)",
-})
-
 export const soundHeading3 = style({
   color: "rgb(90, 112, 6)",
 })
@@ -83,16 +79,6 @@ export const technicalDefinition = style({
   margin: 0,
   marginRight: tokens.space.lg,
   flexBasis: "70%",
-})
-
-// Button style for sound page
-export const soundButton = style({
-  display: "inline-flex",
-  background: "rgb(86, 80, 23)",
-  color: tokens.color.fg,
-  padding: tokens.space.md,
-  cursor: "pointer",
-  textTransform: "uppercase",
 })
 
 // Video iframe style

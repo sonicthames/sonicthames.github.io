@@ -1,7 +1,7 @@
 import type { LngLat, LngLatLike, Map as MapboxMapInstance } from "mapbox-gl"
 import type { Application, Ticker } from "pixi.js"
 import { Container, Graphics } from "pixi.js"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { mapColorTheme } from "@/theme/mapColors"
 import { syncPixiRendererSize } from "../../lib/mapCanvas"
@@ -106,7 +106,7 @@ type AfterimageMeta = {
 
 interface Props {
   readonly mapRef: React.RefObject<MapRef | null>
-  readonly positionRef: React.MutableRefObject<LngLat>
+  readonly positionRef: React.RefObject<LngLat>
   readonly mapReady: boolean
 }
 
@@ -135,7 +135,7 @@ export const UserPositionCanvas = ({
   const prevPositionRef = useRef<{ lat: number; lng: number } | null>(null)
   const afterimagesRef = useRef<Map<Graphics, AfterimageMeta>>(new Map())
   const ghostSpawnTimerRef = useRef(0)
-  const isMovingRef = useRef(false)
+  const isMovingRef = useRef<boolean>(false)
   const avatarRef = useRef<Graphics | null>(null)
   const ghostContainerRef = useRef<Container | null>(null)
 
@@ -200,7 +200,7 @@ export const UserPositionCanvas = ({
       MIN_USER_RADIUS,
       MAX_USER_RADIUS,
     )
-    const deltaMs = ticker.deltaMS ?? (ticker.deltaTime / 60) * 1000
+    const deltaMs = ticker.deltaMS
     const now = performance.now()
 
     const avatarGraphic = avatarRef.current
@@ -249,7 +249,9 @@ export const UserPositionCanvas = ({
 
     state.app.render()
   }
-  onTickRef.current = tickHandler
+  useLayoutEffect(() => {
+    onTickRef.current = tickHandler
+  })
 
   const onTick = useCallback(
     (state: OverlayState, mapInstance: MapboxMapInstance, ticker: Ticker) => {

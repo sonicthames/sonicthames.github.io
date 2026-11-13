@@ -29,7 +29,6 @@ const ICONS = {
 } satisfies Record<string, IconComponent>
 
 export type KnownIcons = keyof typeof ICONS
-export type KnownIcon = KnownIcons
 
 export interface IconProps {
   readonly name: KnownIcons

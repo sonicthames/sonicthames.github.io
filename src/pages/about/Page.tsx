@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router"
 import { TrackedCta } from "@/components/TrackedCta"
 import { H1, H2 } from "@/components/Typography"
 import { Link } from "@/components/ui"

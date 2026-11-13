@@ -1,7 +1,7 @@
-import type mapboxgl from "mapbox-gl"
+import type * as mapboxgl from "mapbox-gl"
 import type { Application, Ticker } from "pixi.js"
 import { Container, Graphics } from "pixi.js"
-import { useCallback, useEffect, useRef } from "react"
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import type { Category, Sound } from "@/domain/sound"
 import { mapColorTheme } from "@/theme/mapColors"
@@ -102,7 +102,7 @@ const updateMarkerGraphics = (
   hoveredTitle: string | undefined,
   playingTitle: string | undefined,
 ): void => {
-  const categoryRadiusScale = CATEGORY_RADIUS_FACTOR[marker.sound.category] ?? 1
+  const categoryRadiusScale = CATEGORY_RADIUS_FACTOR[marker.sound.category]
   const isHovered = hoveredTitle === marker.sound.title
   const isPlaying = playingTitle === marker.sound.title
   const hoverScale = isHovered ? 1.25 : 1
@@ -217,10 +217,12 @@ export const SoundMarkersCanvas = ({
   const soundsRef = useRef(sounds)
   const soundRevisionRef = useRef(0)
   const lastRenderedSoundRevisionRef = useRef(-1)
-  onSoundClickRef.current = onSoundClick
-  onSoundHoverRef.current = onSoundHover
-  filtersRef.current = filters
-  playingSoundRef.current = playingSound
+  useLayoutEffect(() => {
+    onSoundClickRef.current = onSoundClick
+    onSoundHoverRef.current = onSoundHover
+    filtersRef.current = filters
+    playingSoundRef.current = playingSound
+  })
 
   const disposeMarkers = useCallback((layer?: Container) => {
     for (const marker of markersRef.current) {
@@ -238,8 +240,7 @@ export const SoundMarkersCanvas = ({
       )
       const nextMarkers: SoundMarker[] = []
 
-      for (let index = 0; index < targetSounds.length; index++) {
-        const sound = targetSounds[index]
+      for (const [index, sound] of targetSounds.entries()) {
         const markerKey = sound.marker
         const reusedMarker = availableMarkers.get(markerKey)
 
@@ -406,7 +407,7 @@ export const SoundMarkersCanvas = ({
       }
 
       const deltaTime = ticker.deltaTime / 60
-      const deltaMs = ticker.deltaMS ?? deltaTime * 1000
+      const deltaMs = ticker.deltaMS
       const currentZoom = currentMap.getZoom()
       const zoomScale = computeZoomScale(currentZoom)
       const smoothingFactor = Math.min(

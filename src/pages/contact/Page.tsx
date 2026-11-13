@@ -68,7 +68,7 @@ export const ContactPage = () => {
               />
             </div>
             <div>
-              <Button type="submit" variant="ghost">
+              <Button type="submit" tone="ghost">
                 Send Message
               </Button>
             </div>

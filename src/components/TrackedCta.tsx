@@ -17,7 +17,6 @@ export const TrackedCta = ({
   onClick,
   children,
   tone,
-  variant,
   ref,
   ...buttonProps
 }: TrackedCtaProps & { ref?: React.RefObject<HTMLButtonElement | null> }) => {
@@ -44,7 +43,7 @@ export const TrackedCta = ({
     }
   }
 
-  const resolvedTone = tone ?? variant ?? "cta"
+  const resolvedTone = tone ?? "cta"
 
   return (
     <Button

@@ -20,12 +20,12 @@ interface PlaylistItemProps {
   readonly coordinates: Coordinate
 }
 
-export const PlaylistItem = ({
+const PlaylistItem = ({
   name,
   onGoTo,
   onPlay,
   coordinates,
-  focused = false,
+  focused,
 }: PlaylistItemProps) => {
   return (
     <li className={playlistItem({ focused })} data-sound-title={name}>

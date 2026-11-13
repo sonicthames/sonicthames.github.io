@@ -246,7 +246,7 @@ export const ProximityVideo = ({ sound, origin, allowPlayback }: Props) => {
         className={proximityVideo}
         style={proximityVideoStyle}
       >
-        {iframeSrc && (
+        {iframeSrc !== null && (
           <iframe
             ref={iframeRef}
             title={`proximity preview: ${displayedSound.title}`}

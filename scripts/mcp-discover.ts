@@ -1,4 +1,4 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 /**
  * MCP Discovery Script
  *
@@ -15,17 +15,20 @@ import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import { Client } from "@modelcontextprotocol/sdk/client/index.js"
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js"
+import { z } from "zod"
 
-interface McpServer {
-  type: string
-  command: string
-  args: string[]
-  env: Record<string, string>
-}
+const McpServerSchema = z.object({
+  type: z.string(),
+  command: z.string(),
+  args: z.array(z.string()),
+  env: z.record(z.string(), z.string()),
+})
 
-interface McpConfig {
-  mcpServers: Record<string, McpServer>
-}
+type McpServer = z.infer<typeof McpServerSchema>
+
+const McpConfigSchema = z.object({
+  mcpServers: z.record(z.string(), McpServerSchema),
+})
 
 interface Tool {
   name: string
@@ -146,9 +149,8 @@ function printToolsByCategory(tools: Tool[]): void {
 
 function printNoToolsHint(server: McpServer): void {
   console.log(`   Capabilities:`)
-  console.log(`     See: node_modules/@playwright/mcp/README.md`)
   console.log(
-    `     Or: ${server.command} ${server.args.slice(0, 2).join(" ")} --help`,
+    `     See: ${server.command} ${server.args.slice(0, 2).join(" ")} --help`,
   )
 }
 
@@ -156,7 +158,9 @@ async function discoverMcpServers() {
   const mcpConfigPath = join(process.cwd(), ".mcp.json")
 
   try {
-    const config: McpConfig = JSON.parse(readFileSync(mcpConfigPath, "utf-8"))
+    const config = McpConfigSchema.parse(
+      JSON.parse(readFileSync(mcpConfigPath, "utf-8")),
+    )
 
     console.log("🔍 Discovered MCP Servers:\n")
 

@@ -26,15 +26,15 @@ export type StepRouteResult = {
 export const buildRouteSegments = (
   coordinates: readonly LngLat[],
 ): RouteSegment[] => {
-  if (coordinates.length < 2) {
+  const [first, ...rest] = coordinates
+  if (first === undefined || rest.length === 0) {
     return []
   }
 
   const segments: RouteSegment[] = []
-  let previousPoint = coordinates[0]
+  let previousPoint = first
 
-  for (let i = 1; i < coordinates.length; i++) {
-    const nextPoint = coordinates[i]
+  for (const nextPoint of rest) {
     const distance = previousPoint.distanceTo(nextPoint)
 
     if (distance > 0) {

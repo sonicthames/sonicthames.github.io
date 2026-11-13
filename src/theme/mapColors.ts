@@ -2,31 +2,31 @@ import type { Category } from "@/domain/sound"
 
 type SoundColorMap = Record<Category, string>
 
-export const soundBaseColors = {
+const soundBaseColors = {
   Listen: "#F7C0D6",
   See: "#D9FFE8",
   Feel: "#E3D8FF",
 } as const satisfies SoundColorMap
 
-export const soundHoverColors = {
+const soundHoverColors = {
   Listen: "#FF76A6",
   See: "#65F4B4",
   Feel: "#8C6AFF",
 } as const satisfies SoundColorMap
 
-export const soundActiveColors = {
+const soundActiveColors = {
   Listen: "#FF2D72",
   See: "#00E28D",
   Feel: "#6C3BFF",
 } as const satisfies SoundColorMap
 
-export const soundGlowColors = {
+const soundGlowColors = {
   Listen: "#FFA8C8",
   See: "#9CF6D3",
   Feel: "#B7A1FF",
 } as const satisfies SoundColorMap
 
-export const defaultMapColorTheme = {
+const defaultMapColorTheme = {
   soundBaseColors,
   soundHoverColors,
   soundActiveColors,

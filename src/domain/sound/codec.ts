@@ -89,7 +89,7 @@ const D_SoundBase: D.Decoder<unknown, SoundBase> = readonlyStruct(
     marker: D.string,
     category: D_Category,
     playOnProximity: D.boolean,
-    duration: decodeIso("Duration.fromISO", Duration.fromISO),
+    duration: decodeIso("Duration.fromISO", (value) => Duration.fromISO(value)),
     location: optional(D.string),
     access: optional(D.string),
     coordinate: D_Coordinate,
@@ -99,11 +99,15 @@ const D_SoundBase: D.Decoder<unknown, SoundBase> = readonlyStruct(
 )
 
 const D_DateTime: D.Decoder<unknown, HasDateTimeOption> = D.struct({
-  dateTime: decodeIsoOption("DateTime.fromISO", DateTime.fromISO),
+  dateTime: decodeIsoOption("DateTime.fromISO", (value) =>
+    DateTime.fromISO(value),
+  ),
 })
 
 const D_Interval: D.Decoder<unknown, HasIntervalOption> = D.struct({
-  interval: decodeIsoOption("Interval.fromISO", Interval.fromISO),
+  interval: decodeIsoOption("Interval.fromISO", (value) =>
+    Interval.fromISO(value),
+  ),
 })
 
 export const D_Sound = pipe(

@@ -114,13 +114,6 @@ export const youtubeLink = style({
   },
 })
 
-export const hoverFloating = style({
-  position: "fixed",
-  inset: "auto 25px 60px auto",
-  width: "300px",
-  zIndex: tokens.z.overlay,
-})
-
 export const selectedSound = style({
   display: "flex",
   flexDirection: "column",

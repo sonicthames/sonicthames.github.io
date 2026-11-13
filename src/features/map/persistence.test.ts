@@ -1,30 +1,23 @@
-// Mock localStorage first
-const localStorageMock = (() => {
-  const store = new Map()
-  return {
-    getItem: (key: string) => store.get(key) || null,
+import { beforeEach, describe, expect, it, vi } from "vitest"
+import { usePersistenceStore } from "./persistence"
+
+const localStorageMock = vi.hoisted(() => {
+  const store = new Map<string, string>()
+  const mock = {
+    getItem: (key: string) => store.get(key) ?? null,
     setItem: (key: string, value: string) => {
       store.set(key, value)
-      return true
     },
     removeItem: (key: string) => {
       store.delete(key)
-      return true
     },
     clear: () => {
       store.clear()
-      return true
     },
   }
-})()
-
-Object.defineProperty(window, "localStorage", {
-  value: localStorageMock,
-  writable: true,
+  vi.stubGlobal("localStorage", mock)
+  return mock
 })
-
-import { beforeEach, describe, expect, it, vi } from "vitest"
-import { usePersistenceStore } from "./persistence"
 
 describe("Persistence Store", () => {
   beforeEach(() => {

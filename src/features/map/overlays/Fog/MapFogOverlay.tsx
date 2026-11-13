@@ -1,4 +1,4 @@
-import type mapboxgl from "mapbox-gl"
+import type * as mapboxgl from "mapbox-gl"
 import type { LngLat, LngLatBounds } from "mapbox-gl"
 import {
   useCallback,
@@ -274,17 +274,17 @@ export const MapFogOverlay = ({
       return gridRef.current
     }
 
-    const map = getMap()
-    const bounds = movementBounds ?? map?.getBounds()
-    if (!bounds) return null
-
-    const metrics = computeCellMetrics(bounds)
-    const grid = createFogGrid(bounds, metrics.cellSize, metrics.visualRadius)
+    const metrics = computeCellMetrics(movementBounds)
+    const grid = createFogGrid(
+      movementBounds,
+      metrics.cellSize,
+      metrics.visualRadius,
+    )
     gridRef.current = grid
     revealedBitmapRef.current = new Uint8Array(grid.width * grid.height)
     maxRevealCellsRef.current = grid.width * grid.height
     return grid
-  }, [getMap, movementBounds])
+  }, [movementBounds])
 
   const addReveals = useCallback(
     (cells: readonly RevealPoint[]) => {
@@ -415,10 +415,7 @@ export const MapFogOverlay = ({
         const grid = ensureGrid()
         if (!grid) return
 
-        const map = getMap()
-        const bounds = movementBounds ?? map?.getBounds()
-        if (!bounds) return
-
+        const bounds = movementBounds
         const cells = collectCellsInBounds(
           grid,
           bounds,
@@ -438,7 +435,7 @@ export const MapFogOverlay = ({
         revealAtPosition(position)
       },
     }),
-    [addReveals, ensureGrid, getMap, movementBounds, revealAtPosition],
+    [addReveals, ensureGrid, movementBounds, revealAtPosition],
   )
 
   // === EFFECT: MAP CHANGE TRACKING ===

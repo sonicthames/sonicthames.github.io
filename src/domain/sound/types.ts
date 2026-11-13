@@ -93,9 +93,9 @@ export function showDateTime(x: DateTime): string {
 }
 
 const formatDate = (value: DateTime | null) =>
-  value != null ? value.toFormat("dd LLL yyyy") : undefined
+  value !== null ? value.toFormat("dd LLL yyyy") : undefined
 const formatTime = (value: DateTime | null) =>
-  value != null ? value.toFormat("HH:mm") : undefined
+  value !== null ? value.toFormat("HH:mm") : undefined
 const joinParts = (...parts: ReadonlyArray<string | undefined>) =>
   parts.filter((part): part is string => Boolean(part?.trim())).join(" ")
 
@@ -114,12 +114,9 @@ const formatSameDay = (
 }
 
 export function showInterval(x: Interval): string {
-  const { start, end } = x as unknown as {
-    readonly start: DateTime | null
-    readonly end: DateTime | null
-  }
+  const { start, end } = x
 
-  if (start == null && end == null) {
+  if (start === null && end === null) {
     return "N/A"
   }
 
@@ -128,19 +125,19 @@ export function showInterval(x: Interval): string {
   const endDate = formatDate(end)
   const endTime = formatTime(end)
 
-  if (start != null && end != null) {
+  if (start !== null && end !== null) {
     if (start.hasSame(end, "day")) {
       return formatSameDay(startDate, endDate, startTime, endTime)
     }
     return `${joinParts(startDate, startTime)} - ${joinParts(endDate, endTime)}`.trim()
   }
 
-  if (start != null) {
+  if (start !== null) {
     const label = joinParts(startDate, startTime)
     return label.length > 0 ? `from ${label}` : "N/A"
   }
 
-  if (end != null) {
+  if (end !== null) {
     const label = joinParts(endDate, endTime)
     return label.length > 0 ? `until ${label}` : "N/A"
   }

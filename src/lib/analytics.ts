@@ -54,9 +54,9 @@ const captureEvent = (event: string, payload: Record<string, unknown>) => {
 
 interface CtaEventBase {
   readonly cta_id: string
-  readonly label?: string
-  readonly location?: string
-  readonly path?: string
+  readonly label?: string | undefined
+  readonly location?: string | undefined
+  readonly path?: string | undefined
   readonly [key: string]: string | number | boolean | null | undefined
 }
 
@@ -69,5 +69,3 @@ export const trackCtaHover = (
 ) => {
   captureEvent("cta_hover", payload)
 }
-
-export { posthog }
