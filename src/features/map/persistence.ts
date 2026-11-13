@@ -1,6 +1,7 @@
 import * as z from "zod/mini"
 import { create } from "zustand"
-import { createJSONStorage, persist } from "zustand/middleware"
+import type { PersistStorage, StorageValue } from "zustand/middleware"
+import { persist } from "zustand/middleware"
 import type { PersistedReveal } from "@/features/map/overlays/Fog/types"
 
 /**
@@ -27,6 +28,62 @@ const PersistedStateSchema = z.object({
  */
 type LngLatData = z.infer<typeof LngLatSchema>
 type PersistedState = z.infer<typeof PersistedStateSchema>
+
+const WRITE_INTERVAL_MS = 2000
+
+// The position changes every animation frame and the reveals can number in the
+// thousands, so serialising on every update would stall the main thread.
+const createThrottledStorage = <S>(intervalMs: number): PersistStorage<S> => {
+  let pending: {
+    readonly name: string
+    readonly value: StorageValue<S>
+  } | null = null
+  let timer: ReturnType<typeof setTimeout> | null = null
+
+  const flush = () => {
+    if (timer !== null) {
+      clearTimeout(timer)
+      timer = null
+    }
+    if (pending === null) {
+      return
+    }
+    const { name, value } = pending
+    pending = null
+    try {
+      localStorage.setItem(name, JSON.stringify(value))
+    } catch (error) {
+      console.warn("Failed to persist map state", error)
+    }
+  }
+
+  window.addEventListener("pagehide", flush)
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      flush()
+    }
+  })
+
+  return {
+    getItem: (name) => {
+      if (pending?.name === name) {
+        return pending.value
+      }
+      const raw = localStorage.getItem(name)
+      return raw === null ? null : (JSON.parse(raw) as StorageValue<S>)
+    },
+    setItem: (name, value) => {
+      pending = { name, value }
+      timer ??= setTimeout(flush, intervalMs)
+    },
+    removeItem: (name) => {
+      if (pending?.name === name) {
+        pending = null
+      }
+      localStorage.removeItem(name)
+    },
+  }
+}
 
 /**
  * Store actions
@@ -67,7 +124,7 @@ export const usePersistenceStore = create<PersistenceStore>()(
     }),
     {
       name: "sonic-thames:persistence",
-      storage: createJSONStorage(() => localStorage),
+      storage: createThrottledStorage(WRITE_INTERVAL_MS),
       partialize: (state) => ({
         lastUserPosition: state.lastUserPosition,
         fogReveals: state.fogReveals,

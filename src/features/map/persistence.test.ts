@@ -1,5 +1,7 @@
-import { beforeEach, describe, expect, it, vi } from "vitest"
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest"
 import { usePersistenceStore } from "./persistence"
+
+const PERSISTENCE_KEY = "sonic-thames:persistence"
 
 const localStorageMock = vi.hoisted(() => {
   const store = new Map<string, string>()
@@ -67,7 +69,7 @@ describe("Persistence Store", () => {
   it("should validate and reset invalid persisted state", async () => {
     // Set invalid state in localStorage FIRST
     localStorageMock.setItem(
-      "sonic-thames:persistence",
+      PERSISTENCE_KEY,
       JSON.stringify({
         lastUserPosition: { lng: "invalid", lat: 51.5 }, // Invalid lng type
         fogReveals: [{ lng: -0.1, lat: "invalid" }], // Invalid lat type
@@ -103,5 +105,52 @@ describe("Persistence Store", () => {
     usePersistenceStore.getState().setLastUserPosition(null)
     const store = usePersistenceStore.getState()
     expect(store.lastUserPosition).toBeNull()
+  })
+
+  describe("writes", () => {
+    const readPersisted = () =>
+      JSON.parse(localStorageMock.getItem(PERSISTENCE_KEY) ?? "null") as {
+        readonly state: { readonly lastUserPosition: unknown }
+      } | null
+
+    beforeEach(() => {
+      // Flush anything earlier tests left pending under real timers.
+      window.dispatchEvent(new Event("pagehide"))
+      localStorageMock.clear()
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it("coalesces updates into one write per interval", () => {
+      const setItem = vi.spyOn(localStorageMock, "setItem")
+      const store = usePersistenceStore.getState()
+      store.setLastUserPosition({ lng: 1, lat: 1 })
+      store.setLastUserPosition({ lng: 2, lat: 2 })
+
+      vi.advanceTimersByTime(1999)
+      expect(setItem).not.toHaveBeenCalled()
+
+      vi.advanceTimersByTime(1)
+      expect(setItem).toHaveBeenCalledTimes(1)
+      expect(readPersisted()?.state.lastUserPosition).toEqual({
+        lng: 2,
+        lat: 2,
+      })
+      setItem.mockRestore()
+    })
+
+    it("flushes pending state when the page is hidden", () => {
+      usePersistenceStore.getState().setLastUserPosition({ lng: 3, lat: 3 })
+      expect(readPersisted()).toBeNull()
+
+      window.dispatchEvent(new Event("pagehide"))
+      expect(readPersisted()?.state.lastUserPosition).toEqual({
+        lng: 3,
+        lat: 3,
+      })
+    })
   })
 })
