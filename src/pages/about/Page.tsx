@@ -35,7 +35,7 @@ export const AboutPage = () => {
         <div className={contentContainer}>
           <H1>About</H1>
           <p>
-            Sonic Thames has been Inspired by exploring the river upstream at
+            Sonic Thames has been inspired by exploring the river upstream at
             the height of the pandemic.
           </p>
           <p>

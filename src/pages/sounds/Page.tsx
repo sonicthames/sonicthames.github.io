@@ -40,9 +40,11 @@ export const SoundsPage = ({ category, sounds }: Props) => {
         }
       >
         <h1 className={heading.h1}>{category}</h1>
-        <p className={text.muted}>
-          <em>{R_CategoryFlavor[category]}</em>
-        </p>
+        {R_CategoryFlavor[category] === null ? null : (
+          <p className={text.muted}>
+            <em>{R_CategoryFlavor[category]}</em>
+          </p>
+        )}
         <div>
           <ul className={grid}>
             {pipe(
@@ -67,9 +69,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                       </h3>
                       <div className={cardDescription}>
                         {pipe(
-                          typeof x.description === "string"
-                            ? [x.description]
-                            : x.description,
+                          x.description,
                           RA.head,
                           O.fold(constNull, (y) => <p>{y}</p>),
                         )}

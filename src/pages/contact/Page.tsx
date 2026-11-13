@@ -50,7 +50,7 @@ export const ContactPage = () => {
             <p className={text.body}>
               Get in touch with us by sending us a message here. Let us know
               your opinion about the Sonic Thames Project. We value your
-              feedback, input, suggestions and of course you positive feedback.
+              feedback, input, suggestions and of course your positive feedback.
             </p>
           </div>
           <form className={form} onSubmit={handleSubmit}>

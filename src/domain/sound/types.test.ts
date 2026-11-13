@@ -37,7 +37,7 @@ describe("Sound Domain Types", () => {
     it("should have correct flavor mappings", () => {
       expect(R_CategoryFlavor.Listen).toBe("Sonic Points Fixed position")
       expect(R_CategoryFlavor.See).toBe("Sonic Scape Multi direction")
-      expect(R_CategoryFlavor.Feel).toBe("PLACEHOLDER")
+      expect(R_CategoryFlavor.Feel).toBeNull()
     })
 
     it("should have correct route mappings", () => {
