@@ -18,4 +18,12 @@ test.describe("Contact page", () => {
       page.getByRole("button", { name: /send message/i }),
     ).toBeVisible()
   })
+
+  test("submit button uses the light contrast style", async ({ page }) => {
+    await page.goto("/contact")
+
+    const submit = page.getByRole("button", { name: /send message/i })
+    await expect(submit).toHaveCSS("background-color", "rgb(255, 255, 255)")
+    await expect(submit).toHaveCSS("color", "rgb(0, 0, 0)")
+  })
 })
