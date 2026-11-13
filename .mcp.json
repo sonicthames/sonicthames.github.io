@@ -4,8 +4,8 @@
       "type": "stdio",
       "command": "pnpm",
       "args": [
-        "exec",
-        "mcp-server-playwright",
+        "dlx",
+        "@playwright/mcp@0.0.85",
         "--headless",
         "--viewport-size=1920x1080",
         "--timeout-action=10000",
@@ -22,8 +22,8 @@
       "type": "stdio",
       "command": "pnpm",
       "args": [
-        "exec",
-        "mcp-server-playwright",
+        "dlx",
+        "@playwright/mcp@0.0.85",
         "--viewport-size=1920x1080",
         "--timeout-action=10000",
         "--timeout-navigation=30000",

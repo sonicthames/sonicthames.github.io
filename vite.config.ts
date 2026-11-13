@@ -4,15 +4,13 @@ import { visualizer } from "rollup-plugin-visualizer"
 import type { UserConfig } from "vite"
 import { defineConfig } from "vitest/config"
 
-const shouldOpenVisualizer = process.env.BUNDLE_STATS === "true"
+const shouldOpenVisualizer = process.env["BUNDLE_STATS"] === "true"
 
 export default defineConfig({
   plugins: [
-    react({
-      babel: {
-        plugins: [["babel-plugin-react-compiler", {}]],
-      },
-    }),
+    // A component the compiler cannot compile fails the build instead of
+    // shipping without its optimisations.
+    react({ compiler: { panicThreshold: "all_errors" } }),
     vanillaExtractPlugin(),
     visualizer({
       open: shouldOpenVisualizer,
@@ -40,20 +38,24 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       output: {
-        manualChunks: {
-          mapbox: ["mapbox-gl", "react-map-gl/mapbox"],
-          pixi: ["pixi.js", "@pixi/react"],
+        codeSplitting: {
+          groups: [
+            {
+              name: "mapbox",
+              test: /[\\/]node_modules[\\/](mapbox-gl|react-map-gl)[\\/]/,
+            },
+            {
+              name: "pixi",
+              test: /[\\/]node_modules[\\/]pixi\.js[\\/]/,
+            },
+          ],
         },
       },
     },
   },
   resolve: {
-    alias: {
-      "@": "/src",
-      "@theme": "/src/theme",
-      "@ui": "/src/ui",
-    },
+    tsconfigPaths: true,
   },
 } satisfies UserConfig)

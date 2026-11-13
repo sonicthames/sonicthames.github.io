@@ -1,3 +1,24 @@
 allowBuilds:
   core-js: true
   esbuild: true
+
+# Keep both at the same version: the override below pins the second.
+catalog:
+  playwright: 1.65.0
+  playwright-core: 1.65.0
+
+overrides:
+  # @axe-core/playwright takes playwright-core as a `>= 1.0.0` peer, so any
+  # stray copy in the graph can satisfy it. A second copy makes its `Page`
+  # structurally incompatible with playwright's, which only surfaces as a type
+  # error, so keep the peer pinned to the version we test with.
+  "@axe-core/playwright>playwright-core": "catalog:"
+  # Storybook pins this plugin to ^0.7.0, which takes glob ^13; 14.0.2 carries
+  # the fix for GHSA-3g3m-2fjr-6pw4 and the minimatch release fixing
+  # GHSA-g3hv-75wg-m249.
+  "@joshwooding/vite-plugin-react-docgen-typescript>glob": 14.0.2
+
+auditConfig:
+  ignoreGhsas:
+    # GHSA-gcqx-w48m-w2h4: deepmerge has no patched release; reached only by @svgr/cli, offline, on this repo's own icon config.
+    - GHSA-gcqx-w48m-w2h4
