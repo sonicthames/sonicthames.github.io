@@ -1,210 +1,115 @@
-# Development Reference
-
-Quick reference for working on Sonic Thames. For architecture and patterns, see [AGENTS.md](AGENTS.md).
+# Development
 
 ## Setup
 
-This project uses [`proto`](https://moonrepo.dev/docs/proto) to manage tool versions (Node.js, pnpm, Lefthook).
+[mise](https://mise.jdx.dev) pins Node.js, pnpm, Lefthook, actionlint and gitleaks in `mise.toml`. `mise.lock` holds their checksums, and CI installs from it with `--locked`.
 
 ```bash
-# Install pinned toolchain
-proto install
-
-# Install dependencies
+mise install
 pnpm install
-
-# Set up Git hooks (skip in CI environments)
 lefthook install
-
-# Set up environment (required for Mapbox)
-cp .env.template .env
-# Edit .env and add your VITE_MAPBOX_TOKEN from https://mapbox.com
-
-# Start dev server
-pnpm dev  # http://localhost:3001
+cp .env.template .env  # add VITE_MAPBOX_TOKEN
+pnpm dev               # http://localhost:4420
 ```
+
+With direnv, `direnv allow` puts the tools on `PATH` and loads `.env`; otherwise run `mise activate`. After changing `mise.toml`, run `mise lock` and commit both files.
+
+`.env` takes a public `VITE_MAPBOX_TOKEN` and, optionally, `VITE_POSTHOG_KEY` and `VITE_POSTHOG_HOST`. Analytics stays off unless both PostHog values are set.
 
 ## Commands
 
-```bash
-# Development
-pnpm dev              # Start dev server with hot reload
-pnpm dev:test         # Start dev server on port 4747 for Playwright
-pnpm build            # Production build
-pnpm preview          # Preview production build
-pnpm clean            # Remove build artifacts
+| Command                                  | Purpose                                                                |
+| ---------------------------------------- | ---------------------------------------------------------------------- |
+| `pnpm dev`, `pnpm dev:test`              | Dev server on port 4420, or 4747 for the Playwright MCP                |
+| `pnpm build`, `pnpm serve`               | Production build, and its preview on port 4421                         |
+| `pnpm check`                             | Every gate: peer check, lint, typecheck, spellcheck, unit tests, build |
+| `pnpm lint:fix`, `pnpm format`           | Apply Biome's safe fixes; format                                       |
+| `pnpm test`                              | Unit tests                                                             |
+| `pnpm test:e2e`                          | Playwright specs except the visual suite                               |
+| `pnpm test:visual`, `test:visual:update` | Visual suite in Docker; regenerate its baselines                       |
+| `pnpm storybook`                         | Storybook on port 6006                                                 |
+| `pnpm build-icons`                       | Regenerate `src/icon/generated/` from `static/icons/`                  |
+| `pnpm mcp:discover`                      | List the MCP servers in `.mcp.json` and their tools                    |
+| `pnpm run deploy`                        | Publish to GitHub Pages; see [Deployment](#deployment)                 |
 
-# Quality (run before committing)
-pnpm typecheck        # TypeScript type checking
-pnpm lint             # Lint with Biome
-pnpm test             # Run tests
-pnpm exec playwright test  # Run Playwright integration tests
-pnpm format           # Auto-fix formatting
-pnpm format:check     # Check formatting
+Scripts in `scripts/` run on Node.js type stripping, so they use erasable syntax only and import `fp-ts` and `io-ts` through `lib/*.js`, which Biome enforces.
 
-# Full quality suite
-pnpm format:check && pnpm lint && pnpm typecheck && pnpm test
+## Quality gates
 
-# Icons
-pnpm build-icons      # Regenerate icons from static/icons/*.svg
+- **Lint:** Biome (warnings fail), oxlint's React Compiler rules, type-aware oxlint and knip. `no-unsafe-type-assertion` is off because the routing and tuple helpers in `src/lib/` assert types the compiler cannot derive. Each knip waiver in `knip.jsonc` gives a reason.
+- **TypeScript:** the strict flags beyond `strict`, including `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`.
+- **Build:** the React Compiler fails the build on a component it cannot compile (`panicThreshold` in `vite.config.ts`). The error names the rule, for example `Refs` for touching `ref.current` during render.
+- **Hooks:** pre-commit runs actionlint, lint, typecheck, spellcheck and a gitleaks scan of staged changes, and fails when a tool is missing. Pre-push runs `pnpm check`.
+- **CI:** `.github/workflows/ci.yml` runs the gates, the Storybook build, the Playwright specs and the visual suite on Blacksmith runners. They need the Blacksmith GitHub app on the organisation; without it, jobs queue and never start. Runner labels are declared in `.github/actionlint.yaml`.
+- **Audit:** a separate job runs `pnpm audit --audit-level=moderate` weekly, on manual dispatch, and when `package.json`, `pnpm-lock.yaml` or `pnpm-workspace.yaml` change. Record an advisory with no fix under `auditConfig.ignoreGhsas` in `pnpm-workspace.yaml`, with the reason.
 
-# Deploy
-pnpm deploy           # Build and deploy to GitHub Pages (requires VITE_MAPBOX_TOKEN)
-```
+## Tests
 
-## Repository Structure
+Vitest runs in happy-dom with `src/test/setup.ts`, which mocks Mapbox GL. On Node.js 26 the bare `localStorage` global is Node's own, so stub it with `vi.stubGlobal`.
+
+Playwright specs in `playwright/` run against `pnpm build:e2e`, a production build with a placeholder Mapbox token and no PostHog key, served on port 4748. Map tiles never load, so screenshots are deterministic and test runs send no analytics. Specs import `test` from `playwright/fixtures.ts`, which fails on page errors and on any `console.error` except Mapbox's. Install Chromium once with `pnpm playwright:install`; the MCP servers use the installed Google Chrome instead.
+
+The visual suite renders in the `mcr.microsoft.com/playwright` image matching the catalog version, pinned to `linux/arm64` locally and in CI, so baselines match everywhere; outside Docker it refuses to run. After an intended UI change, check the diffs in `test-results/`, run `pnpm test:visual:update` and commit the new PNGs.
+
+## Dependencies
+
+Direct dependencies are pinned exactly, and Playwright's version lives in the catalog in `pnpm-workspace.yaml`. React stays on a canary build for `ViewTransition`. Renovate waits three days after each release, groups updates and refreshes the lockfile weekly.
+
+## Layout
 
 ```
 src/
-├── components/ui/    # Reusable UI components (Button, Dialog, Link, etc.)
-├── domain/           # Domain types and codecs (sound model, etc.)
-├── features/map/     # Map experience components, overlays, and lib code
-├── icon/generated/   # Auto-generated icons (from static/icons/)
-├── lib/              # Utilities (RxJS operators, routing, helpers)
-├── pages/            # Page components (sound, sounds, about, etc.)
-├── styles/           # Design tokens (theme.css.ts) and global styles
-├── data.json         # Sound recordings content
-└── index.tsx         # App entry point
-
-Key files:
-├── .env              # Local environment variables (gitignored)
-├── .env.template     # Environment template
-├── tailwind.config.ts    # Tailwind configuration
-├── vite.config.ts        # Vite build config
-└── biome.json        # Linting and formatting config
+├── components/ui/    # Shared UI components and their stories
+├── domain/           # Domain types and io-ts codecs
+├── features/map/     # Map experience: overlays, playlist, video, persistence
+├── hooks/            # Shared hooks
+├── icon/             # SVGR template and generated icons
+├── lib/              # Routing, analytics, geo and type helpers
+├── pages/            # Route pages; route definitions in location.ts
+├── styles/           # Global styles
+├── theme/            # Tokens, light and dark themes, recipes
+├── ui/components/    # Drawer and panel layout styles
+├── data.json         # Sound recordings
+└── index.tsx         # Entry point
 ```
 
-## Common Tasks
+## Data model
 
-### Add Sound Recording
+Recordings live in `src/data.json`. The codec in `src/domain/sound/codec.ts` validates them, and `src/domain/sound/types.ts` holds the types; change all three together, then run `pnpm typecheck && pnpm test`.
 
-1. Edit `src/data.json` and add entry
-2. Run `pnpm typecheck && pnpm test` to validate
-
-### Add UI Component
-
-1. Create `src/components/ui/ComponentName.tsx`
-2. Export from `src/components/ui/index.ts`
-3. Import via `@/components/ui`
-
-### Add Icon
-
-1. Add SVG to `static/icons/`
-2. Run `pnpm build-icons`
-3. Import from `@/icon/generated/IconName`
-
-### Update Design Tokens
-
-Edit `src/styles/theme.css.ts` and update Tailwind config if needed
-
-### Update Data Schema
-
-1. Edit `src/data.json`
-2. Update codecs in `src/domain/sound/codec.ts`
-3. Run `pnpm typecheck && pnpm test`
-
-## Environment Variables
-
-```bash
-# .env
-VITE_MAPBOX_TOKEN=pk.eyJ1IjoieW91ciIsImEiOiJjbHh4eHh4In0.xxxxx
-
-# Get token from https://mapbox.com → Account → Tokens
-```
-
-## Debugging
-
-### Map not loading
-
-Check `.env` has `VITE_MAPBOX_TOKEN` and restart dev server
-
-### Type errors after data.json changes
-
-Update codecs in `src/domain/sound/codec.ts` to match new schema
-
-### Build fails but dev works
-
-```bash
-pnpm clean && pnpm build
-```
-
-### Integration tests
-
-Playwright tests live under `playwright/` and launch a browser against `pnpm dev:test`:
-
-```bash
-pnpm exec playwright install        # once per environment
-pnpm exec playwright test           # runs browser tests with a dedicated dev server
-```
-
-### Tests failing after dependency update
-
-```bash
-rm -rf node_modules && pnpm install
-```
-
-## Signed commits
-
-This project relies on SSH-based commit signing (`gpg.format=ssh` in `~/.gitconfig`). If `git commit` fails with:
-
-```
-error: Couldn't find key in agent?
-fatal: failed to write commit object
-```
-
-load the private key referenced by `user.signingkey` (typically `~/.ssh/id_ed25519_signing`) into your SSH agent:
-
-```bash
-eval "$(ssh-agent -s)"              # start an agent if needed
-ssh-add ~/.ssh/id_ed25519_signing  # load the signing key
-ssh-add -l                         # verify the key is available
-```
-
-Use `git commit --no-gpg-sign` to bypass signing for a single commit when troubleshooting.
-
-## Tech Stack Reference
-
-- **React 17** - UI framework
-- **TypeScript** - Type safety (strict mode)
-- **Vite** - Build tool and dev server
-- **Tailwind CSS v3** - Utility-first CSS
-- **vanilla-extract** - Design tokens and theme
-- **Radix UI** - Accessible primitives
-- **Mapbox GL** - Interactive mapping
-- **RxJS** - Reactive programming
-- **fp-ts** - Functional programming utilities
-- **io-ts** - Runtime type validation
-- **Vitest** - Testing framework
-- **Biome** - Linting and formatting
-
-## IDE Setup (VS Code)
-
-Recommended extensions:
-
-- Biome (`biomejs.biome`)
-- Tailwind CSS IntelliSense
-- TypeScript and JavaScript Language Features (built-in)
-
-`.vscode/settings.json`:
-
-```json
+```typescript
 {
-  "editor.defaultFormatter": "biomejs.biome",
-  "editor.formatOnSave": true,
-  "editor.codeActionsOnSave": {
-    "quickfix.biome": "explicit",
-    "source.organizeImports.biome": "explicit"
-  }
+  title: string
+  description: string[]           // paragraphs
+  marker: string                  // short map label
+  category: "Listen" | "See" | "Feel"
+  playOnProximity: boolean        // eligible for the proximity video preview
+  duration: string                // ISO 8601 duration, e.g. "PT01M29S"
+  location: string | null
+  access: string | null           // access instructions
+  coordinate: { lng: number; lat: number }
+  videoSrc: string                // YouTube video ID
+  thumbnailSrc: string | null
+  dateTime: string | null         // ISO timestamp, or instead
+  interval: string | null         // ISO interval
 }
 ```
 
-## Related Documentation
+## Common tasks
 
-- [AGENTS.md](AGENTS.md) - Architecture, patterns, and conventions
-- [CONTRIBUTING.md](CONTRIBUTING.md) - Git workflow and PR guidelines (if present)
-- [README.md](README.md) - Project overview and getting started
-- [CLAUDE.md](CLAUDE.md) - Agent documentation system
+- **UI component:** add it to `src/components/ui/` with any variants as a recipe in `src/theme/recipes/`, export it from `index.ts`, and add a story under `__stories__/`.
+- **Icon:** add the SVG to `static/icons/`, run `pnpm build-icons` and expose it in `src/icon/index.tsx`. Never edit `src/icon/generated/` by hand.
+- **Design tokens:** edit `src/theme/tokens.css.ts`, then `lightTheme.css.ts` and `darkTheme.css.ts`.
+- **Tracked CTA:** wrap it in `TrackedCta`. `useHoverAnalytics` records `cta_hover` with dwell time, and `src/lib/analytics.ts` exposes `trackCtaClick` and `trackCtaHover`.
 
----
+## Deployment
 
-**Quick links**: [Vite](https://vitejs.dev/) | [Tailwind](https://tailwindcss.com/) | [Radix UI](https://www.radix-ui.com/) | [Mapbox GL](https://docs.mapbox.com/mapbox-gl-js/) | [fp-ts](https://gcanti.github.io/fp-ts/) | [io-ts](https://gcanti.github.io/io-ts/)
+```bash
+VITE_MAPBOX_TOKEN=... pnpm run deploy
+```
+
+`scripts/deploy.ts` builds and publishes `dist/` to the `gh-pages` branch. It reads the token from the environment or `.env`, and also accepts it as `MAPBOX_TOKEN` or `MAPBOX_ACCESS_TOKEN`. Plain `pnpm deploy` is a pnpm built-in and does not run the script.
+
+## Signed commits
+
+Commits are signed with SSH (`gpg.format=ssh`). If signing fails with `Couldn't find key in agent`, load the key that `user.signingkey` names, typically with `ssh-add ~/.ssh/id_ed25519_signing`.
