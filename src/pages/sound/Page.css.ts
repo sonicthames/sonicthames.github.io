@@ -48,14 +48,14 @@ export const technicalSheetArea = style({
 // Typography styles for sound page
 export const soundTitle = style({
   boxSizing: "border-box",
-  color: "rgb(90, 112, 6)",
+  color: tokens.color.brand.olive,
   fontFamily: "Helvetica Neue, Helvetica, Roboto, Arial, sans-serif",
   fontSize: "2.25rem", // text-4xl
   fontWeight: 400, // font-normal
 })
 
 export const soundHeading3 = style({
-  color: "rgb(90, 112, 6)",
+  color: tokens.color.brand.olive,
 })
 
 // Technical sheet data list styles

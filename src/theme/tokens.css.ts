@@ -54,6 +54,7 @@ export const tokens = createThemeContract({
       warning: null,
       success: null,
       danger: null,
+      olive: null,
     },
 
     glow: {

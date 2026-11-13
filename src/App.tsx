@@ -64,12 +64,14 @@ export const App = () => {
     trackPageView()
   }, [location.pathname, location.search])
   return (
-    <ErrorBoundary
-      resetKey={location.pathname}
-      fallback={(error) => <CrashPage error={error} />}
-    >
-      <AppContent />
-    </ErrorBoundary>
+    <div className={appContainer}>
+      <ErrorBoundary
+        resetKey={location.pathname}
+        fallback={(error) => <CrashPage error={error} />}
+      >
+        <AppContent />
+      </ErrorBoundary>
+    </div>
   )
 }
 
@@ -147,7 +149,7 @@ const AppContent = () => {
     )
 
   return (
-    <div className={appContainer}>
+    <>
       <div className={appMapLayer} inert={showDrawer}>
         {/* A failed map chunk stays failed until a reload, so it must not crash the pages. */}
         <ErrorBoundary
@@ -201,7 +203,7 @@ const AppContent = () => {
           </Suspense>
         </div>
       </div>
-    </div>
+    </>
   )
 }
 

@@ -1,11 +1,12 @@
-import { createTheme } from "@vanilla-extract/css"
+import { createGlobalTheme, globalStyle } from "@vanilla-extract/css"
 import { rgba } from "./helpers"
 import { tokens } from "./tokens.css"
 
 /**
- * Dark theme with consistent structure to light theme.
+ * The app's only theme. The map is always dark, so everything over it is too.
+ * It applies from the stylesheet, before any script runs.
  */
-export const darkThemeClass = createTheme(tokens, {
+createGlobalTheme(":root", tokens, {
   color: {
     // Base RGB values (space-separated for alpha composition)
     bgRgb: "17 24 39",
@@ -55,6 +56,7 @@ export const darkThemeClass = createTheme(tokens, {
       warning: "#fbbf24",
       success: "#34d399",
       danger: "#f87171",
+      olive: rgba("118 147 8"),
     },
 
     glow: {
@@ -117,3 +119,5 @@ export const darkThemeClass = createTheme(tokens, {
     lineHeight: { tight: "1.2", normal: "1.45", relaxed: "1.6" },
   },
 })
+
+globalStyle(":root", { colorScheme: "dark" })

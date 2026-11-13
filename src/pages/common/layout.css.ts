@@ -4,6 +4,7 @@
  */
 import { tokens } from "@theme/tokens.css"
 import { style, styleVariants } from "@vanilla-extract/css"
+import { mapColorTheme } from "@/theme/mapColors"
 
 export const pageRoot = style({
   color: tokens.color.contrast.light,
@@ -52,6 +53,9 @@ export const textAction = style({
  * App-level layout styles
  */
 export const appContainer = style({
+  background: mapColorTheme.streetSurfaceColor,
+  display: "flex",
+  flexDirection: "column",
   position: "relative",
   height: "100vh",
   width: "100vw",

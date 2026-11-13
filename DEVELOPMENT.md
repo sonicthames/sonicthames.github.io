@@ -96,7 +96,7 @@ Recordings live in `src/data.json`. The codec in `src/domain/sound/codec.ts` val
 ## Common tasks
 
 - **UI component:** add it to `src/components/ui/` with any variants as a recipe in `src/theme/recipes/`, export it from `index.ts`, and add a story under `__stories__/`.
-- **Design tokens:** edit `src/theme/tokens.css.ts`, then `lightTheme.css.ts` and `darkTheme.css.ts`.
+- **Design tokens:** edit `src/theme/tokens.css.ts`, then `darkTheme.css.ts`.
 - **Tracked CTA:** wrap it in `TrackedCta`. `useHoverAnalytics` records `cta_hover` with dwell time, and `src/lib/analytics.ts` exposes `trackCtaClick` and `trackCtaHover`.
 
 ## Deployment
