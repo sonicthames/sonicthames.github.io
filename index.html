@@ -12,6 +12,19 @@
     <link rel="preconnect" href="https://events.mapbox.com" />
     <link rel="preconnect" href="https://www.youtube.com" />
     <title>Sonicthames</title>
+    <script>
+      // Restores the URL that public/404.html packed into the query string, so
+      // /?/about&a=1~and~b=2#x becomes /about?a=1&b=2#x before the router reads it.
+      ((l) => {
+        if (l.search[1] !== "/") return
+        const decoded = l.search
+          .slice(1)
+          .split("&")
+          .map((part) => part.replace(/~and~/g, "&"))
+          .join("?")
+        window.history.replaceState(null, "", l.pathname.slice(0, -1) + decoded + l.hash)
+      })(window.location)
+    </script>
   </head>
   <body>
     <div id="root"></div>

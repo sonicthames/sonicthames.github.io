@@ -2,7 +2,7 @@ import { tokens } from "@theme/tokens.css"
 import { recipe } from "@vanilla-extract/recipes"
 
 /**
- * Panel recipe for drawer and side panel
+ * Panel recipe for the drawer
  * Matches exact Tailwind styles with corrected tokens
  */
 export const panelRecipe = recipe({
@@ -12,6 +12,11 @@ export const panelRecipe = recipe({
     height: "100%",
     overflow: "hidden",
     pointerEvents: "auto",
+    selectors: {
+      // Focus lands here programmatically when a page opens; the panel itself
+      // is not interactive.
+      "&:focus": { outline: "none" },
+    },
   },
   variants: {
     kind: {
@@ -24,21 +29,6 @@ export const panelRecipe = recipe({
         position: "relative",
         width: "100%",
         zIndex: tokens.z.overlay,
-      },
-      side: {
-        width: "100%",
-        maxWidth: "100%",
-        backdropFilter: tokens.effect.blur.md,
-        WebkitBackdropFilter: tokens.effect.blur.md,
-        boxShadow: tokens.shadow.sidePanel,
-        "@media": {
-          "screen and (min-width: 768px)": {
-            width: "440px",
-          },
-          "screen and (min-width: 1024px)": {
-            width: "500px",
-          },
-        },
       },
     },
   },

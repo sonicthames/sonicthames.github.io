@@ -1,26 +1,26 @@
-import { drawer, drawerPanel, sidePanel } from "@ui/components/map.css"
+import { drawer, drawerPanel } from "@ui/components/map.css"
 import * as E from "fp-ts/Either"
-import { identity, pipe } from "fp-ts/function"
+import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
-import type { ReactElement } from "react"
-import { lazy, Suspense, useEffect } from "react"
+import * as D from "io-ts/Decoder"
+import { lazy, Suspense, useEffect, useRef } from "react"
 import {
   matchPath,
   Navigate,
   Route,
   Routes,
   useLocation,
+  useNavigate,
   useParams,
 } from "react-router"
 import {
   appContainer,
   appHeaderLayer,
   appMapLayer,
-  pageRoot,
 } from "@/pages/common/layout.css"
 import rawData from "./data.json" with { type: "json" }
-import type { Sound } from "./domain/sound"
+import type { Category, Sound } from "./domain/sound"
 import { D_Data } from "./domain/sound"
 import { MainMap } from "./features/map"
 import { ErrorBoundary } from "./pages/common/ErrorBoundary"
@@ -44,108 +44,143 @@ const NotFoundPage = lazy(() =>
   import("./pages/not-found/Page").then((m) => ({ default: m.NotFoundPage })),
 )
 
-const shouldShowDrawer = (pathname: string) => {
-  return !matchPath({ path: appRoute("main").path, end: true }, pathname)
-}
+const decodedSounds = D_Data.decode(rawData)
+
+const mainPath = appRoute("main").to({}).path
+
+const shouldShowDrawer = (pathname: string) =>
+  !matchPath({ path: appRoute("main").path, end: true }, pathname)
 
 export const App = () => {
-  const sounds = pipe(
-    rawData,
-    D_Data.decode,
-    E.fold((e) => {
-      throw new Error(JSON.stringify(e))
-    }, identity),
+  const location = useLocation()
+  return (
+    <ErrorBoundary
+      resetKey={location.pathname}
+      fallback={(error) => <CrashPage error={error} />}
+    >
+      <AppContent />
+    </ErrorBoundary>
   )
-
-  return <AppContent sounds={sounds} />
 }
 
-const AppContent = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
+const AppContent = () => {
+  const sounds = pipe(
+    decodedSounds,
+    E.getOrElseW((errors) => {
+      throw new Error(D.draw(errors))
+    }),
+  )
   const location = useLocation()
+  const navigate = useNavigate()
   const showDrawer = shouldShowDrawer(location.pathname)
+  const drawerPanelRef = useRef<HTMLDivElement>(null)
+  const returnFocusRef = useRef<HTMLElement | null>(null)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally scroll to top on route change
   useEffect(() => {
-    window.scrollTo(0, 0)
-  }, [location.pathname])
+    const rememberFocus = (event: FocusEvent) => {
+      if (
+        event.target instanceof HTMLElement &&
+        !drawerPanelRef.current?.contains(event.target)
+      ) {
+        returnFocusRef.current = event.target
+      }
+    }
+    document.addEventListener("focusin", rememberFocus)
+    return () => {
+      document.removeEventListener("focusin", rememberFocus)
+    }
+  }, [])
 
-  const wrapWithPage = (node: ReactElement) => (
-    <div className={pageRoot}>{node}</div>
-  )
+  // biome-ignore lint/correctness/useExhaustiveDependencies: focus moves to each newly opened page
+  useEffect(() => {
+    if (showDrawer) {
+      drawerPanelRef.current?.focus({ preventScroll: true })
+      return
+    }
+    const focused = document.activeElement
+    if (
+      focused === document.body ||
+      drawerPanelRef.current?.contains(focused)
+    ) {
+      returnFocusRef.current?.focus({ preventScroll: true })
+    }
+  }, [showDrawer, location.pathname])
 
-  const renderRoutes = (wrapper: (node: ReactElement) => ReactElement) => (
-    <Suspense>
-      <Routes>
-        <Route path={appRoute("main").path} element={null} />
-        <Route path={appRoute("about").path} element={wrapper(<AboutPage />)} />
-        <Route
-          path={appRoute("listen").path}
-          element={wrapper(
-            <SoundsPage
-              category="Listen"
-              sounds={pipe(
-                sounds,
-                RA.filter((x) => x.category === "Listen"),
-              )}
-            />,
-          )}
-        />
-        <Route
-          path={appRoute("see").path}
-          element={wrapper(
-            <SoundsPage
-              category="See"
-              sounds={pipe(
-                sounds,
-                RA.filter((x) => x.category === "See"),
-              )}
-            />,
-          )}
-        />
-        <Route
-          path={appRoute("feel").path}
-          element={wrapper(
-            <SoundsPage
-              category="Feel"
-              sounds={pipe(
-                sounds,
-                RA.filter((x) => x.category === "Feel"),
-              )}
-            />,
-          )}
-        />
-        <Route
-          path={appRoute("sound", ":sound").path}
-          element={wrapper(<SoundRoute sounds={sounds} />)}
-        />
-        <Route
-          path={appRoute("contact").path}
-          element={wrapper(<ContactPage />)}
-        />
-        <Route path="/" element={<RootRedirect />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </Suspense>
-  )
+  useEffect(() => {
+    if (!showDrawer) {
+      return
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      // Leaving from a field would throw away what was typed.
+      const inField =
+        event.target instanceof Element &&
+        event.target.closest("input, textarea, select") !== null
+      if (
+        event.key === "Escape" &&
+        !event.defaultPrevented &&
+        !event.isComposing &&
+        !inField
+      ) {
+        void navigate(mainPath)
+      }
+    }
+    document.addEventListener("keydown", closeOnEscape)
+    return () => {
+      document.removeEventListener("keydown", closeOnEscape)
+    }
+  }, [showDrawer, navigate])
+
+  const soundsIn = (category: Category) =>
+    pipe(
+      sounds,
+      RA.filter((x) => x.category === category),
+    )
 
   return (
-    <ErrorBoundary fallback={(error) => <CrashPage error={error} />}>
-      <div className={appContainer}>
-        <div className={appMapLayer}>
-          <MainMap sounds={sounds} />
-        </div>
-        <div className={appHeaderLayer}>
-          <Header />
-        </div>
-        <div className={drawer({ open: showDrawer })}>
-          {showDrawer ? (
-            <div className={drawerPanel}>{renderRoutes(wrapWithPage)}</div>
-          ) : (
-            <div className={sidePanel}>{renderRoutes(wrapWithPage)}</div>
-          )}
+    <div className={appContainer}>
+      <div className={appMapLayer} inert={showDrawer}>
+        <MainMap sounds={sounds} />
+      </div>
+      <div className={appHeaderLayer} inert={showDrawer}>
+        <Header />
+      </div>
+      <div className={drawer({ open: showDrawer })} inert={!showDrawer}>
+        <div ref={drawerPanelRef} className={drawerPanel} tabIndex={-1}>
+          <Suspense key={location.pathname}>
+            <Routes>
+              <Route path={appRoute("main").path} element={null} />
+              <Route path={appRoute("about").path} element={<AboutPage />} />
+              <Route
+                path={appRoute("listen").path}
+                element={
+                  <SoundsPage category="Listen" sounds={soundsIn("Listen")} />
+                }
+              />
+              <Route
+                path={appRoute("see").path}
+                element={<SoundsPage category="See" sounds={soundsIn("See")} />}
+              />
+              <Route
+                path={appRoute("feel").path}
+                element={
+                  <SoundsPage category="Feel" sounds={soundsIn("Feel")} />
+                }
+              />
+              <Route
+                path={appRoute("sound", ":sound").path}
+                element={<SoundRoute sounds={sounds} />}
+              />
+              <Route
+                path={appRoute("contact").path}
+                element={<ContactPage />}
+              />
+              <Route path="/" element={<Navigate to={mainPath} replace />} />
+              <Route path="*" element={<NotFoundPage />} />
+            </Routes>
+          </Suspense>
         </div>
       </div>
-    </ErrorBoundary>
+    </div>
   )
 }
 
@@ -166,14 +201,4 @@ const SoundRoute = ({ sounds }: { readonly sounds: ReadonlyArray<Sound> }) => {
       (sound) => <SoundPage sound={sound} />,
     ),
   )
-}
-
-const RootRedirect = () => {
-  const location = useLocation()
-
-  if (location.search.startsWith("?/")) {
-    return <Navigate to={location.search.substring(1)} replace />
-  }
-
-  return <Navigate to={appRoute("main").to({}).path} replace />
 }

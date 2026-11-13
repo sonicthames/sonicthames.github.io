@@ -7,4 +7,3 @@ import { drawerContainer, panelRecipe } from "@theme/recipes/layout.css"
 // Re-export with legacy names for backward compatibility
 export const drawer = drawerContainer
 export const drawerPanel = panelRecipe({ kind: "drawer" })
-export const sidePanel = panelRecipe({ kind: "side" })
