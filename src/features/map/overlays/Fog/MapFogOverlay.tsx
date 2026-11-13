@@ -42,7 +42,9 @@ import type { FogGrid, RevealPoint, RevealScreenSpace } from "./types"
  * - Uses native Canvas 2D (not WebGL/Pixi.js) for simplicity and broad compatibility
  * - Stores geographic coordinates (lat/lng/radiusMeters) for zoom-independent persistence
  * - Uses "destination-out" composite operation to punch holes in the fog
- * - Runs at 60fps via requestAnimationFrame for smooth ripple animations
+ * - Runs at 60fps via requestAnimationFrame for smooth ripple animations; with
+ *   reduced motion or off the map route it draws only when the map or the
+ *   reveals change
  * - Limits stored reveals to 200 points to prevent unbounded memory growth
  *
  * Two-Bound System:
@@ -199,6 +201,7 @@ export const MapFogOverlay = ({
   const containerRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const animationFrameRef = useRef<number | null>(null)
+  const redrawRef = useRef<(() => void) | null>(null)
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
 
   // === MARKER POSITION TRACKING ===
@@ -283,6 +286,7 @@ export const MapFogOverlay = ({
       evictExcessRevealCells(order, revealMap, bitmap, dirtyKeys, maxCells)
 
       persistReveals()
+      redrawRef.current?.()
     },
     [persistReveals],
   )
@@ -393,6 +397,7 @@ export const MapFogOverlay = ({
         dirtyKeysRef.current.clear()
         lastMarkerPosRef.current = null
         usePersistenceStore.getState().clearFogReveals()
+        redrawRef.current?.()
       },
       revealMap: () => {
         const grid = ensureGrid()
@@ -462,6 +467,10 @@ export const MapFogOverlay = ({
     const ctx = canvas.getContext("2d")
     if (!ctx) return
 
+    // With reduced motion the ripples hold still, so a frame changes only with
+    // the map or the reveals.
+    const animated = animate && !prefersReducedMotion()
+
     const drawFrame = () => {
       const { width, height } = size
 
@@ -500,19 +509,29 @@ export const MapFogOverlay = ({
         applyReveal()
       }
 
-      if (animate) {
+      if (animated) {
         animationFrameRef.current = requestAnimationFrame(drawFrame)
       }
     }
 
     drawFrame()
     const map = getMap()
-    if (!animate) {
+    if (!animated) {
       map?.on("render", drawFrame)
+      redrawRef.current = () => {
+        if (animationFrameRef.current !== null) {
+          return
+        }
+        animationFrameRef.current = requestAnimationFrame(() => {
+          animationFrameRef.current = null
+          drawFrame()
+        })
+      }
     }
 
     return () => {
       map?.off("render", drawFrame)
+      redrawRef.current = null
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null

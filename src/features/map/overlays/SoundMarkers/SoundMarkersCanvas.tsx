@@ -105,9 +105,8 @@ const updateMarkerGraphics = (
   const isHovered = hoveredTitle === marker.sound.title
   const isPlaying = playingTitle === marker.sound.title
   const hoverScale = isHovered ? 1.25 : 1
-  const playingScale = isPlaying
-    ? 1 + Math.sin(performance.now() / 300) * 0.15
-    : 1
+  const pulse = prefersReducedMotion() ? 1 : Math.sin(performance.now() / 300)
+  const playingScale = isPlaying ? 1 + pulse * 0.15 : 1
 
   const targetRadius = scaleAndClampRadius(
     BASE_SOUND_RADIUS,
