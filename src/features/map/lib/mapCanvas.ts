@@ -50,8 +50,10 @@ export const syncCanvasSize = (
 ): number => {
   const dpr = window.devicePixelRatio || 1
 
-  const targetWidth = width * dpr
-  const targetHeight = height * dpr
+  // canvas.width truncates to an integer, so an unrounded target would never
+  // match and the backing store would be reallocated on every frame.
+  const targetWidth = Math.round(width * dpr)
+  const targetHeight = Math.round(height * dpr)
 
   // Avoid reallocating the canvas backing store unless dimensions actually change
   if (canvas.width !== targetWidth || canvas.height !== targetHeight) {

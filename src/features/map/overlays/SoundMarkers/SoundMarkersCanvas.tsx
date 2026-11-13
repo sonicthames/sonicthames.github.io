@@ -7,7 +7,8 @@ import type { Category, Sound } from "@/domain/sound"
 import { mapColorTheme } from "@/theme/mapColors"
 import { interpolateColorNumber, smoothValue } from "../../lib/animation"
 import { syncPixiRendererSize } from "../../lib/mapCanvas"
-import { createPixiOverlay } from "../../lib/pixiOverlay"
+import { prefersReducedMotion } from "../../lib/motion"
+import { createPixiOverlay, overlayInitOptions } from "../../lib/pixiOverlay"
 import type { PixiRipple } from "../../lib/ripple"
 import {
   createPixiRipples,
@@ -166,7 +167,7 @@ const updateMarkerGraphics = (
   for (const ripple of marker.ripples) {
     updatePixiRipple(
       ripple,
-      deltaTime,
+      prefersReducedMotion() ? 0 : deltaTime,
       point.x,
       point.y,
       currentZoom,
@@ -338,14 +339,7 @@ export const SoundMarkersCanvas = ({
       mapInstance.on("dragend", handleMapDragEnd)
 
       const mapContainer = mapInstance.getContainer()
-      await app.init({
-        backgroundAlpha: 0,
-        antialias: true,
-        resolution: 1,
-        autoDensity: false,
-        width: mapContainer.clientWidth,
-        height: mapContainer.clientHeight,
-      })
+      await app.init(overlayInitOptions(mapContainer))
 
       if (!app.canvas) {
         throw new Error("Pixi application failed to initialize canvas.")

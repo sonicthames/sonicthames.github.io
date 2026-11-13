@@ -232,57 +232,6 @@ export const collectCellsInBounds = (
   return cells
 }
 
-/**
- * Check if a reveal is visible within the viewport.
- * Pure function, no side effects.
- *
- * Performance: O(1) bounding box check
- */
-const isRevealVisible = (
-  reveal: RevealPoint,
-  map: MapboxMap,
-  viewport: ViewportBounds,
-  currentZoom: number,
-): boolean => {
-  const screen = map.project(reveal)
-  const radiusPixels = renderRadiusPixels(reveal, currentZoom)
-
-  // Bounding box check with buffer for edge cases
-  const buffer = radiusPixels * 0.1 // 10% buffer to avoid popping
-  return (
-    screen.x + radiusPixels >= -buffer &&
-    screen.x - radiusPixels <= viewport.width + buffer &&
-    screen.y + radiusPixels >= -buffer &&
-    screen.y - radiusPixels <= viewport.height + buffer
-  )
-}
-
-/**
- * Filter reveals to only those visible in viewport.
- * Pure function using imperative loop for performance.
- *
- * Performance: O(n) where n = total reveals
- * Typical speed-up: 2-3× by skipping off-screen rendering
- */
-export const cullRevealsToViewport = (
-  reveals: readonly RevealPoint[],
-  map: MapboxMap,
-  viewport: ViewportBounds,
-  currentZoom: number,
-  out: RevealPoint[] = [],
-): readonly RevealPoint[] => {
-  // Imperative loop for performance (faster than .filter for large arrays)
-  out.length = 0
-
-  for (const reveal of reveals) {
-    if (isRevealVisible(reveal, map, viewport, currentZoom)) {
-      out.push(reveal)
-    }
-  }
-
-  return out
-}
-
 const MIN_REVEAL_RADIUS_PIXELS = 2 // Prevent vanishingly small reveals when extremely zoomed out
 
 const renderRadiusPixels = (
@@ -299,34 +248,33 @@ const renderRadiusPixels = (
 }
 
 /**
- * Project reveals to screen space for rendering.
- * Pure function using imperative loop for performance.
- *
- * Clamps pixel radius to maintain consistent visual bubble size across zoom levels
- * while preserving the geographic reveal area.
- *
- * Performance: O(n) where n = visible reveals
+ * Projects the reveals that overlap the viewport to screen space, in one pass:
+ * `map.project` is the expensive step, so each reveal is projected once.
  */
-export const projectRevealsToScreen = (
-  reveals: readonly RevealPoint[],
+export const projectVisibleReveals = (
+  reveals: Iterable<RevealPoint>,
   map: MapboxMap,
+  viewport: ViewportBounds,
   currentZoom: number,
   out: RevealScreenSpace[] = [],
 ): readonly RevealScreenSpace[] => {
-  out.length = reveals.length
-
-  for (let i = 0; i < reveals.length; i++) {
-    const reveal = reveals[i]
-    if (reveal === undefined) continue
-    const screen = map.project(reveal)
+  let count = 0
+  for (const reveal of reveals) {
     const radiusPixels = renderRadiusPixels(reveal, currentZoom)
-
-    out[i] = {
-      x: screen.x,
-      y: screen.y,
-      radiusPixels,
+    const screen = map.project(reveal)
+    // A 10% margin keeps reveals at the edge from popping in and out.
+    const reach = radiusPixels * 1.1
+    if (
+      screen.x + reach < 0 ||
+      screen.x - reach > viewport.width ||
+      screen.y + reach < 0 ||
+      screen.y - reach > viewport.height
+    ) {
+      continue
     }
+    out[count] = { x: screen.x, y: screen.y, radiusPixels }
+    count += 1
   }
-
+  out.length = count
   return out
 }

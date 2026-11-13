@@ -5,7 +5,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef } from "react"
 import type { MapRef } from "react-map-gl/mapbox"
 import { mapColorTheme } from "@/theme/mapColors"
 import { syncPixiRendererSize } from "../../lib/mapCanvas"
-import { createPixiOverlay } from "../../lib/pixiOverlay"
+import { createPixiOverlay, overlayInitOptions } from "../../lib/pixiOverlay"
 import { computeZoomScale, scaleAndClampRadius } from "../../lib/zoomScale"
 import { canvasContainer, pixiCanvas } from "./UserPositionCanvas.css"
 
@@ -157,15 +157,7 @@ export const UserPositionCanvas = ({
         throw new Error("User position container is missing")
       }
 
-      const mapContainer = mapInstance.getContainer()
-      await app.init({
-        backgroundAlpha: 0,
-        antialias: true,
-        resolution: 1,
-        autoDensity: false,
-        width: mapContainer.clientWidth,
-        height: mapContainer.clientHeight,
-      })
+      await app.init(overlayInitOptions(mapInstance.getContainer()))
 
       if (!app.canvas) {
         throw new Error("Pixi application failed to initialize canvas.")

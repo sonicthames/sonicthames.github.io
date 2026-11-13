@@ -1,27 +1,14 @@
 import type * as mapboxgl from "mapbox-gl"
 import type { LngLatBounds } from "mapbox-gl"
-import type { TextureCache } from "./texture"
-import { getCachedRevealTexture } from "./texture"
+import { getRevealTexture } from "./texture"
 import type { RevealScreenSpace } from "./types"
 
-/**
- * Draw a single reveal circle using cached texture.
- * Imperative rendering for performance.
- *
- * @param ctx - Canvas rendering context
- * @param textureCache - Texture cache for pre-rendered circles
- * @param reveal - Screen-space reveal position and size
- */
 const drawRevealWithTexture = (
   ctx: CanvasRenderingContext2D,
-  textureCache: TextureCache,
   reveal: RevealScreenSpace,
 ): void => {
-  const texture = getCachedRevealTexture(textureCache, reveal.radiusPixels)
-
-  // Draw cached texture at reveal position
   ctx.drawImage(
-    texture,
+    getRevealTexture(),
     reveal.x - reveal.radiusPixels,
     reveal.y - reveal.radiusPixels,
     reveal.radiusPixels * 2,
@@ -30,7 +17,7 @@ const drawRevealWithTexture = (
 }
 
 /**
- * Draw all reveals using cached textures.
+ * Draw all reveals using the shared reveal texture.
  * Imperative batch rendering for performance.
  *
  * Performance: O(n) where n = visible reveals
@@ -38,7 +25,6 @@ const drawRevealWithTexture = (
  */
 export const drawReveals = (
   ctx: CanvasRenderingContext2D,
-  textureCache: TextureCache,
   reveals: readonly RevealScreenSpace[],
 ): void => {
   if (reveals.length === 0) return
@@ -48,7 +34,7 @@ export const drawReveals = (
 
   // Imperative loop for performance
   for (const reveal of reveals) {
-    drawRevealWithTexture(ctx, textureCache, reveal)
+    drawRevealWithTexture(ctx, reveal)
   }
 
   // Reset composite mode

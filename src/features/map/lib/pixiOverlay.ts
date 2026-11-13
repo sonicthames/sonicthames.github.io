@@ -1,4 +1,4 @@
-import type { Ticker } from "pixi.js"
+import type { ApplicationOptions, Ticker } from "pixi.js"
 import { Application } from "pixi.js"
 import { addToSharedTicker } from "./pixiTicker"
 
@@ -11,6 +11,22 @@ interface PixiOverlayConfig<State> {
   readonly onTick: (state: State, ticker: Ticker) => void
   readonly onDestroy?: (state: State) => void
 }
+
+/**
+ * Options for a transparent overlay sized to the map container. The shared
+ * ticker drives rendering, so the app's own ticker must not also render.
+ */
+export const overlayInitOptions = (
+  mapContainer: HTMLElement,
+): Partial<ApplicationOptions> => ({
+  backgroundAlpha: 0,
+  antialias: true,
+  autoStart: false,
+  resolution: Math.min(window.devicePixelRatio || 1, 2),
+  autoDensity: true,
+  width: mapContainer.clientWidth,
+  height: mapContainer.clientHeight,
+})
 
 export const createPixiOverlay = async <State>({
   container,

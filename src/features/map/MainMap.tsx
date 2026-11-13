@@ -13,7 +13,11 @@ import type { Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
 import { appRoute } from "@/pages/location"
 import { mapColorTheme } from "@/theme/mapColors"
-import { pauseSharedTicker, resumeSharedTicker } from "./lib/pixiTicker"
+import {
+  pauseSharedTicker,
+  resumeSharedTicker,
+  stepSharedTicker,
+} from "./lib/pixiTicker"
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
   debugControls,
@@ -196,13 +200,6 @@ export const MainMap = ({ sounds }: Props) => {
   const isMainRoute = Boolean(
     matchPath({ path: appRoute("main").path, end: true }, location.pathname),
   )
-  useEffect(() => {
-    if (isMainRoute) {
-      resumeSharedTicker()
-      return
-    }
-    pauseSharedTicker()
-  }, [isMainRoute])
   const mapRef = useRef<MapRef | null>(null)
   const projectSoundToViewport = useCallback(
     (sound: Sound): { readonly x: number; readonly y: number } | null => {
@@ -220,6 +217,22 @@ export const MainMap = ({ sounds }: Props) => {
     [],
   )
   const [mapReady, setMapReady] = useState(false)
+  useEffect(() => {
+    if (isMainRoute) {
+      resumeSharedTicker()
+      return
+    }
+    pauseSharedTicker()
+    const map = mapRef.current?.getMap()
+    if (!mapReady || !map) {
+      return
+    }
+    // Behind a page, the overlays follow the map only when it redraws.
+    map.on("render", stepSharedTicker)
+    return () => {
+      map.off("render", stepSharedTicker)
+    }
+  }, [isMainRoute, mapReady])
   const fogOverlayRef = useRef<MapFogOverlayHandle | null>(null)
 
   // Parse user position from query params (?lat=51.5&lng=-0.1) or use map center
@@ -537,6 +550,7 @@ export const MainMap = ({ sounds }: Props) => {
         intensity={1.0}
         enabled
         sounds={sounds}
+        animate={isMainRoute}
       />
       <ProximityVideo
         sound={proximitySound}

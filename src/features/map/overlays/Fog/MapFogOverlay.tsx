@@ -11,6 +11,7 @@ import type { MapRef } from "react-map-gl/mapbox"
 import type { Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
 import { clampValue, syncCanvasSize } from "../../lib/mapCanvas"
+import { prefersReducedMotion } from "../../lib/motion"
 import {
   drawCanvasRipple,
   FOG_RIPPLE_CONFIG,
@@ -23,11 +24,9 @@ import {
   collectCellsInBounds,
   collectCellsInRadius,
   createFogGrid,
-  cullRevealsToViewport,
-  projectRevealsToScreen,
+  projectVisibleReveals,
   resolvePersistedReveals,
 } from "./spatial"
-import { createTextureCache } from "./texture"
 import type { FogGrid, RevealPoint, RevealScreenSpace } from "./types"
 
 /**
@@ -59,6 +58,9 @@ interface MapFogOverlayProps {
   readonly revealSize?: number // Pixel radius of reveal circles
   readonly enabled?: boolean
   readonly sounds?: ReadonlyArray<Sound> // Sound markers to show as hints through fog
+  // Off the map route the drawer hides the fog, so it redraws only when the map
+  // re-renders instead of animating every frame.
+  readonly animate?: boolean
 }
 
 export interface MapFogOverlayHandle {
@@ -126,25 +128,20 @@ const drawSoundRippleHints = (
 const drawCulledReveals = (
   ctx: CanvasRenderingContext2D,
   reveals: Map<number, RevealPoint>,
-  buf: RevealPoint[],
-  visibleBuf: RevealPoint[],
   screenBuf: RevealScreenSpace[],
-  textureCache: ReturnType<typeof createTextureCache>,
   map: mapboxgl.Map,
   viewport: { readonly width: number; readonly height: number },
   zoom: number,
 ): void => {
-  buf.length = 0
-  reveals.forEach((reveal) => {
-    buf.push(reveal)
-  })
-  if (buf.length === 0) return
-
-  const visible = cullRevealsToViewport(buf, map, viewport, zoom, visibleBuf)
-  if (visible.length === 0) return
-
-  const screen = projectRevealsToScreen(visible, map, zoom, screenBuf)
-  drawReveals(ctx, textureCache, screen)
+  if (reveals.size === 0) return
+  const screen = projectVisibleReveals(
+    reveals.values(),
+    map,
+    viewport,
+    zoom,
+    screenBuf,
+  )
+  drawReveals(ctx, screen)
 }
 
 const addRevealCells = (
@@ -192,6 +189,7 @@ export const MapFogOverlay = ({
   revealSize = 30,
   enabled = true,
   sounds = [],
+  animate = true,
   ref,
 }: MapFogOverlayProps & {
   ref?: React.RefObject<MapFogOverlayHandle | null>
@@ -203,17 +201,9 @@ export const MapFogOverlay = ({
   const animationFrameRef = useRef<number | null>(null)
   const resizeObserverRef = useRef<ResizeObserver | null>(null)
 
-  // === TEXTURE CACHE ===
-  // Mutable cache for pre-rendered reveal textures (performance optimization)
-  const textureCacheRef = useRef(createTextureCache())
-
   // === MARKER POSITION TRACKING ===
   // Track the last marker position to detect movement
   const lastMarkerPosRef = useRef<LngLat | null>(null)
-
-  // === CAMERA BOUNDS TRACKING ===
-  // Track visible viewport bounds for outer fog boundary
-  const [cameraBounds, setCameraBounds] = useState<LngLatBounds | null>(null)
 
   // === VIEWPORT SIZE ===
   // Store as state so canvas can resize when viewport changes
@@ -242,8 +232,6 @@ export const MapFogOverlay = ({
   const revealOrderRef = useRef<number[]>([])
   const revealedBitmapRef = useRef<Uint8Array | null>(null)
   const dirtyKeysRef = useRef<Set<number>>(new Set())
-  const revealsBufferRef = useRef<RevealPoint[]>([])
-  const visibleRevealsBufferRef = useRef<RevealPoint[]>([])
   const screenRevealsBufferRef = useRef<RevealScreenSpace[]>([])
   const maxRevealCellsRef = useRef<number | null>(null)
 
@@ -433,35 +421,16 @@ export const MapFogOverlay = ({
     [addReveals, ensureGrid, movementBounds, revealAtPosition],
   )
 
-  // === EFFECT: MAP CHANGE TRACKING ===
-  /**
-   * Update canvas size and camera bounds when map resizes or moves.
-   * Mapbox may resize its container during pan/zoom operations.
-   * Camera bounds define the outer fog boundary (visible viewport).
-   */
+  // === EFFECT: MAP RESIZE ===
+  // The render loop reads the camera from the map each frame, so only size
+  // changes need to reach React.
   useEffect(() => {
     const map = mapRef.current?.getMap()
     if (!map) return
 
-    const updateBounds = () => {
-      const bounds = map.getBounds()
-      if (bounds) {
-        setCameraBounds(bounds)
-      }
-    }
-
-    // Initialize bounds
-    updateBounds()
-
-    // Update on map interactions
     map.on("resize", updateSize)
-    map.on("move", updateBounds)
-    map.on("zoom", updateBounds)
-
     return () => {
       map.off("resize", updateSize)
-      map.off("move", updateBounds)
-      map.off("zoom", updateBounds)
     }
   }, [mapRef, updateSize])
 
@@ -509,7 +478,7 @@ export const MapFogOverlay = ({
 
         ctx.globalCompositeOperation = "source-over"
 
-        const time = performance.now()
+        const time = prefersReducedMotion() ? 0 : performance.now()
         const zoom = map.getZoom()
 
         drawSoundRippleHints(ctx, sounds, map, time, zoom)
@@ -517,51 +486,40 @@ export const MapFogOverlay = ({
         drawCulledReveals(
           ctx,
           revealsRef.current,
-          revealsBufferRef.current,
-          visibleRevealsBufferRef.current,
           screenRevealsBufferRef.current,
-          textureCacheRef.current,
           map,
           { width, height },
           zoom,
         )
 
-        if (cameraBounds) {
-          ctx.globalCompositeOperation = "source-over"
-          drawOuterFogBoundary(
-            ctx,
-            map,
-            movementBounds,
-            width,
-            height,
-            intensity,
-          )
-        }
+        ctx.globalCompositeOperation = "source-over"
+        drawOuterFogBoundary(ctx, map, movementBounds, width, height, intensity)
       }
 
       if (!document.hidden) {
         applyReveal()
       }
 
-      // Continue animation loop
-      animationFrameRef.current = requestAnimationFrame(drawFrame)
+      if (animate) {
+        animationFrameRef.current = requestAnimationFrame(drawFrame)
+      }
     }
 
     drawFrame()
+    const map = getMap()
+    if (!animate) {
+      map?.on("render", drawFrame)
+    }
 
     return () => {
+      map?.off("render", drawFrame)
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current)
         animationFrameRef.current = null
       }
     }
-  }, [size, intensity, enabled, getMap, sounds, cameraBounds, movementBounds])
+  }, [size, intensity, enabled, getMap, sounds, movementBounds, animate])
 
-  // === EFFECT: CLEANUP ===
-  /**
-   * Cancel pending localStorage writes on unmount.
-   * Prevents memory leaks from dangling requestAnimationFrame callbacks.
-   */
   if (!enabled) return null
 
   return (
