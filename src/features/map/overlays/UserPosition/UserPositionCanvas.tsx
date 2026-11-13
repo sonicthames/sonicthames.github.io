@@ -280,13 +280,17 @@ export const UserPositionCanvas = ({
 
     const attach = async () => {
       try {
-        if (cancelled) return
-        cleanupOverlay = await createPixiOverlay({
+        const cleanup = await createPixiOverlay({
           container,
           init: (app) => init(app, mapInstance),
           onTick: (state, ticker) => onTick(state, mapInstance, ticker),
           onDestroy,
         })
+        if (cancelled) {
+          cleanup()
+        } else {
+          cleanupOverlay = cleanup
+        }
       } catch (error) {
         console.error("Failed to initialize Pixi overlay:", error)
       }
