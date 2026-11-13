@@ -48,4 +48,11 @@ test.describe("Navigation", () => {
     await expect(page).toHaveURL(/\/main$/)
     await expect(aboutLink).toBeFocused()
   })
+
+  test("serves the manifest icons", async ({ request }) => {
+    for (const icon of ["/logo192.png", "/logo512.png"]) {
+      const response = await request.get(icon)
+      expect(response.headers()["content-type"]).toBe("image/png")
+    }
+  })
 })
