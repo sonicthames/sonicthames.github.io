@@ -17,7 +17,7 @@ export const CrashPage = ({ error }: Props) => {
         }
       >
         <div className={errorContainer}>
-          <h1 className={errorTitle}>Opps! Something happened...</h1>
+          <h1 className={errorTitle}>Oops! Something happened...</h1>
           <div className={errorMessage}>{error.message}</div>
         </div>
       </main>
