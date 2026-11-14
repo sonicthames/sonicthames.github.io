@@ -47,7 +47,8 @@ export const appContainer = style({
   display: "flex",
   flexDirection: "column",
   position: "relative",
-  height: "100vh",
+  // On mobile, 100vh includes the space under the browser toolbars.
+  height: "100dvh",
   width: "100vw",
   overflow: "hidden",
 })
