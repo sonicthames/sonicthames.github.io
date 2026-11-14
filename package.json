@@ -68,7 +68,7 @@
     "clean": "rm -rf dist",
     "deploy": "node scripts/deploy.ts",
     "dev": "vite",
-    "dev:test": "vite --host 127.0.0.1 --port 4747",
+    "dev:test": "vite --host localhost --port 4747 --open false",
     "format": "biome format --write",
     "format:check": "biome format",
     "lint": "pnpm lint:biome && pnpm check:react-compiler && pnpm check:type-aware && pnpm check:unused",
