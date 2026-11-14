@@ -17,6 +17,8 @@ export default defineConfig({
       // Docker renders identically run to run; a ratio-based budget let a
       // restyled button (about 4,000 pixels) pass unnoticed.
       maxDiffPixels: 100,
+      // The default 0.2 per-pixel threshold ignored the navy-to-plum shift in the map background.
+      threshold: 0.05,
     },
   },
   fullyParallel: true,
