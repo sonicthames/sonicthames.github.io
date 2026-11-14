@@ -25,6 +25,9 @@ import {
   logoPosition,
   restoreFogButton,
   revealFogButton,
+  walkHint,
+  walkHintPointer,
+  walkHintTouch,
 } from "./MainMap.css"
 import type { MapFogOverlayHandle } from "./overlays/Fog/MapFogOverlay"
 import { MapFogOverlay } from "./overlays/Fog/MapFogOverlay"
@@ -77,6 +80,9 @@ const initialViewState: MapProps["initialViewState"] = {
 }
 const MIN_ZOOM = ZOOM_MIN_LEVEL
 const MAX_ZOOM = 18
+
+const walkHintClick = "Click the map to walk there."
+const walkHintTap = "Tap the map to walk there."
 
 const MAPBOX_MAP_STYLE = {
   width: "100%",
@@ -218,6 +224,7 @@ export const MainMap = ({ sounds }: Props) => {
     [],
   )
   const [mapReady, setMapReady] = useState(false)
+  const [walked, setWalked] = useState(false)
   useEffect(() => {
     if (isMainRoute) {
       resumeSharedTicker()
@@ -466,6 +473,7 @@ export const MainMap = ({ sounds }: Props) => {
       if (event.originalEvent.defaultPrevented) {
         return
       }
+      setWalked(true)
       void requestDirections(event.lngLat)
     },
     [requestDirections],
@@ -499,6 +507,7 @@ export const MainMap = ({ sounds }: Props) => {
 
   const handleSoundClick = useCallback(
     (sound: Sound) => {
+      setWalked(true)
       void requestDirections([sound.coordinate.lng, sound.coordinate.lat])
     },
     [requestDirections],
@@ -560,6 +569,12 @@ export const MainMap = ({ sounds }: Props) => {
         origin={proximityOrigin}
         allowPlayback={isMainRoute}
       />
+      {isMainRoute && !walked ? (
+        <p className={walkHint}>
+          <span className={walkHintPointer}>{walkHintClick}</span>
+          <span className={walkHintTouch}>{walkHintTap}</span>
+        </p>
+      ) : null}
       {import.meta.env.DEV ? (
         <div className={debugControls}>
           <button

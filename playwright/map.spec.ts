@@ -17,6 +17,15 @@ test.describe("Main map experience", () => {
     await expect(page.locator("canvas")).toHaveCount(4)
   })
 
+  test("tells a first-time visitor how to move", async ({ page }) => {
+    await page.goto("/")
+    const hint = page.getByText("Click the map to walk there.")
+    await expect(hint).toBeVisible({ timeout: 15_000 })
+    await expect(page.locator("canvas")).toHaveCount(4)
+    await page.mouse.click(400, 400)
+    await expect(hint).toBeHidden()
+  })
+
   test("keeps pages working when the map cannot load", async ({
     page,
     runtimeErrors,

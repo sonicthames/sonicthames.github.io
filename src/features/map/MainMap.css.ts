@@ -77,3 +77,31 @@ export const revealFogButton = style({
     },
   },
 })
+
+export const walkHint = style({
+  background: "rgb(0 0 0 / 0.6)",
+  border: "1px solid rgb(255 255 255 / 0.2)",
+  borderRadius: "999px",
+  color: tokens.color.text,
+  fontSize: tokens.font.size.sm,
+  left: "50%",
+  margin: 0,
+  padding: `${tokens.space.xs} ${tokens.space.md}`,
+  pointerEvents: "none",
+  position: "absolute",
+  top: `calc(50% + ${tokens.space["2xl"]})`,
+  transform: "translateX(-50%)",
+  whiteSpace: "nowrap",
+  zIndex: tokens.z.overlay,
+})
+
+const coarsePointer = "(pointer: coarse)"
+
+export const walkHintPointer = style({
+  "@media": { [coarsePointer]: { display: "none" } },
+})
+
+export const walkHintTouch = style({
+  display: "none",
+  "@media": { [coarsePointer]: { display: "inline" } },
+})
