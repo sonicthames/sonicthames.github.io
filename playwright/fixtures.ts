@@ -5,8 +5,15 @@ import { test as base, expect } from "playwright/test"
 const isMapboxNoise = (text: string, url: string) =>
   url.includes("mapbox") || text.includes("mapbox.com")
 
+// A 1x1 transparent PNG.
+const blankImage = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  "base64",
+)
+
 export const test = base.extend<{
   mapboxOffline: undefined
+  youtubeOffline: undefined
   runtimeErrors: string[]
 }>({
   // With the placeholder token every Mapbox request fails anyway; failing at once
@@ -14,6 +21,19 @@ export const test = base.extend<{
   mapboxOffline: [
     async ({ page }, use) => {
       await page.route(/^https:\/\/(?:api|events)\.mapbox\.com\//, (route) =>
+        route.abort(),
+      )
+      await use(undefined)
+    },
+    { auto: true },
+  ],
+  // YouTube provides thumbnails and players; serve a blank image and refuse the player to keep the suite offline.
+  youtubeOffline: [
+    async ({ page }, use) => {
+      await page.route(/^https:\/\/i\.ytimg\.com\//, (route) =>
+        route.fulfill({ body: blankImage, contentType: "image/png" }),
+      )
+      await page.route(/^https:\/\/www\.youtube\.com\//, (route) =>
         route.abort(),
       )
       await use(undefined)

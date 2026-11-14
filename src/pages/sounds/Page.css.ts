@@ -39,14 +39,6 @@ export const media = style({
   background: "#000",
 })
 
-export const iframe = style({
-  width: "100%",
-  height: "auto",
-  aspectRatio: "16 / 9",
-  border: "none",
-  boxSizing: "border-box",
-})
-
 export const cardBody = style({
   padding: tokens.space.md,
   display: "flex",

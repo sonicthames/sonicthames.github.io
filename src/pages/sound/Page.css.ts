@@ -88,12 +88,3 @@ export const technicalTerm = style({
 export const technicalDefinition = style({
   margin: 0,
 })
-
-// Video iframe style
-export const videoIframe = style({
-  width: "100%",
-  height: "auto",
-  aspectRatio: "16 / 9",
-  border: "none",
-  boxSizing: "border-box",
-})

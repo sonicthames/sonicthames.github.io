@@ -3,6 +3,7 @@ import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
 import { Link } from "@/components/ui"
+import { VideoFacade } from "@/components/VideoFacade"
 import type { Category, Sound } from "../../domain/sound"
 import { R_CategoryFlavor } from "../../domain/sound"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
@@ -16,7 +17,6 @@ import {
   cardLink,
   cardTitle,
   grid,
-  iframe,
   media,
 } from "./Page.css"
 
@@ -53,14 +53,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                 <li id={x.videoSrc} key={x.videoSrc}>
                   <div className={card}>
                     <div className={media}>
-                      <iframe
-                        title={x.title}
-                        className={iframe}
-                        src={`https://www.youtube.com/embed/${x.videoSrc}?rel=0`}
-                        allow="encrypted-media; picture-in-picture; fullscreen"
-                        allowFullScreen
-                        loading="lazy"
-                      />
+                      <VideoFacade videoId={x.videoSrc} title={x.title} />
                     </div>
                     <div className={cardBody}>
                       <h2 className={cardTitle}>

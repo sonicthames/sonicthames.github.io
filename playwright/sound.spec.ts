@@ -17,4 +17,13 @@ test.describe("Sound page", () => {
       page.getByRole("link", { name: "proteindance.co.uk/production" }),
     ).toHaveAttribute("href", "https://proteindance.co.uk/production")
   })
+
+  test("shows a thumbnail until the video is played", async ({ page }) => {
+    await page.goto("/sound/jetty")
+    const play = page.getByRole("button", { name: "Play Wooden Jetty" })
+    await expect(play).toBeVisible()
+    await expect(page.locator("iframe")).toHaveCount(0)
+    await play.click()
+    await expect(page.locator('iframe[src*="autoplay=1"]')).toHaveCount(1)
+  })
 })

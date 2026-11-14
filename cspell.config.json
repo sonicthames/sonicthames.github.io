@@ -68,6 +68,7 @@
     "Filenaming",
     "Flavor",
     "fontstack",
+    "fulfill",
     "geolocated",
     "handoff",
     "joshwooding",
@@ -103,7 +104,8 @@
     "WCAG",
     "worktrees",
     "xxxl",
-    "xxxs"
+    "xxxs",
+    "ytimg"
   ],
   "ignoreRegExpList": ["/\"videoSrc\": \"[^\"]*\"/", "/GHSA(-[0-9a-z]{4}){3}/"]
 }

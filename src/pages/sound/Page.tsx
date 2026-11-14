@@ -2,6 +2,7 @@ import { link } from "@theme/recipes/link.css"
 import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
+import { VideoFacade } from "@/components/VideoFacade"
 import type { Sound } from "../../domain/sound"
 import { showInterval } from "../../domain/sound"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
@@ -21,7 +22,6 @@ import {
   technicalListItem,
   technicalSheetArea,
   technicalTerm,
-  videoIframe,
 } from "./Page.css"
 
 interface Props {
@@ -60,14 +60,7 @@ export const SoundPage = ({ sound }: Props) => {
                 />
               )),
             )}
-            <iframe
-              title={sound.title}
-              className={videoIframe}
-              src={`https://www.youtube.com/embed/${sound.videoSrc}?rel=0`}
-              allow="encrypted-media; picture-in-picture; fullscreen"
-              allowFullScreen
-              loading="lazy"
-            />
+            <VideoFacade videoId={sound.videoSrc} title={sound.title} />
           </div>
           <div className={descriptionArea}>
             {pipe(
