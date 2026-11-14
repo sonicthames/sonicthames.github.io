@@ -3,7 +3,7 @@
  */
 import { heading, text } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
-import { style } from "@vanilla-extract/css"
+import { globalStyle, style } from "@vanilla-extract/css"
 
 export const grid = style({
   listStyle: "none",
@@ -48,7 +48,10 @@ export const cardBody = style({
   position: "relative",
 })
 
-export const cardTitle = style([heading.h3, { fontSize: tokens.font.size.xl }])
+export const cardTitle = style([
+  heading.h3,
+  { fontSize: tokens.font.size.xl, margin: 0 },
+])
 
 export const cardDescription = style([
   text.body,
@@ -72,3 +75,5 @@ export const cardLink = style({
     },
   },
 })
+
+globalStyle(`${cardDescription} p`, { margin: 0 })
