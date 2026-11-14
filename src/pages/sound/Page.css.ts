@@ -7,7 +7,13 @@ import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 
 export const soundHeader = style({
+  alignItems: "center",
+  columnGap: tokens.space.lg,
+  display: "flex",
+  flexWrap: "wrap",
+  justifyContent: "space-between",
   marginBottom: tokens.space.lg,
+  rowGap: tokens.space.sm,
 })
 
 export const soundArticle = style({

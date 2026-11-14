@@ -37,4 +37,13 @@ test.describe("Sound page", () => {
     await play.click()
     await expect(page.locator('iframe[src*="autoplay=1"]')).toHaveCount(1)
   })
+
+  test("shows the sound on the map", async ({ page }) => {
+    await page.goto("/sound/jetty")
+    await page.getByRole("link", { name: "Show on map" }).click()
+    await expect(page).toHaveURL(/\/main\?sound=jetty$/)
+    await expect(
+      page.getByRole("heading", { name: "Wooden Jetty" }),
+    ).toBeHidden()
+  })
 })

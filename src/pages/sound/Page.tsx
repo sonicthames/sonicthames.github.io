@@ -1,7 +1,9 @@
+import { buttonRecipe } from "@theme/recipes/button.css"
 import { link } from "@theme/recipes/link.css"
 import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
+import { Link } from "react-router"
 import { VideoFacade } from "@/components/VideoFacade"
 import type { Sound } from "../../domain/sound"
 import { showInterval } from "../../domain/sound"
@@ -9,6 +11,7 @@ import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import { pageMain, pageMainVariants, pageRoot } from "../common/layout.css"
 import { constNA } from "../common/message"
+import { appRoute, soundId } from "../location"
 import {
   artworkImage,
   descriptionArea,
@@ -45,6 +48,12 @@ export const SoundPage = ({ sound }: Props) => {
       >
         <header className={soundHeader}>
           <h1 className={soundTitle}>{sound.title}</h1>
+          <Link
+            className={buttonRecipe({ tone: "cta", size: "md" })}
+            to={`${appRoute("main").to({}).path}?sound=${soundId(sound)}`}
+          >
+            Show on map
+          </Link>
         </header>
         <article className={soundArticle}>
           <div className={mediaArea}>

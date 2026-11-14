@@ -8,11 +8,12 @@ import "mapbox-gl/dist/mapbox-gl.css"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import type { MapProps, MapRef } from "react-map-gl/mapbox"
 import { Map as MapboxMap } from "react-map-gl/mapbox"
-import { matchPath, useLocation } from "react-router"
+import { matchPath, useLocation, useSearchParams } from "react-router"
 import type { Sound } from "@/domain/sound"
 import { haversineDistanceMeters } from "@/lib/geo"
-import { appRoute } from "@/pages/location"
+import { appRoute, soundId } from "@/pages/location"
 import { mapColorTheme } from "@/theme/mapColors"
+import { prefersReducedMotion } from "./lib/motion"
 import {
   pauseSharedTicker,
   resumeSharedTicker,
@@ -497,6 +498,22 @@ export const MainMap = ({ sounds }: Props) => {
     cancelRouteAnimation,
     updateTrackedUserPosition,
   ])
+
+  const [searchParams] = useSearchParams()
+  const focusId = searchParams.get("sound")
+  const focusSound =
+    focusId === null ? undefined : sounds.find((s) => soundId(s) === focusId)
+
+  useEffect(() => {
+    if (!mapReady || focusSound === undefined) {
+      return
+    }
+    mapRef.current?.flyTo({
+      center: [focusSound.coordinate.lng, focusSound.coordinate.lat],
+      zoom: 16,
+      duration: prefersReducedMotion() ? 0 : 1500,
+    })
+  }, [mapReady, focusSound])
 
   useEffect(() => {
     return () => {
