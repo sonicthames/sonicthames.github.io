@@ -42,8 +42,10 @@ export const media = style({
 export const cardBody = style({
   padding: tokens.space.md,
   display: "flex",
+  flex: "1 1 auto",
   flexDirection: "column",
   gap: tokens.space.sm,
+  position: "relative",
 })
 
 export const cardTitle = style([heading.h3, { fontSize: tokens.font.size.xl }])
@@ -59,8 +61,13 @@ export const cardDescription = style([
 export const cardLink = style({
   color: tokens.color.text,
   textDecoration: "none",
+  "::after": {
+    content: '""',
+    inset: 0,
+    position: "absolute",
+  },
   selectors: {
-    "&:hover": {
+    [`${cardBody}:hover &`]: {
       textDecoration: "underline",
     },
   },

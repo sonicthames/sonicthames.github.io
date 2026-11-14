@@ -18,6 +18,17 @@ test.describe("Sound page", () => {
     ).toHaveAttribute("href", "https://proteindance.co.uk/production")
   })
 
+  test("opens a sound from anywhere on its card's text", async ({ page }) => {
+    await page.goto("/listen")
+    // The title link's overlay covers the text; click where the text is.
+    const box = await page
+      .getByText(/^Coming from a landscape with many industrial/)
+      .boundingBox()
+    if (box === null) throw new Error("description not laid out")
+    await page.mouse.click(box.x + 8, box.y + box.height / 2)
+    await expect(page).toHaveURL(/\/sound\/curve$/)
+  })
+
   test("shows a thumbnail until the video is played", async ({ page }) => {
     await page.goto("/sound/jetty")
     const play = page.getByRole("button", { name: "Play Wooden Jetty" })
