@@ -23,7 +23,6 @@ export const panelRecipe = recipe({
       drawer: {
         WebkitBackdropFilter: tokens.effect.blur.md,
         backdropFilter: tokens.effect.blur.md,
-        boxShadow: tokens.shadow.drawer,
         color: tokens.color.text,
         maxWidth: "100%",
         position: "relative",
@@ -52,7 +51,8 @@ export const drawerContainer = recipe({
   variants: {
     open: {
       true: {
-        inset: 0,
+        // Mapbox terms require the logo and attribution to stay visible while the map shows, even behind an open page.
+        inset: `0 0 ${tokens.space["2xl"]} 0`,
         pointerEvents: "auto",
         justifyContent: "center",
         transform: "translateX(0)",

@@ -82,7 +82,6 @@ export const tokens = createThemeContract({
     sm: null,
     md: null, // Tailwind shadow-md (subtle)
     lg: null,
-    drawer: null, // Specific drawer shadow
     sidePanel: null, // Specific side panel shadow
     glowSoft: null,
     glowHard: null,

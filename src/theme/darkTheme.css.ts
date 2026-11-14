@@ -84,7 +84,6 @@ createGlobalTheme(":root", tokens, {
     sm: "0 1px 2px rgba(0, 0, 0, 0.2)",
     md: "0 4px 6px rgba(0, 0, 0, 0.2)",
     lg: "0 10px 15px rgba(0, 0, 0, 0.3)",
-    drawer: "0 12px 48px rgba(0, 0, 0, 0.6)",
     sidePanel: "0 0 32px rgba(0, 0, 0, 0.5)",
     glowSoft: "0 0 24px rgba(167, 139, 250, 0.55)",
     glowHard: "0 0 64px rgba(103, 232, 249, 0.65)",
