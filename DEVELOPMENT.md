@@ -6,8 +6,7 @@
 
 ```bash
 mise install
-pnpm install
-lefthook install
+pnpm install           # also installs the Git hooks
 cp .env.template .env  # add VITE_MAPBOX_TOKEN
 pnpm dev               # http://localhost:4420
 ```

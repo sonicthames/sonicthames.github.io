@@ -74,6 +74,7 @@
     "lint:fix": "biome check --write",
     "mcp:discover": "node scripts/mcp-discover.ts",
     "playwright:install": "playwright install --with-deps chromium",
+    "postinstall": "node scripts/install-hooks.ts",
     "serve": "vite preview",
     "spellcheck": "cspell lint --no-progress .",
     "storybook": "storybook dev -p 6006",

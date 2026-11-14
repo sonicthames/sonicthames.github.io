@@ -10,6 +10,8 @@
   },
   // scripts/deploy.ts runs it through `pnpm exec`.
   "ignoreDependencies": ["gh-pages"],
+  // mise sets up Lefthook, not pnpm.
+  "ignoreBinaries": ["lefthook"],
   "ignoreExportsUsedInFile": {
     "type": true,
     "interface": true
