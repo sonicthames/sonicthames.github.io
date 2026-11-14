@@ -8,7 +8,7 @@ test.describe("Contact page", () => {
       page.getByRole("heading", { name: /send us a message/i }),
     ).toBeVisible()
     await expect(
-      page.getByText(/get in touch with us by sending us a message/i),
+      page.getByText(/send us a message here to get in touch/i),
     ).toBeVisible()
 
     await expect(page.getByLabel("Name")).toBeVisible()

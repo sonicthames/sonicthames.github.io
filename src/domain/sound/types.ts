@@ -81,8 +81,8 @@ export interface HasDateTimeOption {
 export type Sound = SoundBase & (HasIntervalOption | HasDateTimeOption)
 
 export const R_CategoryFlavor: Readonly<Record<Category, string | null>> = {
-  Listen: "Sonic Points Fixed position",
-  See: "Sonic Scape Multi direction",
+  Listen: "Sonic Points: recorded at a fixed position",
+  See: "Sonic Scape: recorded from multiple directions",
   Feel: null,
 }
 

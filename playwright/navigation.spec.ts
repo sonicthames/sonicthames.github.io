@@ -53,7 +53,7 @@ test.describe("Navigation", () => {
     await page.goto("/contact")
     await page.getByLabel("Message").press("Tab")
 
-    const send = page.getByRole("button", { name: "Send Message" })
+    const send = page.getByRole("button", { name: "Send message" })
     await expect(send).toBeFocused()
     await expect(send).toHaveCSS("outline-style", "solid")
   })

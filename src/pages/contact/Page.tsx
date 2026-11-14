@@ -24,6 +24,9 @@ const composeMailto = (data: FormData) => {
   return `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(body)}`
 }
 
+const intro =
+  "Send us a message here to get in touch. Let us know what you think of the Sonic Thames project; we value your feedback, ideas and suggestions."
+
 export const ContactPage = () => {
   const deviceType = useDeviceType()
   const uid = useId()
@@ -48,11 +51,7 @@ export const ContactPage = () => {
         <div className={contactLayout}>
           <div>
             <H1>Send us a message</H1>
-            <p className={text.body}>
-              Get in touch with us by sending us a message here. Let us know
-              your opinion about the Sonic Thames Project. We value your
-              feedback, input, suggestions and of course your positive feedback.
-            </p>
+            <p className={text.body}>{intro}</p>
           </div>
           <form className={form} onSubmit={handleSubmit}>
             <div>
@@ -95,7 +94,7 @@ export const ContactPage = () => {
             </div>
             <div>
               <Button type="submit" tone="cta">
-                Send Message
+                Send message
               </Button>
             </div>
             <p role="status" className={text.body}>
