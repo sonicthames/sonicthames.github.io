@@ -1,3 +1,4 @@
+import { link } from "@theme/recipes/link.css"
 import { constNull, pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
 import * as RA from "fp-ts/ReadonlyArray"
@@ -128,6 +129,7 @@ export const SoundPage = ({ sound }: Props) => {
                         message
                       ) : (
                         <a
+                          className={link()}
                           // TODO Test on mobile
                           // Show arrow that this opens a new link
                           href={`geo:${sound.coordinate.lat},${sound.coordinate.lng}`}
