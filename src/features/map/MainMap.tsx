@@ -21,6 +21,8 @@ import {
 } from "./lib/pixiTicker"
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
+  attributionShade,
+  attributionShadeShown,
   debugControls,
   logoHidden,
   logoPosition,
@@ -585,6 +587,13 @@ export const MainMap = ({ sounds }: Props) => {
         sound={proximitySound}
         origin={proximityOrigin}
         allowPlayback={isMainRoute}
+      />
+      <div
+        className={
+          isMainRoute
+            ? attributionShade
+            : `${attributionShade} ${attributionShadeShown}`
+        }
       />
       {isMainRoute && !walked ? (
         <p className={walkHint}>

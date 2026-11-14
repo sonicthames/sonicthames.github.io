@@ -105,3 +105,20 @@ export const walkHintTouch = style({
   display: "none",
   "@media": { [coarsePointer]: { display: "inline" } },
 })
+
+export const attributionShade = style({
+  background: "rgb(0 0 0 / 0.75)",
+  bottom: 0,
+  height: tokens.space["2xl"],
+  left: 0,
+  opacity: 0,
+  pointerEvents: "none",
+  position: "absolute",
+  right: 0,
+  transition: `opacity ${tokens.motion.normal}`,
+  zIndex: 1,
+})
+
+export const attributionShadeShown = style({
+  opacity: 1,
+})

@@ -21,6 +21,7 @@ export const panelRecipe = recipe({
   variants: {
     kind: {
       drawer: {
+        background: tokens.color.overlay.base,
         WebkitBackdropFilter: tokens.effect.blur.md,
         backdropFilter: tokens.effect.blur.md,
         color: tokens.color.text,
