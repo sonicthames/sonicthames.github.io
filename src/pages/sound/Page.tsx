@@ -12,9 +12,9 @@ import {
   artworkImage,
   descriptionArea,
   mediaArea,
+  sheetHeading,
   soundArticle,
   soundHeader,
-  soundHeading3,
   soundTitle,
   technicalDefinition,
   technicalList,
@@ -76,7 +76,7 @@ export const SoundPage = ({ sound }: Props) => {
             )}
           </div>
           <div className={technicalSheetArea}>
-            <h3 className={soundHeading3}>Recording technical sheet</h3>
+            <h2 className={sheetHeading}>Recording technical sheet</h2>
             <dl className={technicalList}>
               {pipe(
                 "dateTime" in sound ? (

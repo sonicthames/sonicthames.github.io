@@ -9,6 +9,7 @@ import {
   navLink,
   pageHeader,
 } from "./Header.css"
+import { visuallyHidden } from "./layout.css"
 
 const pageLinks = [
   [appRoute("listen").to({}).path, "Listen"],
@@ -43,6 +44,7 @@ export const Header = () => {
   return (
     <header className={headerRoot}>
       <div className={headerInner} style={innerStyle}>
+        <h1 className={visuallyHidden}>Sonic Thames</h1>
         <Nav withMap={false} />
       </div>
     </header>

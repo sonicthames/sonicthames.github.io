@@ -63,11 +63,11 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                       />
                     </div>
                     <div className={cardBody}>
-                      <h3 className={cardTitle}>
+                      <h2 className={cardTitle}>
                         <Link to={`/sound/${soundId(x)}`} className={cardLink}>
                           {x.title}
                         </Link>
-                      </h3>
+                      </h2>
                       <div className={cardDescription}>
                         {pipe(
                           x.description,

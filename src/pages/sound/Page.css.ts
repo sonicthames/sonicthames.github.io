@@ -53,7 +53,7 @@ export const soundTitle = style({
   fontWeight: 400, // font-normal
 })
 
-export const soundHeading3 = style({
+export const sheetHeading = style({
   color: tokens.color.brand.olive,
 })
 
