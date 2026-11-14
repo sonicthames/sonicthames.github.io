@@ -70,6 +70,27 @@ test.describe("Navigation", () => {
     expect(ring).toBe("solid")
   })
 
+  test("marks the current page in the nav", async ({ page }) => {
+    await page.goto("/about")
+    const header = page.locator("header", { hasText: "Sonic Thames" })
+    await expect(
+      header.getByRole("link", { name: "About", exact: true }),
+    ).toHaveAttribute("aria-current", "page")
+  })
+
+  test("keeps the whole header on a phone screen", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 })
+    await page.goto("/about")
+    const header = page.locator("header", { hasText: "Sonic Thames" })
+    for (const item of [
+      header.getByText("Sonic Thames", { exact: true }),
+      header.getByRole("link", { name: "Map", exact: true }),
+      header.getByRole("link", { name: "Contact", exact: true }),
+    ]) {
+      await expect(item).toBeInViewport({ ratio: 1 })
+    }
+  })
+
   test("serves the manifest icons", async ({ request }) => {
     for (const icon of ["/logo192.png", "/logo512.png"]) {
       const response = await request.get(icon)

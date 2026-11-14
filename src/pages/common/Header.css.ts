@@ -4,6 +4,8 @@
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 
+const narrow = "screen and (max-width: 640px)"
+
 export const headerRoot = style({
   position: "sticky",
   top: 0,
@@ -15,21 +17,36 @@ export const headerRoot = style({
   pointerEvents: "none",
   backgroundImage:
     "linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 500px, rgba(0,0,0,0.6))",
+  "@media": {
+    [narrow]: { fontSize: tokens.font.size.lg },
+  },
 })
 
 export const headerInner = style({
+  alignItems: "baseline",
   display: "flex",
+  flexWrap: "wrap",
   justifyContent: "flex-end",
-  gap: tokens.space.lg,
+  columnGap: tokens.space.lg,
+  rowGap: tokens.space.sm,
   padding: tokens.space.lg,
   backgroundImage: `linear-gradient(180deg, ${tokens.color.contrast.dark} 0%, rgba(0, 0, 0, 0) 100%)`,
 })
 
 export const nav = style({
   display: "flex",
-  gap: tokens.space.lg,
+  flexWrap: "wrap",
+  columnGap: tokens.space.lg,
+  rowGap: tokens.space.xs,
   pointerEvents: "auto",
   textTransform: "uppercase",
+  "@media": {
+    [narrow]: {
+      columnGap: tokens.space.sm,
+      flex: "1 1 100%",
+      justifyContent: "space-between",
+    },
+  },
 })
 
 export const navLink = style({
@@ -43,6 +60,9 @@ export const navLink = style({
     "&:hover": {
       opacity: 0.8,
     },
+    "&[aria-current='page']": {
+      color: tokens.color.brand.accent,
+    },
   },
 })
 
@@ -55,6 +75,9 @@ export const pageHeader = style({
   fontWeight: tokens.font.weight.bold,
   fontSize: tokens.font.size.xl,
   pointerEvents: "auto",
+  "@media": {
+    [narrow]: { fontSize: tokens.font.size.lg },
+  },
 })
 
 export const brand = style({
