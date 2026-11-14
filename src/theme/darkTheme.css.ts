@@ -106,6 +106,8 @@ createGlobalTheme(":root", tokens, {
   font: {
     family:
       "'Inter Variable', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+    display:
+      "'Montserrat Variable', 'Inter Variable', ui-sans-serif, system-ui, sans-serif",
     size: {
       xs: "12px",
       sm: "13px",
@@ -113,6 +115,7 @@ createGlobalTheme(":root", tokens, {
       lg: "16px",
       xl: "18px",
       "2xl": "22px",
+      "3xl": "32px",
     },
     weight: { regular: "400", medium: "500", semibold: "600", bold: "700" },
     lineHeight: { tight: "1.2", normal: "1.45", relaxed: "1.6" },

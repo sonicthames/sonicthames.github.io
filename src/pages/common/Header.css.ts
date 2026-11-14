@@ -11,14 +11,15 @@ export const headerRoot = style({
   top: 0,
   zIndex: tokens.z.header,
   color: tokens.color.contrast.light,
-  fontWeight: tokens.font.weight.bold,
+  fontFamily: tokens.font.display,
+  fontWeight: tokens.font.weight.semibold,
   fontSize: tokens.font.size.xl,
   textTransform: "uppercase",
   pointerEvents: "none",
   backgroundImage:
     "linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 500px, rgba(0,0,0,0.6))",
   "@media": {
-    [narrow]: { fontSize: tokens.font.size.lg },
+    [narrow]: { fontSize: tokens.font.size.md },
   },
 })
 
@@ -72,11 +73,12 @@ export const pageHeader = style({
   zIndex: tokens.z.header,
   color: tokens.color.contrast.light,
   textTransform: "uppercase",
-  fontWeight: tokens.font.weight.bold,
+  fontFamily: tokens.font.display,
+  fontWeight: tokens.font.weight.semibold,
   fontSize: tokens.font.size.xl,
   pointerEvents: "auto",
   "@media": {
-    [narrow]: { fontSize: tokens.font.size.lg },
+    [narrow]: { fontSize: tokens.font.size.md },
   },
 })
 

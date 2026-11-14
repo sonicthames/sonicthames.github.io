@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router"
 import { App } from "./App"
 import { initAnalytics } from "./lib/analytics"
 import "@fontsource-variable/inter"
+import "@fontsource-variable/montserrat"
 import "@theme/darkTheme.css"
 import "@theme/global.css"
 

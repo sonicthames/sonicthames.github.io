@@ -2,6 +2,7 @@
  * Sound page (technical sheet) styles - co-located with Page.tsx
  * Replaces complex Tailwind grid layout with vanilla-extract
  */
+import { heading } from "@theme/recipes/text.css"
 import { tokens } from "@theme/tokens.css"
 import { style } from "@vanilla-extract/css"
 
@@ -46,16 +47,12 @@ export const technicalSheetArea = style({
 })
 
 // Typography styles for sound page
-export const soundTitle = style({
-  boxSizing: "border-box",
-  color: tokens.color.brand.olive,
-  fontSize: "2.25rem", // text-4xl
-  fontWeight: 400, // font-normal
-})
+export const soundTitle = style([heading.h1, { boxSizing: "border-box" }])
 
-export const sheetHeading = style({
-  color: tokens.color.brand.olive,
-})
+export const sheetHeading = style([
+  heading.h3,
+  { color: tokens.color.brand.olive, fontSize: tokens.font.size.xl },
+])
 
 // Technical sheet data list styles
 export const technicalList = style({

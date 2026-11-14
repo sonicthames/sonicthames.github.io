@@ -54,13 +54,7 @@ export const cardBody = style({
   gap: tokens.space.sm,
 })
 
-export const cardTitle = style([
-  heading.h3,
-  {
-    fontSize: tokens.font.size.xl,
-    fontWeight: tokens.font.weight.bold,
-  },
-])
+export const cardTitle = style([heading.h3, { fontSize: tokens.font.size.xl }])
 
 export const cardDescription = style([
   text.body,

@@ -9,14 +9,20 @@ const baseText = style({
 const baseHeading = style([
   baseText,
   {
+    fontFamily: tokens.font.display,
     fontWeight: tokens.font.weight.semibold,
     lineHeight: tokens.font.lineHeight.tight,
   },
 ])
 
 export const heading = styleVariants({
-  h1: [baseHeading, { fontSize: tokens.font.size["2xl"] }],
-  h2: [baseHeading, { fontSize: tokens.font.size.xl }],
+  h1: [
+    baseHeading,
+    {
+      fontSize: `clamp(${tokens.font.size["2xl"]}, 4vw + 14px, ${tokens.font.size["3xl"]})`,
+    },
+  ],
+  h2: [baseHeading, { fontSize: tokens.font.size["2xl"] }],
   h3: [baseHeading, { fontSize: tokens.font.size.lg }],
 })
 

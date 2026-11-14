@@ -179,6 +179,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: 5.3.0
         version: 5.3.0
+      '@fontsource-variable/montserrat':
+        specifier: 5.3.0
+        version: 5.3.0
       clsx:
         specifier: 2.1.1
         version: 2.1.1
@@ -918,6 +921,9 @@ packages:
 
   '@fontsource-variable/inter@5.3.0':
     resolution: {integrity: sha512-OupL48va4JNofb97w6NYeF9S7W/kHNKM0Er8Dem5nqi4jeOLrVJDoE8tZEpnMJmtkvNbB1EIPPwHcdkF6b1oUA==}
+
+  '@fontsource-variable/montserrat@5.3.0':
+    resolution: {integrity: sha512-7PaZoxaxrWLAyrhO46v65An9LhUhfkTExWLhfbywYZCnZEgg/W1rEHnlNmZKjNZ3nJTVYyicqxlJt10z/26yTA==}
 
   '@hono/node-server@2.1.8':
     resolution: {integrity: sha512-jdf7FHh6A1lzjpHHQUgxsg2GeER2vMetnAOfeActzcoli6jamlK+NAwL6Dsr5Fl3BS3tYUQzCdtZjU8Qxv7bEA==}
@@ -4537,6 +4543,8 @@ snapshots:
     optional: true
 
   '@fontsource-variable/inter@5.3.0': {}
+
+  '@fontsource-variable/montserrat@5.3.0': {}
 
   '@hono/node-server@2.1.8(hono@4.13.18)':
     dependencies:

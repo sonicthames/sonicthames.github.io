@@ -103,6 +103,7 @@ export const tokens = createThemeContract({
   },
   font: {
     family: null,
+    display: null,
     size: {
       xs: null,
       sm: null,
@@ -110,6 +111,7 @@ export const tokens = createThemeContract({
       lg: null,
       xl: null,
       "2xl": null,
+      "3xl": null,
     },
     weight: {
       regular: null,
