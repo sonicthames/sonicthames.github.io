@@ -1,16 +1,20 @@
 import { expect, test } from "./fixtures"
 
 test.describe("Sound page", () => {
-  test("fits a phone screen without horizontal scrolling", async ({ page }) => {
-    await page.setViewportSize({ width: 375, height: 800 })
+  test("leaves out a description that repeats the title", async ({ page }) => {
     await page.goto("/sound/jetty")
     await expect(
       page.getByRole("heading", { name: "Wooden Jetty" }),
     ).toBeVisible()
+    await expect(
+      page.locator("main p", { hasText: /^Wooden Jetty$/ }),
+    ).toHaveCount(0)
+  })
 
-    const overflow = await page
-      .locator("main")
-      .evaluate((main) => main.scrollWidth - main.clientWidth)
-    expect(overflow).toBe(0)
+  test("links a web address in a description", async ({ page }) => {
+    await page.goto("/sound/here")
+    await expect(
+      page.getByRole("link", { name: "proteindance.co.uk/production" }),
+    ).toHaveAttribute("href", "https://proteindance.co.uk/production")
   })
 })

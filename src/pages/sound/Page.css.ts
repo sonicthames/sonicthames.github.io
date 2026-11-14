@@ -63,7 +63,6 @@ export const technicalList = style({
   display: "grid",
   gap: tokens.space.md,
   gridAutoFlow: "row",
-  gridAutoRows: "1fr",
   gridTemplateColumns: "minmax(0, 1fr)",
   "@media": {
     "screen and (min-width: 1024px)": {
@@ -74,18 +73,20 @@ export const technicalList = style({
 
 export const technicalListItem = style({
   display: "flex",
+  flexDirection: "column",
+  gap: tokens.space.xs,
 })
 
 export const technicalTerm = style({
-  fontWeight: tokens.font.weight.bold,
-  marginRight: tokens.space.lg,
-  flexBasis: "25%",
+  color: tokens.color.muted,
+  fontSize: tokens.font.size.xs,
+  fontWeight: tokens.font.weight.semibold,
+  letterSpacing: "0.08em",
+  textTransform: "uppercase",
 })
 
 export const technicalDefinition = style({
   margin: 0,
-  marginRight: tokens.space.lg,
-  flexBasis: "70%",
 })
 
 // Video iframe style

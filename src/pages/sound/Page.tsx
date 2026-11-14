@@ -72,7 +72,23 @@ export const SoundPage = ({ sound }: Props) => {
           <div className={descriptionArea}>
             {pipe(
               sound.description,
-              RA.map((x) => <p key={x}>{x}</p>),
+              RA.filter((x) => x !== sound.title),
+              RA.map((x) => (
+                <p key={x}>
+                  {/^https?:\/\/\S+$/.test(x) ? (
+                    <a
+                      className={link()}
+                      href={x}
+                      rel="noreferrer"
+                      target="_blank"
+                    >
+                      {x.replace(/^https?:\/\//, "")}
+                    </a>
+                  ) : (
+                    x
+                  )}
+                </p>
+              )),
             )}
           </div>
           <div className={technicalSheetArea}>
@@ -82,7 +98,7 @@ export const SoundPage = ({ sound }: Props) => {
                 "dateTime" in sound ? (
                   <>
                     <div className={technicalListItem}>
-                      <dt className={technicalTerm}>Date:</dt>
+                      <dt className={technicalTerm}>Date</dt>
                       <dd className={technicalDefinition}>
                         {pipe(
                           sound.dateTime,
@@ -92,7 +108,7 @@ export const SoundPage = ({ sound }: Props) => {
                     </div>
 
                     <div className={technicalListItem}>
-                      <dt className={technicalTerm}>Time:</dt>
+                      <dt className={technicalTerm}>Time</dt>
                       <dd className={technicalDefinition}>
                         {pipe(
                           sound.dateTime,
@@ -103,7 +119,7 @@ export const SoundPage = ({ sound }: Props) => {
                   </>
                 ) : (
                   <div className={technicalListItem}>
-                    <dt className={technicalTerm}>Interval:</dt>
+                    <dt className={technicalTerm}>Interval</dt>
                     <dd className={technicalDefinition}>
                       {pipe(sound.interval, O.fold(constNA, showInterval))}
                     </dd>
@@ -111,7 +127,7 @@ export const SoundPage = ({ sound }: Props) => {
                 ),
               )}
               <div className={technicalListItem}>
-                <dt className={technicalTerm}>Place:</dt>
+                <dt className={technicalTerm}>Place</dt>
                 <dd className={technicalDefinition}>
                   {pipe(sound.location, O.getOrElse(constNA))}
                 </dd>
@@ -120,7 +136,7 @@ export const SoundPage = ({ sound }: Props) => {
                 className={technicalListItem}
                 title={`${sound.coordinate.lat},${sound.coordinate.lng}`}
               >
-                <dt className={technicalTerm}>Map Location:</dt>
+                <dt className={technicalTerm}>Map location</dt>
                 <dd className={technicalDefinition}>
                   {pipe(
                     `${sound.coordinate.lat.toFixed(3)}, ${sound.coordinate.lng.toFixed(3)}`,
@@ -143,13 +159,13 @@ export const SoundPage = ({ sound }: Props) => {
                 </dd>
               </div>
               <div className={technicalListItem}>
-                <dt className={technicalTerm}>Access:</dt>
+                <dt className={technicalTerm}>Access</dt>
                 <dd className={technicalDefinition}>
                   {pipe(sound.access, O.getOrElse(constNA))}
                 </dd>
               </div>
               <div className={technicalListItem}>
-                <dt className={technicalTerm}>Piece duration:</dt>
+                <dt className={technicalTerm}>Piece duration</dt>
                 <dd className={technicalDefinition}>
                   {sound.duration.toFormat("h:mm:ss")}
                 </dd>

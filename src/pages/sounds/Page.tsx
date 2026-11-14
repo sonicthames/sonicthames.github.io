@@ -71,6 +71,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
                       <div className={cardDescription}>
                         {pipe(
                           x.description,
+                          RA.filter((y) => y !== x.title),
                           RA.head,
                           O.fold(constNull, (y) => <p>{y}</p>),
                         )}
