@@ -1,3 +1,6 @@
+# Without this, pnpm skips the engines check and installs on any Node version, silently.
+engineStrict: true
+
 allowBuilds:
   core-js: true
   esbuild: true
