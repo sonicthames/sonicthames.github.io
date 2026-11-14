@@ -106,6 +106,15 @@ test.describe("Navigation", () => {
     await expect(page).toHaveTitle("Sonic Thames")
   })
 
+  test("leads back to the map from a missing page", async ({ page }) => {
+    await page.goto("/no-such-page")
+    await expect(
+      page.getByRole("heading", { name: "Page not found" }),
+    ).toBeVisible()
+    await page.getByRole("link", { name: "Back to the map" }).click()
+    await expect(page).toHaveURL(/\/main$/)
+  })
+
   test("serves the manifest icons", async ({ request }) => {
     for (const icon of ["/logo192.png", "/logo512.png"]) {
       const response = await request.get(icon)
