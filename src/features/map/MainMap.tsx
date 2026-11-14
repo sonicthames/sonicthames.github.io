@@ -578,7 +578,6 @@ export const MainMap = ({ sounds }: Props) => {
         ref={fogOverlayRef}
         mapRef={mapRef}
         movementBounds={lngLatBounds}
-        intensity={1.0}
         enabled
         sounds={sounds}
         animate={isMainRoute}

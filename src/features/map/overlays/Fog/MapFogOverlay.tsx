@@ -477,7 +477,8 @@ export const MapFogOverlay = ({
       // Handle retina displays - scale internal canvas resolution
       syncCanvasSize(canvas, ctx, width, height)
 
-      // STEP 1: Fill entire canvas with opaque fog (no clearRect needed - we fill the entire canvas)
+      // Clear first, otherwise non-opaque fog accumulates across frames.
+      ctx.clearRect(0, 0, width, height)
       ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(1, intensity)})`
       ctx.fillRect(0, 0, width, height)
 
