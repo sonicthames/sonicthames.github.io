@@ -31,13 +31,14 @@ export const buttonRecipe = recipe({
         },
       },
       cta: {
-        background: tokens.color.contrast.light,
-        color: tokens.color.contrast.dark,
-        borderColor: tokens.color.contrast.dark,
+        background: "transparent",
+        color: tokens.color.brand.accent,
+        borderColor: tokens.color.brand.accent,
         borderRadius: "0",
         selectors: {
           "&:hover:not(:disabled)": {
-            background: tokens.color.surface,
+            background: tokens.color.brand.accent,
+            color: tokens.color.contrast.dark,
           },
         },
       },
