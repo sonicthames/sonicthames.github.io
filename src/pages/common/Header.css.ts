@@ -6,6 +6,8 @@ import { style } from "@vanilla-extract/css"
 
 const narrow = "screen and (max-width: 640px)"
 
+const topShade = `linear-gradient(180deg, ${tokens.color.contrast.dark} 0%, rgba(0, 0, 0, 0) 100%)`
+
 export const headerRoot = style({
   position: "sticky",
   top: 0,
@@ -16,8 +18,7 @@ export const headerRoot = style({
   fontSize: tokens.font.size.xl,
   textTransform: "uppercase",
   pointerEvents: "none",
-  backgroundImage:
-    "linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 500px, rgba(0,0,0,0.6))",
+  backgroundImage: `${topShade}, linear-gradient(90deg, rgba(0,0,0,0), rgba(0,0,0,0) 500px, rgba(0,0,0,0.6))`,
   "@media": {
     [narrow]: { fontSize: tokens.font.size.md },
   },
@@ -31,7 +32,6 @@ export const headerInner = style({
   columnGap: tokens.space.lg,
   rowGap: tokens.space.sm,
   padding: tokens.space.lg,
-  backgroundImage: `linear-gradient(180deg, ${tokens.color.contrast.dark} 0%, rgba(0, 0, 0, 0) 100%)`,
 })
 
 export const nav = style({
@@ -77,6 +77,7 @@ export const pageHeader = style({
   fontWeight: tokens.font.weight.semibold,
   fontSize: tokens.font.size.xl,
   pointerEvents: "auto",
+  backgroundImage: topShade,
   "@media": {
     [narrow]: { fontSize: tokens.font.size.md },
   },
