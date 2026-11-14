@@ -13,6 +13,11 @@ globalStyle("button, input, select, textarea", {
   fontFamily: "inherit",
 })
 
+globalStyle(":focus-visible", {
+  outline: `2px solid ${tokens.color.brand.accent}`,
+  outlineOffset: "3px",
+})
+
 globalStyle("body", {
   margin: 0,
   background: tokens.color.bg,

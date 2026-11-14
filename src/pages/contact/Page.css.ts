@@ -31,12 +31,5 @@ export const formInput = style({
   color: tokens.color.text,
   fontSize: tokens.font.size.md,
   padding: tokens.space.md,
-  transition: `box-shadow ${tokens.motion.fast}`,
   width: "100%",
-  selectors: {
-    "&:focus": {
-      outline: "none",
-      boxShadow: `0 0 0 2px ${tokens.color.accent}`,
-    },
-  },
 })

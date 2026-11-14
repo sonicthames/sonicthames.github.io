@@ -17,10 +17,6 @@ export const buttonRecipe = recipe({
         cursor: "not-allowed",
         opacity: 0.5,
       },
-      "&:focus-visible": {
-        outline: "none",
-        boxShadow: tokens.shadow.glowSoft,
-      },
     },
   },
   variants: {

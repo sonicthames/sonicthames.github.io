@@ -2,7 +2,22 @@
  * Map component styles - co-located with Map.tsx
  */
 import { tokens } from "@theme/tokens.css"
-import { style } from "@vanilla-extract/css"
+import { globalStyle, style } from "@vanilla-extract/css"
+
+// Fog and marker canvases cover the map and its focus ring, so the ring is drawn over the whole map.
+globalStyle(".mapboxgl-canvas:focus-visible", {
+  outline: "none",
+})
+
+globalStyle(".mapboxgl-map:has(.mapboxgl-canvas:focus-visible)::after", {
+  content: '""',
+  inset: 0,
+  outline: `2px solid ${tokens.color.brand.accent}`,
+  outlineOffset: "-2px",
+  pointerEvents: "none",
+  position: "absolute",
+  zIndex: tokens.z.overlay,
+})
 
 export const logoPosition = style({
   position: "absolute",

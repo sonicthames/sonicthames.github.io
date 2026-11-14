@@ -49,6 +49,27 @@ test.describe("Navigation", () => {
     await expect(aboutLink).toBeFocused()
   })
 
+  test("rings a control focused from the keyboard", async ({ page }) => {
+    await page.goto("/contact")
+    await page.getByLabel("Message").press("Tab")
+
+    const send = page.getByRole("button", { name: "Send Message" })
+    await expect(send).toBeFocused()
+    await expect(send).toHaveCSS("outline-style", "solid")
+  })
+
+  test("rings the map when its canvas has keyboard focus", async ({ page }) => {
+    await page.goto("/")
+    const canvas = page.locator(".mapboxgl-canvas")
+    await page.keyboard.press("Tab")
+    await canvas.focus()
+
+    const ring = await page
+      .locator(".mapboxgl-map")
+      .evaluate((map) => getComputedStyle(map, "::after").outlineStyle)
+    expect(ring).toBe("solid")
+  })
+
   test("serves the manifest icons", async ({ request }) => {
     for (const icon of ["/logo192.png", "/logo512.png"]) {
       const response = await request.get(icon)
