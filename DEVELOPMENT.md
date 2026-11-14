@@ -21,6 +21,7 @@ With direnv, `direnv allow` puts the tools on `PATH` and loads `.env`; otherwise
 | ---------------------------------------- | ---------------------------------------------------------------------- |
 | `pnpm dev`, `pnpm dev:test`              | Dev server on port 4420, or 4747 for the Playwright MCP                |
 | `pnpm build`, `pnpm serve`               | Production build, and its preview on port 4421                         |
+| `BUNDLE_STATS=true pnpm build`           | Production build that also writes and opens `dist/stats.html`          |
 | `pnpm check`                             | Every gate: peer check, lint, typecheck, spellcheck, unit tests, build |
 | `pnpm lint:fix`, `pnpm format`           | Apply Biome's safe fixes; format                                       |
 | `pnpm test`, `pnpm test:coverage`        | Unit tests; with the coverage thresholds, as in `pnpm check`           |
