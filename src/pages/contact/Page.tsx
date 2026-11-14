@@ -38,7 +38,7 @@ export const ContactPage = () => {
 
   return (
     <div className={pageRoot}>
-      <PageHeader />
+      <PageHeader title="Contact" />
       <main
         className={`${pageMain} ${pageMainVariants[deviceType]}`}
         style={

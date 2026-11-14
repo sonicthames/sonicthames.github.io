@@ -9,7 +9,7 @@ export const NotFoundPage = () => {
   const deviceType = useDeviceType()
   return (
     <div className={pageRoot}>
-      <PageHeader />
+      <PageHeader title="Page not found" />
       <main
         className={`${pageMain} ${pageMainVariants[deviceType]}`}
         style={

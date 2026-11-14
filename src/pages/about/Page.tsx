@@ -25,7 +25,7 @@ export const AboutPage = () => {
 
   return (
     <div className={pageRoot}>
-      <PageHeader />
+      <PageHeader title="About" />
       <main
         className={`${pageMain} ${pageMainVariants[deviceType]}`}
         style={

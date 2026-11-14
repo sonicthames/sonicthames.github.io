@@ -32,7 +32,7 @@ export const SoundsPage = ({ category, sounds }: Props) => {
   const deviceType = useDeviceType()
   return (
     <div className={pageRoot}>
-      <PageHeader />
+      <PageHeader title={category} />
       <main
         className={`${pageMain} ${pageMainVariants[deviceType]}`}
         style={

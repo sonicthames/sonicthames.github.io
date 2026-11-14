@@ -12,6 +12,7 @@ export const CrashPage = ({ error }: Props) => {
   const deviceType = useDeviceType()
   return (
     <div className={pageRoot}>
+      <title>Something went wrong · Sonic Thames</title>
       <main
         className={`${pageMain} ${pageMainVariants[deviceType]}`}
         style={

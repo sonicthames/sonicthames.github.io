@@ -91,6 +91,17 @@ test.describe("Navigation", () => {
     }
   })
 
+  test("titles each page", async ({ page }) => {
+    await page.goto("/main")
+    await expect(page).toHaveTitle("Sonic Thames")
+    await page.goto("/about")
+    await expect(page).toHaveTitle("About · Sonic Thames")
+    await page.goto("/sound/jetty")
+    await expect(page).toHaveTitle("Wooden Jetty · Sonic Thames")
+    await page.keyboard.press("Escape")
+    await expect(page).toHaveTitle("Sonic Thames")
+  })
+
   test("serves the manifest icons", async ({ request }) => {
     for (const icon of ["/logo192.png", "/logo512.png"]) {
       const response = await request.get(icon)

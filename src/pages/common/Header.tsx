@@ -49,10 +49,11 @@ export const Header = () => {
   )
 }
 
-export const PageHeader = () => {
+export const PageHeader = ({ title }: { readonly title: string }) => {
   const innerStyle = useInnerStyle()
   return (
     <header className={pageHeader}>
+      <title>{`${title} · Sonic Thames`}</title>
       <div className={headerInner} style={innerStyle}>
         <strong className={brand}>Sonic Thames</strong>
         <Nav withMap />

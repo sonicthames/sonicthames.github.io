@@ -36,7 +36,7 @@ export const SoundPage = ({ sound }: Props) => {
 
   return (
     <div className={pageRoot}>
-      <PageHeader />
+      <PageHeader title={sound.title} />
       <main
         className={`${pageMain} ${pageMainVariants[deviceType]}`}
         style={
