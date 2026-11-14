@@ -1,6 +1,6 @@
+import { panel as panelRecipe } from "@theme/recipes/panel.css"
 import type * as React from "react"
 import { cn } from "@/lib/utils"
-import { panel as panelRecipe } from "@/styles/recipes.css"
 
 export interface PanelProps extends React.HTMLAttributes<HTMLDivElement> {
   elevated?: boolean

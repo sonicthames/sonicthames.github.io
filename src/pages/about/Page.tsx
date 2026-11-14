@@ -1,8 +1,8 @@
+import { link } from "@theme/recipes/link.css"
 import { useNavigate } from "react-router"
 import { TrackedCta } from "@/components/TrackedCta"
 import { H1, H2 } from "@/components/Typography"
 import { Link } from "@/components/ui"
-import { link } from "@/styles/recipes.css"
 import { maxPageWidth, useDeviceType } from "../../theme/media"
 import { PageHeader } from "../common/Header"
 import {

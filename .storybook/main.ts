@@ -13,7 +13,6 @@ const config: StorybookConfig = {
         alias: {
           "@": "/src",
           "@theme": "/src/theme",
-          "@ui": "/src/ui",
         },
       },
     })

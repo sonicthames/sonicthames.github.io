@@ -1,8 +1,8 @@
+import { link as linkRecipe } from "@theme/recipes/link.css"
 import type * as React from "react"
 import type { LinkProps as RouterLinkProps } from "react-router"
 import { Link as RouterLink } from "react-router"
 import { cn } from "@/lib/utils"
-import { link as linkRecipe } from "@/styles/recipes.css"
 
 export interface LinkProps extends Omit<RouterLinkProps, "to"> {
   to: string

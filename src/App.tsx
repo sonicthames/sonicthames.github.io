@@ -1,4 +1,4 @@
-import { drawer, drawerPanel } from "@ui/components/map.css"
+import { drawerContainer, panelRecipe } from "@theme/recipes/layout.css"
 import * as E from "fp-ts/Either"
 import { pipe } from "fp-ts/function"
 import * as O from "fp-ts/Option"
@@ -167,8 +167,11 @@ const AppContent = () => {
       <div className={appHeaderLayer} inert={showDrawer}>
         <Header />
       </div>
-      <div className={drawer({ open: showDrawer })} inert={!showDrawer}>
-        <div ref={drawerPanelRef} className={drawerPanel} tabIndex={-1}>
+      <div
+        className={drawerContainer({ open: showDrawer })}
+        inert={!showDrawer}
+      >
+        <div ref={drawerPanelRef} className={panelRecipe()} tabIndex={-1}>
           <Suspense key={location.pathname}>
             <Routes>
               <Route path={appRoute("main").path} element={null} />

@@ -5,7 +5,7 @@ import { App } from "./App"
 import { initAnalytics } from "./lib/analytics"
 import "./index.css"
 import "@theme/darkTheme.css"
-import "./styles/global.css"
+import "@theme/global.css"
 
 const rootElement = document.getElementById("root")
 if (!rootElement) throw new Error("Failed to find the root element")

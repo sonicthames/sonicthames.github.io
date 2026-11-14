@@ -59,7 +59,7 @@
         "noUnusedPrivateClassMembers": "error",
         "noGlobalDirnameFilename": "error",
         "useImportExtensions": "off",
-        // Biome cannot resolve TS path aliases (@/, @theme/, @ui/)
+        // Biome cannot resolve TS path aliases (@/, @theme/)
         "noUndeclaredDependencies": "off",
         "noUnresolvedImports": "off"
       },

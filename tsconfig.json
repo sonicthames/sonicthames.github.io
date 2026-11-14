@@ -30,8 +30,7 @@
     "types": ["node", "react/canary", "vite/client", "vitest/globals"],
     "paths": {
       "@/*": ["./src/*"],
-      "@theme/*": ["./src/theme/*"],
-      "@ui/*": ["./src/ui/*"]
+      "@theme/*": ["./src/theme/*"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx", "**/*.mts", ".storybook/**/*"],
