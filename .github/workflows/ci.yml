@@ -66,6 +66,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The secret scan reads the full history.
+          fetch-depth: 0
 
       - uses: ./.github/actions/setup
 
@@ -77,6 +80,11 @@ jobs:
         run: pnpm lint:biome --reporter=github
 
       - run: actionlint
+
+      # Pre-commit scans only staged changes, and hooks can be bypassed.
+      - name: Scan history for secrets
+        run: gitleaks git --no-banner --redact --verbose --log-opts=HEAD .
+
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm spellcheck

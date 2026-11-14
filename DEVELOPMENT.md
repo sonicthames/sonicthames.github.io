@@ -39,7 +39,7 @@ Scripts in `scripts/` run on Node.js type stripping, so they use erasable syntax
 - **TypeScript:** the strict flags beyond `strict`, including `noUncheckedIndexedAccess` and `exactOptionalPropertyTypes`.
 - **Build:** the React Compiler fails the build on a component it cannot compile (`panicThreshold` in `vite.config.ts`). The error names the rule, for example `Refs` for touching `ref.current` during render.
 - **Hooks:** pre-commit runs actionlint, lint, typecheck, spellcheck and a gitleaks scan of staged changes, and fails when a tool is missing. Pre-push runs `pnpm check`.
-- **CI:** `.github/workflows/ci.yml` runs the gates, the Storybook build, the Playwright specs and the visual suite on Blacksmith runners. They need the Blacksmith GitHub app on the organisation; without it, jobs queue and never start. Runner labels are declared in `.github/actionlint.yaml`.
+- **CI:** `.github/workflows/ci.yml` runs the gates, a gitleaks scan of the whole history, the Storybook build, the Playwright specs and the visual suite on Blacksmith runners. The organisation needs the Blacksmith GitHub app; without it, jobs queue and never start. Runner labels are declared in `.github/actionlint.yaml`. Add gitleaks false positives to `.gitleaksignore` with a comment giving the reason.
 - **Audit:** a separate job runs `pnpm audit --audit-level=moderate` weekly, on manual dispatch, and when `package.json`, `pnpm-lock.yaml` or `pnpm-workspace.yaml` change. Record an advisory with no fix under `auditConfig.ignoreGhsas` in `pnpm-workspace.yaml`, with the reason.
 
 ## Tests
