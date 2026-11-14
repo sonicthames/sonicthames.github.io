@@ -100,7 +100,8 @@ test.describe("Navigation", () => {
     await expect(page).toHaveTitle("Sonic Thames")
     await page.goto("/about")
     await expect(page).toHaveTitle("About · Sonic Thames")
-    await page.goto("/sound/jetty")
+    // GitHub Pages redirects /sound/jetty to the page the build wrote for it.
+    await page.goto("/sound/jetty/")
     await expect(page).toHaveTitle("Wooden Jetty · Sonic Thames")
     await page.keyboard.press("Escape")
     await expect(page).toHaveTitle("Sonic Thames")

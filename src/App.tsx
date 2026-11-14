@@ -174,7 +174,10 @@ const AppContent = () => {
         <div ref={drawerPanelRef} className={panelRecipe()} tabIndex={-1}>
           <Suspense key={location.pathname}>
             <Routes>
-              <Route path={appRoute("main").path} element={null} />
+              <Route
+                path={appRoute("main").path}
+                element={<title>Sonic Thames</title>}
+              />
               <Route path={appRoute("about").path} element={<AboutPage />} />
               <Route
                 path={appRoute("listen").path}

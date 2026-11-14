@@ -60,7 +60,7 @@
   },
   "scripts": {
     "build": "vite build && node scripts/route-pages.ts",
-    "build:e2e": "VITE_MAPBOX_TOKEN=pk.test-playwright-token VITE_POSTHOG_KEY= vite build --outDir dist-e2e",
+    "build:e2e": "VITE_MAPBOX_TOKEN=pk.test-playwright-token VITE_POSTHOG_KEY= vite build --outDir dist-e2e && node scripts/route-pages.ts dist-e2e",
     "check": "pnpm peers check && pnpm lint && pnpm typecheck && pnpm spellcheck && pnpm test:coverage && pnpm build",
     "check:react-compiler": "oxlint -c oxlint.react-compiler.json --deny-warnings src",
     "check:type-aware": "oxlint -c oxlint.type-aware.json --type-aware --deny-warnings .",

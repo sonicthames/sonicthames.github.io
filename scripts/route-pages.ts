@@ -109,9 +109,9 @@ export const buildRoutePages = (
   }))
 }
 
-const main = () => {
+const main = (outDir: string) => {
   const root = path.resolve(import.meta.dirname, "..")
-  const dist = path.join(root, "dist")
+  const dist = path.join(root, outDir)
   const pkg = z
     .object({ homepage: z.string() })
     .parse(JSON.parse(readFileSync(path.join(root, "package.json"), "utf8")))
@@ -131,5 +131,5 @@ const main = () => {
 }
 
 if (process.argv[1] === import.meta.filename) {
-  main()
+  main(process.argv[2] ?? "dist")
 }
