@@ -72,7 +72,9 @@ test.describe("Navigation", () => {
 
   test("marks the current page in the nav", async ({ page }) => {
     await page.goto("/about")
-    const header = page.locator("header", { hasText: "Sonic Thames" })
+    const header = page
+      .locator("header")
+      .filter({ has: page.getByRole("link", { name: "Map", exact: true }) })
     await expect(
       header.getByRole("link", { name: "About", exact: true }),
     ).toHaveAttribute("aria-current", "page")
@@ -81,7 +83,9 @@ test.describe("Navigation", () => {
   test("keeps the whole header on a phone screen", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto("/about")
-    const header = page.locator("header", { hasText: "Sonic Thames" })
+    const header = page
+      .locator("header")
+      .filter({ has: page.getByRole("link", { name: "Map", exact: true }) })
     for (const item of [
       header.getByText("Sonic Thames", { exact: true }),
       header.getByRole("link", { name: "Map", exact: true }),

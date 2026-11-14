@@ -7,12 +7,11 @@ test.describe("Main map experience", () => {
     await page.goto("/")
 
     // The map is lazy-loaded, and parsing Mapbox in a busy browser takes a while.
-    await expect(page.getByRole("img", { name: /logo/i })).toBeVisible({
+    await expect(page.locator("canvas.mapboxgl-canvas").first()).toBeVisible({
       timeout: 15_000,
     })
     await expect(page.getByTestId("map-fog-overlay")).toBeVisible()
     await expect(page.getByTestId("sound-markers-layer")).toBeVisible()
-    await expect(page.locator("canvas.mapboxgl-canvas").first()).toBeVisible()
 
     // The two Pixi overlays mount their canvases once Mapbox fires `load`.
     await expect(page.locator("canvas")).toHaveCount(4)

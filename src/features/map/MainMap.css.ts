@@ -24,7 +24,12 @@ export const logoPosition = style({
   inset: "auto -40px -85px auto",
   width: "20rem",
   pointerEvents: "none",
+  transition: `opacity ${tokens.motion.normal}`,
   zIndex: tokens.z.overlay,
+})
+
+export const logoHidden = style({
+  opacity: 0,
 })
 
 export const debugControls = style({

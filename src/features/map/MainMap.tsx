@@ -21,6 +21,7 @@ import {
 import { ZOOM_MIN_LEVEL } from "./lib/zoomScale"
 import {
   debugControls,
+  logoHidden,
   logoPosition,
   restoreFogButton,
   revealFogButton,
@@ -528,8 +529,10 @@ export const MainMap = ({ sounds }: Props) => {
       onLoad={handleMapLoad}
       mapStyle={MAP_STYLE}
     >
-      <div className={logoPosition}>
-        <img src="/logo-05.svg" alt="logo" />
+      <div
+        className={isMainRoute ? logoPosition : `${logoPosition} ${logoHidden}`}
+      >
+        <img src="/logo-05.svg" alt="" />
       </div>
       <SoundMarkersCanvas
         mapRef={mapRef}
