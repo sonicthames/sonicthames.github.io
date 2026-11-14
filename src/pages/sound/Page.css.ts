@@ -49,7 +49,6 @@ export const technicalSheetArea = style({
 export const soundTitle = style({
   boxSizing: "border-box",
   color: tokens.color.brand.olive,
-  fontFamily: "Helvetica Neue, Helvetica, Roboto, Arial, sans-serif",
   fontSize: "2.25rem", // text-4xl
   fontWeight: 400, // font-normal
 })

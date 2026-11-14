@@ -106,7 +106,7 @@ createGlobalTheme(":root", tokens, {
   },
   font: {
     family:
-      "Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
+      "'Inter Variable', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
     size: {
       xs: "12px",
       sm: "13px",

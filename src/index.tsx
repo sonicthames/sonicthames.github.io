@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client"
 import { BrowserRouter } from "react-router"
 import { App } from "./App"
 import { initAnalytics } from "./lib/analytics"
-import "./index.css"
+import "@fontsource-variable/inter"
 import "@theme/darkTheme.css"
 import "@theme/global.css"
 

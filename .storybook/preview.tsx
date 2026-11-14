@@ -1,6 +1,6 @@
 import type { Preview } from "@storybook/react-vite"
 import { MemoryRouter } from "react-router"
-import "../src/index.css"
+import "@fontsource-variable/inter"
 import "../src/theme/darkTheme.css"
 import "../src/theme/global.css"
 

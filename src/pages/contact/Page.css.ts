@@ -29,7 +29,6 @@ export const formInput = style({
   background: tokens.color.bg,
   border: `1px solid ${tokens.color.border}`,
   color: tokens.color.text,
-  fontFamily: tokens.font.family,
   fontSize: tokens.font.size.md,
   padding: tokens.space.md,
   transition: `box-shadow ${tokens.motion.fast}`,
