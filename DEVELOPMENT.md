@@ -107,6 +107,8 @@ VITE_MAPBOX_TOKEN=... pnpm run deploy
 
 `scripts/deploy.ts` builds and publishes `dist/` to the `gh-pages` branch. It reads the token from the environment or `.env`, and also accepts it as `MAPBOX_TOKEN` or `MAPBOX_ACCESS_TOKEN`. Plain `pnpm deploy` is a pnpm built-in and does not run the script.
 
+`pnpm build` writes a page for every route, each with its own title, description, and link preview tags. This lets GitHub Pages serve 200s for deep links rather than redirecting to `404.html`.
+
 ## Signed commits
 
 Commits are signed with SSH (`gpg.format=ssh`). If signing fails with `Couldn't find key in agent`, load the key that `user.signingkey` names, typically with `ssh-add ~/.ssh/id_ed25519_signing`.

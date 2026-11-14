@@ -32,7 +32,7 @@ export default defineConfig({
     globals: true,
     environment: "happy-dom",
     setupFiles: "./src/test/setup.ts",
-    include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    include: ["src/**/*.{test,spec}.{ts,tsx}", "scripts/**/*.test.ts"],
     exclude: ["playwright/**", "node_modules/**"],
     env: {
       VITE_MAPBOX_TOKEN: "test-token",
