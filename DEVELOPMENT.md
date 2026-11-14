@@ -24,7 +24,7 @@ With direnv, `direnv allow` puts the tools on `PATH` and loads `.env`; otherwise
 | `pnpm build`, `pnpm serve`               | Production build, and its preview on port 4421                         |
 | `pnpm check`                             | Every gate: peer check, lint, typecheck, spellcheck, unit tests, build |
 | `pnpm lint:fix`, `pnpm format`           | Apply Biome's safe fixes; format                                       |
-| `pnpm test`                              | Unit tests                                                             |
+| `pnpm test`, `pnpm test:coverage`        | Unit tests; with the coverage thresholds, as in `pnpm check`           |
 | `pnpm test:e2e`                          | Playwright specs except the visual suite                               |
 | `pnpm test:visual`, `test:visual:update` | Visual suite in Docker; regenerate its baselines                       |
 | `pnpm storybook`                         | Storybook on port 6006                                                 |

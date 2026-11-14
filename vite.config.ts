@@ -36,6 +36,26 @@ export default defineConfig({
     env: {
       VITE_MAPBOX_TOKEN: "test-token",
     },
+    coverage: {
+      provider: "v8",
+      // Components are left to the Playwright suites.
+      include: ["src/**/*.ts"],
+      exclude: [
+        "src/**/*.css.ts",
+        "src/**/*.d.ts",
+        "src/**/*.test.ts",
+        "src/test/**",
+      ],
+      reporter: ["text-summary"],
+      // Just under the current numbers, so coverage cannot fall unnoticed.
+      // Raise them as tests are added.
+      thresholds: {
+        statements: 39,
+        branches: 38,
+        functions: 50,
+        lines: 40,
+      },
+    },
   },
   build: {
     rolldownOptions: {

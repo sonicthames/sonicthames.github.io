@@ -80,7 +80,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm spellcheck
-      - run: pnpm test
+      - run: pnpm test:coverage
 
   build:
     name: Build
