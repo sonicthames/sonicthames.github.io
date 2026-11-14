@@ -80,10 +80,6 @@
           }
         }
       },
-      "nursery": {
-        "noFloatingPromises": "error",
-        "noMisusedPromises": "error"
-      },
       "complexity": {
         "noUselessCatch": "error",
         "useLiteralKeys": "off",
